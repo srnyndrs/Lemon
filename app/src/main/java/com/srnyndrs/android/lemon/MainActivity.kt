@@ -9,6 +9,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.ui.Modifier
+import androidx.navigation.compose.rememberNavController
+import com.srnyndrs.android.lemon.ui.navigation.AppNavigationGraph
 import com.srnyndrs.android.lemon.ui.theme.LemonTheme
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -22,9 +24,9 @@ class MainActivity : ComponentActivity() {
                 Scaffold(
                     modifier = Modifier.fillMaxSize()
                 ) { innerPadding ->
-                    Text(
+                    AppNavigationGraph(
                         modifier = Modifier.padding(innerPadding),
-                        text = "Hello World!"
+                        navController = rememberNavController()
                     )
                 }
             }
