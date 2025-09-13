@@ -34,7 +34,7 @@ import dagger.hilt.android.AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        //enableEdgeToEdge()
+        enableEdgeToEdge()
         setContent {
 
             val navController = rememberNavController()
@@ -43,7 +43,7 @@ class MainActivity : ComponentActivity() {
 
             LaunchedEffect(sessionStatus) {
                 // Auto-login
-                if (sessionStatus == SessionStatus.Authenticated) {
+                if (sessionStatus is SessionStatus.Authenticated) {
                     navController.navigate("main") {
                         popUpTo("auth") {
                             inclusive = true
@@ -54,7 +54,8 @@ class MainActivity : ComponentActivity() {
 
             LemonTheme {
                 Scaffold(
-                    modifier = Modifier.fillMaxSize().padding(top = 26.dp),
+                    modifier = Modifier.fillMaxSize(),
+                    /*
                     topBar = {
                         Row(
                             modifier = Modifier.fillMaxWidth().requiredHeight(56.dp),
@@ -91,10 +92,15 @@ class MainActivity : ComponentActivity() {
                             }
                         }
                     }
+                    */
                 ) { innerPadding ->
                     AppNavigationGraph(
                         modifier = Modifier.padding(innerPadding),
-                        navController = navController
+                        navController = navController,
+                        sessionStatus = sessionStatus,
+                        onLogout = {
+                            sessionViewModel.logout()
+                        }
                     )
                 }
             }

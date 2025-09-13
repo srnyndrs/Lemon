@@ -17,7 +17,7 @@ class SupabaseSessionManager @Inject constructor(
             client.auth.sessionStatus.collect {
                 when(it) {
                     is SessionStatus.Authenticated -> {
-                        emit(com.srnyndrs.android.lemon.domain.authentication.model.SessionStatus.Authenticated)
+                        emit(com.srnyndrs.android.lemon.domain.authentication.model.SessionStatus.Authenticated(it.session))
                     }
                     is SessionStatus.NotAuthenticated -> {
                         emit(com.srnyndrs.android.lemon.domain.authentication.model.SessionStatus.Unauthenticated)

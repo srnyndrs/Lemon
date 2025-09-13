@@ -24,6 +24,11 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import com.srnyndrs.android.lemon.ui.theme.LemonTheme
+import compose.icons.FeatherIcons
+import compose.icons.feathericons.Eye
+import compose.icons.feathericons.EyeOff
+import compose.icons.feathericons.Key
+import compose.icons.feathericons.Lock
 
 @Composable
 fun PasswordTextField(
@@ -52,8 +57,8 @@ fun PasswordTextField(
         },
         leadingIcon = {
             Icon(
-                modifier = Modifier.size(16.dp),
-                imageVector = Icons.Default.Lock,
+                modifier = Modifier.size(20.dp),
+                imageVector = FeatherIcons.Lock, // Icons.Default.Lock
                 contentDescription = null
             )
         },
@@ -62,8 +67,8 @@ fun PasswordTextField(
                 onClick = { hidePassword = !hidePassword }
             ) {
                 Icon(
-                    modifier = Modifier.size(16.dp),
-                    imageVector = if(hidePassword) Icons.Default.Close else Icons.Default.Check,
+                    modifier = Modifier.size(20.dp),
+                    imageVector = if(hidePassword) FeatherIcons.EyeOff else FeatherIcons.Eye,
                     contentDescription = null
                 )
             }
@@ -78,7 +83,7 @@ fun PasswordTextFieldPreview() {
     LemonTheme {
         Surface {
             PasswordTextField(
-                value = "123",
+                value = "123abc123",
                 title = "Password"
             ) { }
         }

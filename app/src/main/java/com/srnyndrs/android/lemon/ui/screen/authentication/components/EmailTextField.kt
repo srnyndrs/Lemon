@@ -18,6 +18,8 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import com.srnyndrs.android.lemon.ui.theme.LemonTheme
+import compose.icons.FeatherIcons
+import compose.icons.feathericons.Mail
 
 @Composable
 fun EmailTextField(
@@ -39,8 +41,8 @@ fun EmailTextField(
         },
         leadingIcon = {
            Icon(
-               modifier = Modifier.size(16.dp),
-               imageVector = Icons.Default.Email,
+               modifier = Modifier.size(20.dp),
+               imageVector = FeatherIcons.Mail,
                contentDescription = null
            )
         },

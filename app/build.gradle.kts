@@ -73,6 +73,8 @@ dependencies {
     implementation(libs.supabase.auth.kt)
     implementation(libs.storage.kt)
     implementation(libs.compose.auth.ui)
+    // Icons
+    implementation(libs.feather)
     // Test
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

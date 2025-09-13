@@ -45,8 +45,8 @@ fun RegisterForm(
     ) {
         // Title
         Text(
-            text = "Sign up",
-            style = MaterialTheme.typography.titleLarge
+            text = "Create an account",
+            style = MaterialTheme.typography.headlineMedium
         )
         // Form
         Column(
@@ -56,14 +56,14 @@ fun RegisterForm(
         ) {
             // Email field
             EmailTextField(
-                modifier = Modifier.fillMaxWidth(0.8f),
+                modifier = Modifier.fillMaxWidth(),
                 value = emailValue
             ) { newValue ->
                 emailValue = newValue
             }
             // Password field
             PasswordTextField(
-                modifier = Modifier.fillMaxWidth(0.8f),
+                modifier = Modifier.fillMaxWidth(),
                 title = "Password",
                 value = passwordValue
             ) { newValue ->
@@ -71,7 +71,7 @@ fun RegisterForm(
             }
             // Password check field
             PasswordTextField(
-                modifier = Modifier.fillMaxWidth(0.8f),
+                modifier = Modifier.fillMaxWidth(),
                 title = "Confirm Password",
                 value = password2Value
             ) { newValue ->
@@ -81,7 +81,7 @@ fun RegisterForm(
         //
         Button(
             modifier = Modifier
-                .fillMaxWidth(0.8f)
+                .fillMaxWidth()
                 .requiredHeight(48.dp),
             shape = RoundedCornerShape(6.dp),
             onClick = {

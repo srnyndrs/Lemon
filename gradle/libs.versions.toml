@@ -1,5 +1,6 @@
 [versions]
 agp = "8.5.2"
+feather = "1.1.1"
 kotlin = "2.0.0"
 coreKtx = "1.15.0"
 junit = "4.13.2"
@@ -18,6 +19,7 @@ kotlinxSerializationJson = "1.6.3"
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 androidx-hilt-navigation-compose = { module = "androidx.hilt:hilt-navigation-compose", version.ref = "hiltNavigationCompose" }
 compose-auth-ui = { module = "io.github.jan-tennert.supabase:compose-auth-ui", version = "3.0.0" }
+feather = { module = "br.com.devsrsouza.compose.icons:feather", version.ref = "feather" }
 storage-kt = { module = "io.github.jan-tennert.supabase:storage-kt", version = "3.0.0" }
 supabase-auth-kt = { module = "io.github.jan-tennert.supabase:auth-kt" }
 supabase-postgrest-kt = { module = "io.github.jan-tennert.supabase:postgrest-kt", version = "3.0.0" }

@@ -42,8 +42,8 @@ fun LoginForm(
     ) {
         // Title
         Text(
-            text = "Log in",
-            style = MaterialTheme.typography.titleLarge
+            text = "Log in to your account",
+            style = MaterialTheme.typography.headlineMedium
         )
         // Form
         Column(
@@ -53,14 +53,14 @@ fun LoginForm(
         ) {
             // Email field
             EmailTextField(
-                modifier = Modifier.fillMaxWidth(0.8f),
+                modifier = Modifier.fillMaxWidth(),
                 value = emailValue
             ) { newValue ->
                 emailValue = newValue
             }
             // Password field
             PasswordTextField(
-                modifier = Modifier.fillMaxWidth(0.8f),
+                modifier = Modifier.fillMaxWidth(),
                 title = "Password",
                 value = passwordValue
             ) { newValue ->
@@ -70,7 +70,7 @@ fun LoginForm(
         // Submit Button
         Button(
             modifier = Modifier
-                .fillMaxWidth(0.8f)
+                .fillMaxWidth()
                 .requiredHeight(48.dp),
             shape = RoundedCornerShape(6.dp),
             onClick = {
