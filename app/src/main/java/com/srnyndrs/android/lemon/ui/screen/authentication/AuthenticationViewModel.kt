@@ -20,9 +20,9 @@ class AuthenticationViewModel @Inject constructor(
     private val _authState = MutableStateFlow<UiState<Unit>>(UiState.Empty())
     val authState = _authState.asStateFlow()
 
-    private fun processAuthentication(method: suspend () -> Result<Unit>) = viewModelScope.launch {
+    private fun processAuthentication(authMethod: suspend () -> Result<Unit>) = viewModelScope.launch {
         _authState.value = UiState.Loading()
-        method().fold(
+        authMethod().fold(
             onSuccess = {
                 _authState.value = UiState.Success(it)
             },
@@ -35,10 +35,10 @@ class AuthenticationViewModel @Inject constructor(
     fun onEvent(event: AuthenticationEvent) {
         when (event) {
             is AuthenticationEvent.OnLoginClick -> {
-                processAuthentication { loginUseCase(event.username, event.password) }
+                processAuthentication { loginUseCase(event.email, event.password) }
             }
             is AuthenticationEvent.OnRegisterClick -> {
-                processAuthentication { registerUseCase(event.username, event.password, event.email) }
+                processAuthentication { registerUseCase(event.email, event.password) }
             }
         }
     }

@@ -1,16 +1,35 @@
 package com.srnyndrs.android.lemon.data.service
 
 import com.srnyndrs.android.lemon.domain.authentication.AuthenticationService
-import kotlinx.coroutines.delay
+import io.github.jan.supabase.SupabaseClient
+import io.github.jan.supabase.auth.auth
+import io.github.jan.supabase.auth.providers.builtin.Email
+import javax.inject.Inject
 
-class SupabaseAuthenticationService: AuthenticationService {
-    override suspend fun login(username: String, password: String): Result<Unit> {
-        delay(5000)
-        return Result.success(Unit)
+class SupabaseAuthenticationService @Inject constructor(
+    private val client: SupabaseClient
+): AuthenticationService {
+    override suspend fun loginWithEmail(email: String, password: String): Result<Unit> {
+        return try {
+            client.auth.signInWith(Email) {
+                this.email = email
+                this.password = password
+            }
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
     }
 
-    override suspend fun register(username: String, password: String, email: String): Result<Unit> {
-        delay(5000)
-        return Result.success(Unit)
+    override suspend fun registerWithEmail(email: String, password: String): Result<Unit> {
+        return try {
+            client.auth.signUpWith(Email) {
+                this.email = email
+                this.password = password
+            }
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
     }
 }

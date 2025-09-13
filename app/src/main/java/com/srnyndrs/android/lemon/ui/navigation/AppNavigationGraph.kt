@@ -33,13 +33,6 @@ fun AppNavigationGraph(
                 authenticationState = authenticationState,
                 onEvent = { event ->
                     authenticationViewModel.onEvent(event)
-                },
-                onSuccess = {
-                    navController.navigate("main") {
-                        popUpTo("auth") {
-                            inclusive = true
-                        }
-                    }
                 }
             )
         }

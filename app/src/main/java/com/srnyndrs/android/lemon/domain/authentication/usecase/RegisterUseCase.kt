@@ -6,11 +6,7 @@ import javax.inject.Inject
 class RegisterUseCase @Inject constructor(
     private val authenticationService: AuthenticationService
 ) {
-    suspend operator fun invoke(username: String, password: String, email: String): Result<Unit> {
-        return runCatching {
-            authenticationService.register(username, password, email)
-        }.getOrElse {
-            Result.failure(it)
-        }
+    suspend operator fun invoke(email: String, password: String): Result<Unit> {
+        return authenticationService.registerWithEmail(email, password)
     }
 }
