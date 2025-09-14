@@ -19,6 +19,8 @@ import androidx.navigation.compose.composable
 import com.srnyndrs.android.lemon.domain.authentication.model.SessionStatus
 import com.srnyndrs.android.lemon.ui.screen.authentication.AuthenticationScreen
 import com.srnyndrs.android.lemon.ui.screen.authentication.AuthenticationViewModel
+import com.srnyndrs.android.lemon.ui.screen.main.MainScreen
+import com.srnyndrs.android.lemon.ui.screen.main.components.PieChartDiagram
 
 @Composable
 fun AppNavigationGraph(
@@ -48,35 +50,25 @@ fun AppNavigationGraph(
         composable(
             route = "main"
         ) {
-            Column(
+
+            val email = when(sessionStatus) {
+                is SessionStatus.Authenticated -> sessionStatus.userSession.user?.email
+                else -> null
+            }
+
+            MainScreen(
                 modifier = Modifier.fillMaxSize(),
-                verticalArrangement = Arrangement.spacedBy(12.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                val email = when(sessionStatus) {
-                    is SessionStatus.Authenticated -> sessionStatus.userSession.user?.email
-                    else -> null
-                }
-                Text(
-                    modifier = Modifier,
-                    text = "Welcome ${email}!"
-                )
-                Button(
-                    shape = RoundedCornerShape(8.dp),
-                    onClick = {
-                        onLogout()
-                        navController.navigate("auth") {
-                            popUpTo("main") {
-                                inclusive = true
-                            }
+                email = email,
+                sessionStatus = sessionStatus,
+                onLogout = {
+                    onLogout()
+                    navController.navigate("auth") {
+                        popUpTo("main") {
+                            inclusive = true
                         }
                     }
-                ) {
-                    Text(
-                        text = "Log Out"
-                    )
                 }
-            }
+            )
         }
     }
 }

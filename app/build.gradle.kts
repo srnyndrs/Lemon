@@ -75,6 +75,8 @@ dependencies {
     implementation(libs.compose.auth.ui)
     // Icons
     implementation(libs.feather)
+    // Charts
+    implementation ("io.github.ehsannarmani:compose-charts:0.1.0")
     // Test
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
