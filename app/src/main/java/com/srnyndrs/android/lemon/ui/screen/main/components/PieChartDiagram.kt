@@ -44,9 +44,9 @@ fun PieChartDiagram(
         modifier = Modifier.size(200.dp),
         data = data,
         onPieClick = {
-            println("${it.label} Clicked")
+            /*println("${it.label} Clicked")
             val pieIndex = data.indexOf(it)
-            data = data.mapIndexed { mapIndex, pie -> pie.copy(selected = pieIndex == mapIndex) }
+            data = data.mapIndexed { mapIndex, pie -> pie.copy(selected = pieIndex == mapIndex) }*/
         },
         selectedScale = 1.2f,
         scaleAnimEnterSpec = spring(

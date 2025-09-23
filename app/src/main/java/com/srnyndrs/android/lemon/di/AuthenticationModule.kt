@@ -1,7 +1,7 @@
 package com.srnyndrs.android.lemon.di
 
 import com.srnyndrs.android.lemon.data.authentication.SupabaseSessionManager
-import com.srnyndrs.android.lemon.data.service.SupabaseAuthenticationService
+import com.srnyndrs.android.lemon.data.authentication.SupabaseAuthenticationService
 import com.srnyndrs.android.lemon.domain.authentication.AuthenticationService
 import com.srnyndrs.android.lemon.domain.authentication.SessionManager
 import dagger.Module

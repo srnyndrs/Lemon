@@ -1,17 +1,10 @@
 package com.srnyndrs.android.lemon.ui.navigation
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Button
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -20,7 +13,7 @@ import com.srnyndrs.android.lemon.domain.authentication.model.SessionStatus
 import com.srnyndrs.android.lemon.ui.screen.authentication.AuthenticationScreen
 import com.srnyndrs.android.lemon.ui.screen.authentication.AuthenticationViewModel
 import com.srnyndrs.android.lemon.ui.screen.main.MainScreen
-import com.srnyndrs.android.lemon.ui.screen.main.components.PieChartDiagram
+import com.srnyndrs.android.lemon.ui.screen.main.MainViewModel
 
 @Composable
 fun AppNavigationGraph(
@@ -51,15 +44,26 @@ fun AppNavigationGraph(
             route = "main"
         ) {
 
+            val userId = when(sessionStatus) {
+                is SessionStatus.Authenticated -> sessionStatus.userSession.user?.id ?: ""
+                else -> ""
+            }
+
+            val mainViewModel = hiltViewModel<MainViewModel, MainViewModel.MainViewModelFactory>(
+                creationCallback = { factory -> factory.create(userId = userId) }
+            )
+
             val email = when(sessionStatus) {
                 is SessionStatus.Authenticated -> sessionStatus.userSession.user?.email
                 else -> null
             }
 
+            val user by mainViewModel.user.collectAsState()
+
             MainScreen(
                 modifier = Modifier.fillMaxSize(),
+                user = user,
                 email = email,
-                sessionStatus = sessionStatus,
                 onLogout = {
                     onLogout()
                     navController.navigate("auth") {
