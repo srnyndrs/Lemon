@@ -3,25 +3,39 @@ package com.srnyndrs.android.lemon.ui.screen.main
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.Orientation
+import androidx.compose.foundation.gestures.scrollable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredHeight
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -31,11 +45,17 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import com.srnyndrs.android.lemon.domain.database.model.User
+import com.srnyndrs.android.lemon.ui.components.transaction.Transaction
+import com.srnyndrs.android.lemon.ui.components.transaction.TransactionRow
+import com.srnyndrs.android.lemon.ui.components.transaction.TransactionType
 import com.srnyndrs.android.lemon.ui.screen.main.components.PieChartDiagram
 import com.srnyndrs.android.lemon.ui.theme.LemonTheme
 import com.srnyndrs.android.lemon.ui.utils.UiState
 import compose.icons.FeatherIcons
 import compose.icons.feathericons.Code
+import compose.icons.feathericons.Eye
+import compose.icons.feathericons.EyeOff
+import compose.icons.feathericons.Plus
 import compose.icons.feathericons.User
 
 @Composable
@@ -45,21 +65,25 @@ fun MainScreen(
     email: String?,
     onLogout: () -> Unit
 ) {
+
+    var privacyMode by rememberSaveable { mutableStateOf(true) }
+
     Scaffold(
         modifier = Modifier.then(modifier),
     ) { innerPadding ->
         Column(
-            modifier = Modifier.fillMaxSize().padding(innerPadding),
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding),
             verticalArrangement = Arrangement.spacedBy(12.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .requiredHeight(56.dp)
                     .padding(12.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Box(
@@ -78,7 +102,7 @@ fun MainScreen(
                         contentDescription = null,
                     )
                 }
-                Row(
+                /*Row(
                     modifier = Modifier
                         .clip(RoundedCornerShape(8.dp))
                         .background(Color.Gray.copy(0.2f), RoundedCornerShape(8.dp))
@@ -99,6 +123,18 @@ fun MainScreen(
                             .rotate(90f),
                         imageVector = FeatherIcons.Code,
                         contentDescription = null,
+                    )
+                }*/
+                IconButton(
+                    modifier = Modifier.size(24.dp),
+                    onClick = {
+                        privacyMode = !privacyMode
+                        // TODO: authentication
+                    }
+                ) {
+                    Icon(
+                        imageVector = if(privacyMode) FeatherIcons.EyeOff else FeatherIcons.Eye,
+                        contentDescription = null
                     )
                 }
             }
@@ -130,32 +166,135 @@ fun MainScreen(
                 text = "Welcome ${email}!"
             )
 
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .requiredHeight(256.dp)
-                    .padding(6.dp),
-                shape = RoundedCornerShape(8.dp),
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                Row (
+                Card(
                     modifier = Modifier
-                        .fillMaxSize()
+                        .fillMaxWidth()
+                        .requiredHeight(256.dp)
                         .padding(6.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
+                    shape = RoundedCornerShape(8.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.onSurface.copy(0.05f)
+                    )
                 ) {
-                    PieChartDiagram()
-                    Text("1200 Ft")
+                    Row (
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(6.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        PieChartDiagram()
+                        Column(
+                            modifier = Modifier.fillMaxSize().padding(12.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center
+                        ) {
+                            Text(
+                                text = "Private household",
+                                style = MaterialTheme.typography.titleMedium
+                            )
+                            Spacer(
+                                modifier = Modifier.requiredHeight(12.dp)
+                            )
+                            Text(
+                                text = "1200 Ft",
+                                style = MaterialTheme.typography.titleLarge
+                            )
+                            HorizontalDivider(
+                                modifier = Modifier.padding(horizontal = 24.dp),
+                                thickness = 2.dp
+                            )
+                        }
+                    }
+                }
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(3.dp)
+                ) {
+                    repeat(3) { index ->
+                        val color = if (index > 0) MaterialTheme.colorScheme.onSurface else Color.Gray
+                        Box(
+                            modifier = Modifier
+                                .size(6.dp)
+                                .clip(CircleShape)
+                                .background(color)
+                        )
+                    }
                 }
             }
 
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(12.dp),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    .padding(
+                        vertical = 6.dp,
+                        horizontal = 12.dp
+                    ),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
             ) {
+                TextButton(
+                    onClick = {},
+                    colors = ButtonDefaults.textButtonColors(
+                        containerColor = MaterialTheme.colorScheme.onSurface.copy(0.05f)
+                    )
+                ) {
+                    Icon(
+                        modifier = Modifier.size(16.dp),
+                        imageVector = FeatherIcons.Plus,
+                        contentDescription = null
+                    )
+                    Text(text = "Add transaction")
+                }
+                TextButton(
+                    onClick = {},
+                    colors = ButtonDefaults.textButtonColors(
+                        containerColor = MaterialTheme.colorScheme.onSurface.copy(0.05f)
+                    )
+                ) {
+                    Icon(
+                        modifier = Modifier.size(16.dp),
+                        imageVector = FeatherIcons.Plus,
+                        contentDescription = null
+                    )
+                    Text(text = "Add category")
+                }
+            }
 
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp))
+                    .background(MaterialTheme.colorScheme.onSurface.copy(0.01f))
+                    .padding(12.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Text(
+                    text = "Transactions",
+                    style = MaterialTheme.typography.headlineSmall
+                )
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize(),
+                    verticalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
+                    items(4) { index ->
+                        TransactionRow(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 8.dp),
+                            transaction = Transaction(
+                                id = "$index",
+                                name = "Transaction ${index + 1}",
+                                transactionType = if(index % 2 == 0) TransactionType.EXPENSE else TransactionType.INCOME,
+                                amount = (index + 1) * 2530
+                            )
+                        ) { }
+                    }
+                }
             }
 
             /*Button(

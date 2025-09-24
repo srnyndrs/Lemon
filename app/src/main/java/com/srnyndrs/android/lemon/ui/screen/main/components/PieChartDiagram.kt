@@ -57,7 +57,7 @@ fun PieChartDiagram(
         colorAnimExitSpec = tween(300),
         scaleAnimExitSpec = tween(300),
         spaceDegreeAnimExitSpec = tween(300),
-        spaceDegree = 4f,
+        spaceDegree = 0f,
         selectedPaddingDegree = 12f,
         style = Pie.Style.Stroke(width = 32.dp)
     )
