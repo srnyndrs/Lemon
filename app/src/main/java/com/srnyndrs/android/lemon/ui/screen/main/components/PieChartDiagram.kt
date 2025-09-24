@@ -41,7 +41,7 @@ fun PieChartDiagram(
     }
 
     PieChart(
-        modifier = Modifier.size(200.dp),
+        modifier = Modifier.then(modifier),
         data = data,
         onPieClick = {
             /*println("${it.label} Clicked")

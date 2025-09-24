@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredHeight
+import androidx.compose.foundation.layout.requiredWidth
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.rememberScrollState
@@ -26,7 +27,9 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ProgressIndicatorDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -45,6 +48,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import com.srnyndrs.android.lemon.domain.database.model.User
+import com.srnyndrs.android.lemon.ui.components.ActionButton
 import com.srnyndrs.android.lemon.ui.components.transaction.Transaction
 import com.srnyndrs.android.lemon.ui.components.transaction.TransactionRow
 import com.srnyndrs.android.lemon.ui.components.transaction.TransactionType
@@ -52,6 +56,7 @@ import com.srnyndrs.android.lemon.ui.screen.main.components.PieChartDiagram
 import com.srnyndrs.android.lemon.ui.theme.LemonTheme
 import com.srnyndrs.android.lemon.ui.utils.UiState
 import compose.icons.FeatherIcons
+import compose.icons.feathericons.Camera
 import compose.icons.feathericons.Code
 import compose.icons.feathericons.Eye
 import compose.icons.feathericons.EyeOff
@@ -101,7 +106,10 @@ fun MainScreen(
                         imageVector = FeatherIcons.User,
                         contentDescription = null,
                     )
+
                 }
+                // Username
+                Text(text = "Lemon")
                 /*Row(
                     modifier = Modifier
                         .clip(RoundedCornerShape(8.dp))
@@ -161,10 +169,21 @@ fun MainScreen(
                 is UiState.Empty -> {}
             }
 
-            Text(
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Start
+            ) {
+                Text(
+                    text = "Monthly Overview",
+                    style = MaterialTheme.typography.headlineSmall
+                )
+            }
+
+            /*Text(
                 modifier = Modifier,
                 text = "Welcome ${email}!"
-            )
+            )*/
 
             Column(
                 modifier = Modifier.fillMaxWidth(),
@@ -188,11 +207,13 @@ fun MainScreen(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
-                        PieChartDiagram()
+                        PieChartDiagram(
+                            modifier = Modifier.size(128.dp)
+                        )
                         Column(
                             modifier = Modifier.fillMaxSize().padding(12.dp),
                             horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.Center
+                            verticalArrangement = Arrangement.Top
                         ) {
                             Text(
                                 text = "Private household",
@@ -205,9 +226,19 @@ fun MainScreen(
                                 text = "1200 Ft",
                                 style = MaterialTheme.typography.titleLarge
                             )
-                            HorizontalDivider(
-                                modifier = Modifier.padding(horizontal = 24.dp),
-                                thickness = 2.dp
+                            LinearProgressIndicator(
+                                progress = {
+                                    // TODO: calculate from transactions
+                                    0.6f
+                                },
+                                modifier = Modifier
+                                        .fillMaxWidth(0.75f)
+                                        .padding(vertical = 6.dp),
+                                color = Color.Red,
+                                trackColor = Color.Green,
+                                strokeCap = ProgressIndicatorDefaults.LinearStrokeCap,
+                                gapSize = 0.dp,
+                                drawStopIndicator = {}
                             )
                         }
                     }
@@ -230,14 +261,21 @@ fun MainScreen(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(
-                        vertical = 6.dp,
-                        horizontal = 12.dp
-                    ),
-                horizontalArrangement = Arrangement.SpaceBetween,
+                    .padding(6.dp),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                TextButton(
+                ActionButton(
+                    title = "Add new",
+                    icon = FeatherIcons.Plus,
+                    onClick = {}
+                )
+                ActionButton(
+                    title = "Scan Receipt",
+                    icon = FeatherIcons.Camera,
+                    onClick = {}
+                )
+                /*TextButton(
                     onClick = {},
                     colors = ButtonDefaults.textButtonColors(
                         containerColor = MaterialTheme.colorScheme.onSurface.copy(0.05f)
@@ -261,22 +299,38 @@ fun MainScreen(
                         imageVector = FeatherIcons.Plus,
                         contentDescription = null
                     )
-                    Text(text = "Add category")
-                }
+                    Text(text = "Scan from receipt")
+                }*/
             }
 
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
                     .clip(RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp))
-                    .background(MaterialTheme.colorScheme.onSurface.copy(0.01f))
+                    .background(MaterialTheme.colorScheme.onSurface.copy(0.1f))
                     .padding(12.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                Text(
-                    text = "Transactions",
-                    style = MaterialTheme.typography.headlineSmall
-                )
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "Transactions",
+                        style = MaterialTheme.typography.headlineSmall
+                    )
+                    TextButton(
+                        onClick = {
+                            // TODO: Navigate to all transactions
+                        }
+                    ) {
+                        Text(
+                            text = "See all",
+                            style = MaterialTheme.typography.labelMedium
+                        )
+                    }
+                }
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
                     verticalArrangement = Arrangement.spacedBy(6.dp)

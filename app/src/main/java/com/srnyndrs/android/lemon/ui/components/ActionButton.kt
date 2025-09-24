@@ -3,8 +3,11 @@ package com.srnyndrs.android.lemon.ui.components
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -20,6 +23,7 @@ import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import com.srnyndrs.android.lemon.ui.theme.LemonTheme
 import compose.icons.FeatherIcons
+import compose.icons.feathericons.Camera
 import compose.icons.feathericons.Plus
 
 @Composable
@@ -38,19 +42,23 @@ fun ActionButton(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(3.dp)
     ) {
-        Icon(
+        Box(
             modifier = Modifier
-                .size(32.dp)
+                .size(36.dp)
                 .clip(CircleShape)
-                .background(MaterialTheme.colorScheme.onSurface.copy(0.7f), CircleShape)
-            ,
-            imageVector = icon,
-            tint = MaterialTheme.colorScheme.surface,
-            contentDescription = "$title button",
-        )
+                .background(MaterialTheme.colorScheme.onSurface.copy(0.2f), CircleShape),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                modifier = Modifier.fillMaxSize(0.6f),
+                imageVector = icon,
+                tint = MaterialTheme.colorScheme.surface,
+                contentDescription = "$title button",
+            )
+        }
         Text(
             text = title,
-            style = MaterialTheme.typography.bodyMedium
+            style = MaterialTheme.typography.bodySmall
         )
     }
 }
@@ -61,9 +69,9 @@ fun ActionButtonPreview() {
     LemonTheme {
         Surface {
             ActionButton(
-                //modifier = Modifier.size(56.dp),
+                modifier = Modifier,
                 title = "Add Transaction",
-                icon = FeatherIcons.Plus,
+                icon = FeatherIcons.Camera,
                 onClick = {}
             )
         }

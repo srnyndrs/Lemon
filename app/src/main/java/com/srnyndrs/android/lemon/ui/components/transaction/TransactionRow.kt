@@ -4,6 +4,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -76,10 +77,19 @@ fun TransactionRow(
                     contentDescription = null
                 )
             }
-            Text(
-                text = transaction.name,
-                style = MaterialTheme.typography.titleMedium
-            )
+            Column(
+                verticalArrangement = Arrangement.spacedBy(2.dp)
+            ) {
+                Text(
+                    text = transaction.name,
+                    style = MaterialTheme.typography.titleMedium
+                )
+                Text(
+                    text = "Jan 1, 2024", // TODO: date
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurface.copy(0.7f)
+                )
+            }
         }
         Row(
             verticalAlignment = Alignment.CenterVertically,
@@ -93,7 +103,7 @@ fun TransactionRow(
                 contentDescription = null
             )
             Text(
-                text = "${transaction.amount}",
+                text = "${transaction.amount} Ft",
                 //color = if(isExpense) Color.Red else Color.Green,
                 fontWeight = FontWeight.Bold
             )
