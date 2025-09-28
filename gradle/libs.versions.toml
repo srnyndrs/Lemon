@@ -14,10 +14,12 @@ ktor = "3.0.0"
 hilt = "2.50"
 hiltNavigationCompose = "1.2.0"
 kotlinxSerializationJson = "1.6.3"
+uiTextGoogleFonts = "1.8.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 androidx-hilt-navigation-compose = { module = "androidx.hilt:hilt-navigation-compose", version.ref = "hiltNavigationCompose" }
+androidx-ui-text-google-fonts = { module = "androidx.compose.ui:ui-text-google-fonts", version.ref = "uiTextGoogleFonts" }
 compose-auth-ui = { module = "io.github.jan-tennert.supabase:compose-auth-ui", version = "3.0.0" }
 feather = { module = "br.com.devsrsouza.compose.icons:feather", version.ref = "feather" }
 storage-kt = { module = "io.github.jan-tennert.supabase:storage-kt", version = "3.0.0" }
