@@ -25,7 +25,7 @@
 - [ ] Category limits management
 - [ ] Saving goals module
 - [ ] Weekly/monthly contribution calculations
-- [ ] Recurring e penses management
+- [ ] Recurring expenses management
 - [ ] Automatic transaction reminders
 - [ ] Receipt scan (OCR) for transaction auto-fill
 
