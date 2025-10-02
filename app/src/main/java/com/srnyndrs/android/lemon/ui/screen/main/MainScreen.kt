@@ -1,5 +1,7 @@
 package com.srnyndrs.android.lemon.ui.screen.main
 
+import androidx.compose.animation.Animatable
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -35,8 +37,10 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -70,6 +74,19 @@ fun MainScreen(
     email: String?,
     onLogout: () -> Unit
 ) {
+
+    val color = remember { Animatable(Color.Gray) }
+
+    LaunchedEffect(Unit) {
+        while(true) {
+            color.animateTo(Color.Red, animationSpec = tween(10000))
+            color.animateTo(Color.Green, animationSpec = tween(10000))
+            color.animateTo(Color.Blue, animationSpec = tween(10000))
+            color.animateTo(Color.Yellow, animationSpec = tween(10000))
+            color.animateTo(Color.Magenta, animationSpec = tween(10000))
+            color.animateTo(Color.Cyan, animationSpec = tween(10000))
+        }
+    }
 
     var privacyMode by rememberSaveable { mutableStateOf(true) }
 
@@ -197,7 +214,8 @@ fun MainScreen(
                         .padding(6.dp),
                     shape = RoundedCornerShape(8.dp),
                     colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.onSurface.copy(0.05f)
+                        containerColor = color.value.copy(0.5f),
+                        contentColor = MaterialTheme.colorScheme.onPrimaryContainer
                     )
                 ) {
                     Row (

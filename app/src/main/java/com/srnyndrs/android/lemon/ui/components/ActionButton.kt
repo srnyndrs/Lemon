@@ -10,6 +10,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -35,19 +37,21 @@ fun ActionButton(
 ) {
 
     Column(
-        modifier = Modifier.then(modifier)
-            .clickable {
-                onClick()
-            },
+        modifier = Modifier.then(modifier),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(3.dp)
+        verticalArrangement = Arrangement.spacedBy(6.dp)
     ) {
-        Box(
+        IconButton(
             modifier = Modifier
-                .size(36.dp)
-                .clip(CircleShape)
-                .background(MaterialTheme.colorScheme.onSurface.copy(0.2f), CircleShape),
-            contentAlignment = Alignment.Center
+                .size(42.dp)
+                .clip(CircleShape),
+            colors = IconButtonDefaults.iconButtonColors(
+                containerColor = MaterialTheme.colorScheme.onSurface.copy(0.2f),
+                contentColor = MaterialTheme.colorScheme.surface
+            ),
+            onClick = {
+                onClick()
+            }
         ) {
             Icon(
                 modifier = Modifier.fillMaxSize(0.6f),

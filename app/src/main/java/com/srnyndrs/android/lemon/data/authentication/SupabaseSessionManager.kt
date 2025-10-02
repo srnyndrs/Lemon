@@ -32,7 +32,7 @@ class SupabaseSessionManager @Inject constructor(
 
     override suspend fun logout(): Result<Unit> {
         return try {
-            client.auth.signOut(SignOutScope.GLOBAL)
+            client.auth.signOut(SignOutScope.LOCAL)
             Result.success(Unit)
         } catch (e: Exception) {
             Result.failure(e)
