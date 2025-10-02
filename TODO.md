@@ -15,7 +15,7 @@
 - [ ] Membership management
 - [ ] Payment methods UI + integration
 - [ ] Create payment methods
-- [ ] Record transaction (e pense/income)
+- [ ] Record transaction (expense/income)
 - [ ] Transaction list and basic filtering
 
 ## Interactive Features and Refinements
