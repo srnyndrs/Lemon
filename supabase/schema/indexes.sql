@@ -1,0 +1,19 @@
+
+CREATE INDEX IF NOT EXISTS idx_household_members_household_id ON public.household_members(household_id);
+CREATE INDEX IF NOT EXISTS idx_household_members_user_id ON public.household_members(user_id);
+CREATE INDEX IF NOT EXISTS idx_payment_method_shares_payment_method_id ON public.payment_method_shares(payment_method_id);
+CREATE INDEX IF NOT EXISTS idx_payment_method_shares_user_id ON public.payment_method_shares(user_id);
+CREATE INDEX IF NOT EXISTS idx_transactions_household_id ON public.transactions(household_id);
+CREATE INDEX IF NOT EXISTS idx_transactions_user_id ON public.transactions(user_id);
+CREATE INDEX IF NOT EXISTS idx_transactions_payment_method_id ON public.transactions(payment_method_id);
+CREATE INDEX IF NOT EXISTS idx_household_payment_methods_household_id ON public.household_payment_methods(household_id);
+CREATE INDEX IF NOT EXISTS idx_household_payment_methods_payment_method_id ON public.household_payment_methods(payment_method_id);
+CREATE INDEX IF NOT EXISTS idx_categories_household_id ON public.categories(household_id);
+CREATE INDEX IF NOT EXISTS idx_transactions_category_id ON public.transactions(category_id);
+CREATE INDEX IF NOT EXISTS idx_transactions_recurring_payment_id ON public.transactions(recurring_payment_id);
+CREATE INDEX IF NOT EXISTS idx_transactions_transaction_date ON public.transactions(transaction_date);
+CREATE INDEX IF NOT EXISTS idx_recurring_payments_household_id ON public.recurring_payments(household_id);
+CREATE INDEX IF NOT EXISTS idx_recurring_payments_user_id ON public.recurring_payments(user_id);
+CREATE INDEX IF NOT EXISTS idx_recurring_payments_category_id ON public.recurring_payments(category_id);
+CREATE INDEX IF NOT EXISTS idx_recurring_payments_next_due_date ON public.recurring_payments(next_due_date);
+CREATE INDEX IF NOT EXISTS idx_recurring_payments_is_active ON public.recurring_payments(is_active);
