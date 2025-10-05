@@ -1,13 +1,10 @@
 package com.srnyndrs.android.lemon.ui.screen.main
 
-import android.annotation.SuppressLint
 import androidx.compose.animation.Animatable
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.Orientation
-import androidx.compose.foundation.gestures.scrollable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -20,19 +17,14 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredHeight
-import androidx.compose.foundation.layout.requiredWidth
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
@@ -49,6 +41,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -56,13 +49,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
-import com.srnyndrs.android.lemon.domain.database.model.User
+import androidx.navigation.compose.rememberNavController
 import com.srnyndrs.android.lemon.domain.database.model.UserMainData
 import com.srnyndrs.android.lemon.ui.components.ActionButton
 import com.srnyndrs.android.lemon.ui.components.transaction.Transaction
@@ -104,8 +95,16 @@ fun MainScreen(
 
     var privacyMode by rememberSaveable { mutableStateOf(true) }
     var isExpanded by remember { mutableStateOf(false) }
+    var selectedMenuItem by rememberSaveable { mutableIntStateOf(0) }
+    val navController = rememberNavController()
 
-    @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
+    val screens = listOf(
+        Screens.Home,
+        Screens.Wallet,
+        Screens.Categories,
+        Screens.Profile
+    )
+
     Scaffold(
         modifier = Modifier.then(modifier),
         bottomBar = {
@@ -117,28 +116,18 @@ fun MainScreen(
             ) {
                 repeat(4) {
                     NavigationBarItem(
-                        selected = it == 0,
-                        onClick = { /* TODO */ },
+                        selected = it == selectedMenuItem,
+                        onClick = { selectedMenuItem = it },
                         icon = {
                             Icon(
                                 modifier = Modifier.size(20.dp),
-                                imageVector = when(it) {
-                                    0 -> FeatherIcons.Home
-                                    1 -> FeatherIcons.Star
-                                    2 -> FeatherIcons.Code
-                                    else -> FeatherIcons.User
-                                },
+                                imageVector = screens[it].icon!!,
                                 contentDescription = null
                             )
                         },
                         label = {
                             Text(
-                                text = when(it) {
-                                    0 -> "Home"
-                                    1 -> "Favorites"
-                                    2 -> "Plans"
-                                    else -> "Profile"
-                                },
+                                text = screens[it].title,
                                 style = MaterialTheme.typography.labelSmall
                             )
                         },
@@ -166,13 +155,13 @@ fun MainScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .requiredHeight(56.dp)
-                    .background(Brush.horizontalGradient(
+                    /*.background(Brush.horizontalGradient(
                         colors = listOf(
                             Color.Yellow.copy(1f),
                             Color.Yellow.copy(0.5f),
                             Color.Yellow.copy(0.3f),
                         )
-                    ))
+                    ))*/
                     .padding(12.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
@@ -204,6 +193,8 @@ fun MainScreen(
                     //
                     if(user is UiState.Success) {
                         Text(text = user.data.username)
+                    } else {
+                        Text(text = "household" )
                     }
                     //
                     DropdownMenu(
@@ -407,11 +398,12 @@ fun MainScreen(
                     .fillMaxWidth()
                     .clip(RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp))
                     .background(MaterialTheme.colorScheme.onSurface.copy(0.1f))
-                    .padding(12.dp),
+                    //.padding(12.dp),
+                        ,
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 Row(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 6.dp, vertical = 2.dp),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
@@ -436,9 +428,7 @@ fun MainScreen(
                 ) {
                     items(4) { index ->
                         TransactionRow(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = 8.dp),
+                            modifier = Modifier.fillMaxWidth(),
                             transaction = Transaction(
                                 id = "$index",
                                 name = "Transaction ${index + 1}",
