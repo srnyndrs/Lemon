@@ -55,7 +55,8 @@ fun TransactionRow(
             .clip(RoundedCornerShape(8.dp))
             .clickable {
                 onClick()
-            },
+            }
+            .padding(vertical = 8.dp, horizontal = 6.dp),
             //.shadow(1.dp, RoundedCornerShape(8.dp)),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
