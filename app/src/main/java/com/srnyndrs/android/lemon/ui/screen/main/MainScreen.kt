@@ -1,5 +1,6 @@
 package com.srnyndrs.android.lemon.ui.screen.main
 
+import android.annotation.SuppressLint
 import androidx.compose.animation.Animatable
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
@@ -12,8 +13,11 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredHeight
 import androidx.compose.foundation.layout.requiredWidth
@@ -26,11 +30,17 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarDefaults
+import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.ProgressIndicatorDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
@@ -47,11 +57,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import com.srnyndrs.android.lemon.domain.database.model.User
+import com.srnyndrs.android.lemon.domain.database.model.UserMainData
 import com.srnyndrs.android.lemon.ui.components.ActionButton
 import com.srnyndrs.android.lemon.ui.components.transaction.Transaction
 import com.srnyndrs.android.lemon.ui.components.transaction.TransactionRow
@@ -64,13 +76,15 @@ import compose.icons.feathericons.Camera
 import compose.icons.feathericons.Code
 import compose.icons.feathericons.Eye
 import compose.icons.feathericons.EyeOff
+import compose.icons.feathericons.Home
 import compose.icons.feathericons.Plus
+import compose.icons.feathericons.Star
 import compose.icons.feathericons.User
 
 @Composable
 fun MainScreen(
     modifier: Modifier = Modifier,
-    user: UiState<User>,
+    user: UiState<UserMainData>,
     email: String?,
     onLogout: () -> Unit
 ) {
@@ -89,44 +103,132 @@ fun MainScreen(
     }
 
     var privacyMode by rememberSaveable { mutableStateOf(true) }
+    var isExpanded by remember { mutableStateOf(false) }
 
+    @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
     Scaffold(
         modifier = Modifier.then(modifier),
-    ) { innerPadding ->
+        bottomBar = {
+            NavigationBar(
+                modifier = Modifier.fillMaxWidth().requiredHeight(72.dp),
+                containerColor = MaterialTheme.colorScheme.primaryContainer,
+                contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                windowInsets = NavigationBarDefaults.windowInsets.only(WindowInsetsSides.Horizontal)
+            ) {
+                repeat(4) {
+                    NavigationBarItem(
+                        selected = it == 0,
+                        onClick = { /* TODO */ },
+                        icon = {
+                            Icon(
+                                modifier = Modifier.size(20.dp),
+                                imageVector = when(it) {
+                                    0 -> FeatherIcons.Home
+                                    1 -> FeatherIcons.Star
+                                    2 -> FeatherIcons.Code
+                                    else -> FeatherIcons.User
+                                },
+                                contentDescription = null
+                            )
+                        },
+                        label = {
+                            Text(
+                                text = when(it) {
+                                    0 -> "Home"
+                                    1 -> "Favorites"
+                                    2 -> "Plans"
+                                    else -> "Profile"
+                                },
+                                style = MaterialTheme.typography.labelSmall
+                            )
+                        },
+                        alwaysShowLabel = true,
+                        colors = NavigationBarItemDefaults.colors(
+                            selectedIconColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                            unselectedIconColor = MaterialTheme.colorScheme.onPrimaryContainer.copy(0.5f),
+                            selectedTextColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                            unselectedTextColor = MaterialTheme.colorScheme.onPrimaryContainer.copy(0.5f),
+                            indicatorColor = Color.Transparent
+                        )
+                    )
+                }
+            }
+        }
+    ) { paddingValues ->
         Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding),
+            modifier = Modifier.fillMaxSize().padding(bottom = paddingValues.calculateBottomPadding()),
             verticalArrangement = Arrangement.spacedBy(12.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+
+            // TopBar
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .requiredHeight(56.dp)
+                    .background(Brush.horizontalGradient(
+                        colors = listOf(
+                            Color.Yellow.copy(1f),
+                            Color.Yellow.copy(0.5f),
+                            Color.Yellow.copy(0.3f),
+                        )
+                    ))
                     .padding(12.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Box(
-                    modifier = Modifier
-                        .size(32.dp)
-                        .clip(CircleShape)
-                        .border(1.dp, MaterialTheme.colorScheme.onSurface, CircleShape)
-                        .clickable {
-                            // TODO: Open profile settings
-                        },
-                    contentAlignment = Alignment.Center
+                Row(
+                    modifier = Modifier.fillMaxHeight(),
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    // Placeholder for profile image
-                    Icon(
-                        imageVector = FeatherIcons.User,
-                        contentDescription = null,
-                    )
-
+                    Box(
+                        modifier = Modifier
+                            .size(32.dp)
+                            .clip(CircleShape)
+                            .border(1.dp, MaterialTheme.colorScheme.onSurface, CircleShape)
+                            .clickable(
+                                enabled = user is UiState.Success
+                            ) {
+                                // TODO: Open profile settings
+                                isExpanded = true
+                            },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        // Placeholder for profile image
+                        Icon(
+                            imageVector = FeatherIcons.User,
+                            contentDescription = null,
+                        )
+                    }
+                    //
+                    if(user is UiState.Success) {
+                        Text(text = user.data.username)
+                    }
+                    //
+                    DropdownMenu(
+                        expanded = isExpanded,
+                        onDismissRequest = { isExpanded = false }
+                    ) {
+                        val households = when(user) {
+                            is UiState.Success -> user.data.households
+                            else -> emptyList()
+                        }
+                        households.forEach { household ->
+                            DropdownMenuItem(
+                                text = {
+                                    Text(text = household.name)
+                                },
+                                onClick = {
+                                    // TODO: navigate to household
+                                }
+                            )
+                        }
+                    }
                 }
+
                 // Username
-                Text(text = "Lemon")
+                //Text(text = "Lemon")
                 /*Row(
                     modifier = Modifier
                         .clip(RoundedCornerShape(8.dp))
@@ -164,28 +266,6 @@ fun MainScreen(
                 }
             }
 
-            when(user) {
-                is UiState.Loading -> {
-                    Text(
-                        modifier = Modifier,
-                        text = "Loading user data..."
-                    )
-                }
-                is UiState.Success -> {
-                    Text(
-                        modifier = Modifier,
-                        text = "Hello ${user.data.username}"
-                    )
-                }
-                is UiState.Error -> {
-                    Text(
-                        modifier = Modifier,
-                        text = user.message
-                    )
-                }
-                is UiState.Empty -> {}
-            }
-
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
@@ -214,8 +294,9 @@ fun MainScreen(
                         .padding(6.dp),
                     shape = RoundedCornerShape(8.dp),
                     colors = CardDefaults.cardColors(
-                        containerColor = color.value.copy(0.5f),
-                        contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                        //containerColor = color.value.copy(0.5f),
+                        containerColor = Color.Transparent,
+                        contentColor = MaterialTheme.colorScheme.onSurface
                     )
                 ) {
                     Row (
@@ -231,7 +312,7 @@ fun MainScreen(
                         Column(
                             modifier = Modifier.fillMaxSize().padding(12.dp),
                             horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.Top
+                            verticalArrangement = Arrangement.Center
                         ) {
                             Text(
                                 text = "Private household",

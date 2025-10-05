@@ -3,6 +3,7 @@ package com.srnyndrs.android.lemon.ui.screen.main
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.srnyndrs.android.lemon.domain.database.model.User
+import com.srnyndrs.android.lemon.domain.database.model.UserMainData
 import com.srnyndrs.android.lemon.domain.database.usecase.GetUserUseCase
 import com.srnyndrs.android.lemon.ui.utils.UiState
 import dagger.assisted.Assisted
@@ -28,11 +29,11 @@ class MainViewModel @AssistedInject constructor(
         fun create(userId: String): MainViewModel
     }
 
-    private val _user = MutableStateFlow<UiState<User>>(UiState.Empty())
+    private val _user = MutableStateFlow<UiState<UserMainData>>(UiState.Empty())
     val user = _user.asStateFlow()
         .onStart {
             // TODO
-            //fetchUser()
+            fetchUser()
         }
         .stateIn(
             scope = viewModelScope,

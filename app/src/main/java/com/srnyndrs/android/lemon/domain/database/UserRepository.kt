@@ -1,7 +1,7 @@
 package com.srnyndrs.android.lemon.domain.database
 
-import com.srnyndrs.android.lemon.domain.database.model.User
+import com.srnyndrs.android.lemon.domain.database.model.UserMainData
 
 interface UserRepository {
-    suspend fun getUser(userId: String): Result<User>
+    suspend fun getUser(userId: String): Result<UserMainData>
 }

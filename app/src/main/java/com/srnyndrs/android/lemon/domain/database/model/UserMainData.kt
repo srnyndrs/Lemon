@@ -4,11 +4,9 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class User(
-    @SerialName("user_id")
+data class UserMainData(
     val userId: String,
     val username: String,
     val email: String,
-    @SerialName("household_ids")
-    val householdIds: List<String>
+    val households: List<Household>,
 )
