@@ -64,8 +64,8 @@ import compose.icons.feathericons.User
 fun MainScreen(
     modifier: Modifier = Modifier,
     user: UiState<UserMainData>,
+    onMainEvent: (MainEvent<*>) -> Unit,
     email: String?,
-    onLogout: () -> Unit
 ) {
 
     val color = remember { Animatable(Color.Gray) }
@@ -250,7 +250,10 @@ fun MainScreen(
             }
             composable(route = Screens.Profile.route) {
                 ProfileScreen(
-                    modifier = Modifier.fillMaxSize()
+                    modifier = Modifier.fillMaxSize(),
+                    onLogout = {
+                        onMainEvent(MainEvent.Logout)
+                    }
                 )
             }
         }
@@ -266,7 +269,7 @@ fun MainScreenPreview() {
                 modifier = Modifier.fillMaxSize(),
                 user = UiState.Empty(),
                 email = "test@test.com",
-                onLogout = {}
+                onMainEvent = {}
             )
         }
     }

@@ -98,9 +98,6 @@ class MainActivity : ComponentActivity() {
                         modifier = Modifier.padding(innerPadding),
                         navController = navController,
                         sessionStatus = sessionStatus,
-                        onLogout = {
-                            sessionViewModel.logout()
-                        }
                     )
                 }
             }

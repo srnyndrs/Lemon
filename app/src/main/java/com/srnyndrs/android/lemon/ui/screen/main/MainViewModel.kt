@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.srnyndrs.android.lemon.domain.database.model.User
 import com.srnyndrs.android.lemon.domain.database.model.UserMainData
 import com.srnyndrs.android.lemon.domain.database.usecase.GetUserUseCase
+import com.srnyndrs.android.lemon.domain.database.usecase.LogoutUserUseCase
 import com.srnyndrs.android.lemon.ui.utils.UiState
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
@@ -21,7 +22,8 @@ import javax.inject.Inject
 @HiltViewModel(assistedFactory = MainViewModel.MainViewModelFactory::class)
 class MainViewModel @AssistedInject constructor(
     @Assisted private val userId: String,
-    private val getUserUseCase: GetUserUseCase
+    private val getUserUseCase: GetUserUseCase,
+    private val logoutUserUseCase: LogoutUserUseCase
 ): ViewModel() {
 
     @AssistedFactory
@@ -40,6 +42,14 @@ class MainViewModel @AssistedInject constructor(
             started = SharingStarted.WhileSubscribed(5000),
             initialValue = UiState.Empty()
         )
+
+    fun onEvent(event: MainEvent<*>) = viewModelScope.launch {
+        when(event) {
+            is MainEvent.Logout -> {
+                logoutUserUseCase()
+            }
+        }
+    }
 
     private fun fetchUser() = viewModelScope.launch {
         _user.value = UiState.Loading()

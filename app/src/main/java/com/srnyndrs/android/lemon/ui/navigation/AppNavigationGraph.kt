@@ -20,7 +20,6 @@ fun AppNavigationGraph(
     modifier: Modifier = Modifier,
     navController: NavHostController,
     sessionStatus: SessionStatus,
-    onLogout: () -> Unit,
 ) {
     NavHost(
         modifier = Modifier.then(modifier),
@@ -60,17 +59,21 @@ fun AppNavigationGraph(
 
             val user by mainViewModel.user.collectAsState()
 
+            val logout = {
+                navController.navigate("auth") {
+                    popUpTo("main") {
+                        inclusive = true
+                    }
+                }
+            }
+
             MainScreen(
                 modifier = Modifier.fillMaxSize(),
                 user = user,
                 email = email,
-                onLogout = {
-                    onLogout()
-                    navController.navigate("auth") {
-                        popUpTo("main") {
-                            inclusive = true
-                        }
-                    }
+                onMainEvent = { event ->
+                    mainViewModel.onEvent(event)
+                    logout()
                 }
             )
         }
