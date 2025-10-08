@@ -22,7 +22,8 @@ import ir.ehsannarmani.compose_charts.models.Pie
 
 @Composable
 fun PieChartDiagram(
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit = {}
 ) {
 
     var data by remember {
@@ -44,6 +45,7 @@ fun PieChartDiagram(
         modifier = Modifier.then(modifier),
         data = data,
         onPieClick = {
+            onClick()
             /*println("${it.label} Clicked")
             val pieIndex = data.indexOf(it)
             data = data.mapIndexed { mapIndex, pie -> pie.copy(selected = pieIndex == mapIndex) }*/
