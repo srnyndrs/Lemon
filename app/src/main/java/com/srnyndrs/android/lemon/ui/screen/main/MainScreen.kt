@@ -245,7 +245,8 @@ fun MainScreen(
             }
             composable(route = Screens.Categories.route) {
                 CategoriesScreen(
-                    modifier = Modifier.fillMaxSize()
+                    modifier = Modifier.fillMaxSize(),
+                    categories = emptyList()
                 )
             }
             composable(route = Screens.Profile.route) {

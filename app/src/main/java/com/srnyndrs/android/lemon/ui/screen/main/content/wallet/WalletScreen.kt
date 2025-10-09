@@ -3,6 +3,8 @@ package com.srnyndrs.android.lemon.ui.screen.main.content.wallet
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -18,11 +20,17 @@ fun WalletScreen(
 ) {
 
     Column(
-        modifier = Modifier.then(modifier),
+        modifier = Modifier
+            .then(modifier)
+            .padding(6.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text(text = "Wallet Screen")
+        Text(
+            text = "Wallet",
+            style = MaterialTheme.typography.titleLarge
+        )
+
+
     }
 }
 
