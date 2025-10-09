@@ -20,6 +20,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -36,6 +37,7 @@ import com.srnyndrs.android.lemon.ui.theme.LemonTheme
 import com.srnyndrs.android.lemon.ui.utils.fromHex
 import compose.icons.FeatherIcons
 import compose.icons.feathericons.Bold
+import compose.icons.feathericons.Plus
 
 @Composable
 fun CategoriesScreen(
@@ -49,10 +51,31 @@ fun CategoriesScreen(
             .padding(6.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        Text(
-            text = "Categories Screen",
-            style = MaterialTheme.typography.titleLarge
-        )
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .requiredHeight(56.dp)
+                .padding(6.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween,
+        ) {
+            Text(
+                text = "Categories",
+                style = MaterialTheme.typography.headlineSmall
+            )
+            IconButton(
+                modifier = Modifier
+                    .border(1.dp, MaterialTheme.colorScheme.onSurface, CircleShape),
+                onClick = {
+                    // TODO
+                }
+            ) {
+                Icon(
+                    imageVector = FeatherIcons.Plus,
+                    contentDescription = "Add Category" // TODO
+                )
+            }
+        }
         LazyVerticalGrid(
             columns = GridCells.Fixed(2),
             horizontalArrangement = Arrangement.spacedBy(12.dp),
