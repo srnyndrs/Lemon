@@ -246,7 +246,8 @@ fun MainScreen(
             composable(route = Screens.Categories.route) {
                 CategoriesScreen(
                     modifier = Modifier.fillMaxSize(),
-                    categories = emptyList()
+                    categories = emptyList(),
+                    payments = emptyList()
                 )
             }
             composable(route = Screens.Profile.route) {
