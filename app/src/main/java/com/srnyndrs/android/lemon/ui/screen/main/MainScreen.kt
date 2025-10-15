@@ -48,6 +48,8 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.srnyndrs.android.lemon.domain.database.model.Category
+import com.srnyndrs.android.lemon.domain.database.model.PaymentMethod
 import com.srnyndrs.android.lemon.domain.database.model.UserMainData
 import com.srnyndrs.android.lemon.ui.screen.main.content.categories.CategoriesScreen
 import com.srnyndrs.android.lemon.ui.screen.main.content.home.HomeScreen
@@ -64,6 +66,8 @@ import compose.icons.feathericons.User
 fun MainScreen(
     modifier: Modifier = Modifier,
     user: UiState<UserMainData>,
+    categories: UiState<List<Category>>,
+    payments: UiState<List<PaymentMethod>>,
     onMainEvent: (MainEvent<*>) -> Unit,
     email: String?,
 ) {
@@ -246,8 +250,8 @@ fun MainScreen(
             composable(route = Screens.Categories.route) {
                 CategoriesScreen(
                     modifier = Modifier.fillMaxSize(),
-                    categories = emptyList(),
-                    payments = emptyList()
+                    categories = if (categories is UiState.Success) categories.data else emptyList(),
+                    payments = if (payments is UiState.Success) payments.data else emptyList(),
                 )
             }
             composable(route = Screens.Profile.route) {
@@ -270,6 +274,8 @@ fun MainScreenPreview() {
             MainScreen(
                 modifier = Modifier.fillMaxSize(),
                 user = UiState.Empty(),
+                categories = UiState.Empty(),
+                payments = UiState.Empty(),
                 email = "test@test.com",
                 onMainEvent = {}
             )

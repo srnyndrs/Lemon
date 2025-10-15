@@ -58,22 +58,17 @@ fun AppNavigationGraph(
             }
 
             val user by mainViewModel.user.collectAsState()
-
-            val logout = {
-                navController.navigate("auth") {
-                    popUpTo("main") {
-                        inclusive = true
-                    }
-                }
-            }
+            val categories by mainViewModel.categories.collectAsState()
+            val paymentMethods by mainViewModel.paymentMethods.collectAsState()
 
             MainScreen(
                 modifier = Modifier.fillMaxSize(),
                 user = user,
+                categories = categories,
+                payments= paymentMethods,
                 email = email,
                 onMainEvent = { event ->
                     mainViewModel.onEvent(event)
-                    logout()
                 }
             )
         }

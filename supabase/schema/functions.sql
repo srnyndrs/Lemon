@@ -63,6 +63,9 @@ BEGIN
   -- létrehozunk alapértelmezett kategóriákat
   PERFORM public.create_default_categories(new_household_id);
 
+  -- létrehozunk alapértelmezett fizetési módokat
+  PERFORM public.create_default_payment_methods(NEW.id, new_household_id);
+
   RETURN NEW;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
@@ -114,6 +117,46 @@ BEGIN
     (p_household_id, 'Travel', 'icon', '#00B894'),
     (p_household_id, 'Income', 'icon', '#00CEC9'),
     (p_household_id, 'Other', 'icon', '#636E72');
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- ==============================
+-- Function: create_default_payment_methods
+-- Creates default payment methods for a new user and links them to the household
+-- ==============================
+CREATE OR REPLACE FUNCTION public.create_default_payment_methods(
+  p_user_id uuid,
+  p_household_id uuid
+)
+RETURNS void
+SET search_path = ''
+AS $$
+DECLARE
+  pm_id uuid;
+BEGIN
+  -- Create Cash payment method
+  INSERT INTO public.payment_methods (owner_user_id, name, icon, color, type) 
+  VALUES (p_user_id, 'Cash', 'cash', '#2ECC71', 'cash')
+  RETURNING id INTO pm_id;
+  
+  INSERT INTO public.household_payment_methods (household_id, payment_method_id)
+  VALUES (p_household_id, pm_id);
+
+  -- Create Credit Card payment method
+  INSERT INTO public.payment_methods (owner_user_id, name, icon, color, type) 
+  VALUES (p_user_id, 'Credit Card', 'credit-card', '#3498DB', 'card')
+  RETURNING id INTO pm_id;
+  
+  INSERT INTO public.household_payment_methods (household_id, payment_method_id)
+  VALUES (p_household_id, pm_id);
+
+  -- Create Bank Transfer payment method
+  INSERT INTO public.payment_methods (owner_user_id, name, icon, color, type) 
+  VALUES (p_user_id, 'Bank Transfer', 'bank', '#E67E22', 'bank_account')
+  RETURNING id INTO pm_id;
+  
+  INSERT INTO public.household_payment_methods (household_id, payment_method_id)
+  VALUES (p_household_id, pm_id);
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
@@ -213,3 +256,25 @@ BEGIN
   END IF;
 END;
 $$;
+
+-- ==============================
+-- Function: is_household_member
+-- Security definer function to check household membership without RLS
+-- ==============================
+CREATE OR REPLACE FUNCTION public.is_household_member(
+  p_household_id uuid,
+  p_user_id uuid DEFAULT auth.uid()
+)
+RETURNS boolean
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+  RETURN EXISTS (
+    SELECT 1 
+    FROM household_members hm
+    WHERE hm.household_id = p_household_id
+      AND hm.user_id = p_user_id
+  );
+END;
+$$ LANGUAGE plpgsql;

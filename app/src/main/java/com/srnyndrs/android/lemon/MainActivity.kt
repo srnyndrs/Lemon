@@ -43,10 +43,22 @@ class MainActivity : ComponentActivity() {
 
             LaunchedEffect(sessionStatus) {
                 // Auto-login
-                if (sessionStatus is SessionStatus.Authenticated) {
-                    navController.navigate("main") {
-                        popUpTo("auth") {
-                            inclusive = true
+                when(sessionStatus) {
+                    is SessionStatus.Unauthenticated -> {
+                        navController.navigate("auth") {
+                            popUpTo("main") {
+                                inclusive = true
+                            }
+                        }
+                    }
+                    is SessionStatus.Unknown -> {
+                        // Stay on the current screen
+                    }
+                    is SessionStatus.Authenticated -> {
+                        navController.navigate("main") {
+                            popUpTo("auth") {
+                                inclusive = true
+                            }
                         }
                     }
                 }
