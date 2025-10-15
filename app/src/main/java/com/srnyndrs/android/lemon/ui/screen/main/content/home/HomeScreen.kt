@@ -1,5 +1,6 @@
 package com.srnyndrs.android.lemon.ui.screen.main.content.home
 
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.Orientation
@@ -33,6 +34,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -42,6 +46,7 @@ import com.srnyndrs.android.lemon.ui.components.transaction.TransactionRow
 import com.srnyndrs.android.lemon.ui.components.transaction.TransactionType
 import com.srnyndrs.android.lemon.ui.screen.main.components.PieChartDiagram
 import com.srnyndrs.android.lemon.ui.theme.LemonTheme
+import com.srnyndrs.android.lemon.ui.utils.drawSpline
 import compose.icons.FeatherIcons
 import compose.icons.feathericons.Camera
 import compose.icons.feathericons.Plus
@@ -63,11 +68,11 @@ fun HomeScreen(
         modifier = Modifier
             .then(modifier)
             .verticalScroll(scrollState)
-            .padding(vertical = 4.dp),
+            .padding(top = 4.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Row(
+        /*Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Start
@@ -76,86 +81,130 @@ fun HomeScreen(
                 text = "Monthly Overview",
                 style = MaterialTheme.typography.headlineSmall
             )
-        }
+        }*/
 
-        Column(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .requiredHeight(256.dp)
+            ,
+            contentAlignment = Alignment.Center
         ) {
-            // Pager
-            HorizontalPager(
+            val backgroundColor = MaterialTheme.colorScheme.surface
+            // Background
+            Box(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .requiredHeight(256.dp)
-                    .padding(6.dp)
-                    .clip(RoundedCornerShape(8.dp)),
-                state = pagerState,
-                pageSpacing = 12.dp,
-            ) { pageIndex ->
-                Row (
+                    .fillMaxSize()
+                    .background(
+                        Brush.horizontalGradient(
+                            colors = listOf(
+                                MaterialTheme.colorScheme.primary.copy(0.2f),
+                                MaterialTheme.colorScheme.primaryContainer.copy(0.2f)
+                            )
+                        )
+                    ).drawWithContent {
+                        drawContent()
+                        drawRect(
+                            Brush.verticalGradient(
+                                colors = listOf(
+                                    Color.Yellow,
+                                    Color.Yellow.copy(0.7f),
+                                    Color.Yellow.copy(0.4f),
+                                    Color.Yellow.copy(0.2f),
+                                    //Color.Black.copy(0.1f),
+                                    backgroundColor
+                                ),
+                                startY = 0f,
+                                endY = size.height - 200f
+                            )
+                        )
+                    },
+                contentAlignment = Alignment.Center
+            ) {
+            }
+            //
+            Column(
+                modifier = Modifier
+                    .fillMaxSize(),
+                    //.background(Color.Black.copy(0.1f)),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                // Pager
+                HorizontalPager(
                     modifier = Modifier
-                        .fillMaxSize()
-                        .clickable {
-                            // TODO
-                        }
-                        .padding(6.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    PieChartDiagram(
-                        modifier = Modifier.size(128.dp)
-                    )
-                    Column(
-                        modifier = Modifier.fillMaxSize().padding(12.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Center
+                        .fillMaxWidth()
+                        .requiredHeight(256.dp)
+                        .padding(6.dp)
+                        .clip(RoundedCornerShape(8.dp)),
+                    state = pagerState,
+                    pageSpacing = 12.dp,
+                ) { pageIndex ->
+                    Row (
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .clickable {
+                                // TODO
+                            }
+                            .padding(6.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
                     ) {
-                        Text(
-                            text = "Private household",
-                            style = MaterialTheme.typography.titleMedium
+                        PieChartDiagram(
+                            modifier = Modifier.size(128.dp)
                         )
-                        Spacer(
-                            modifier = Modifier.requiredHeight(12.dp)
-                        )
-                        Text(
-                            text = "1200 Ft",
-                            style = MaterialTheme.typography.titleLarge
-                        )
-                        LinearProgressIndicator(
-                            progress = {
-                                // TODO: calculate from transactions
-                                0.6f
-                            },
+                        Column(
+                            modifier = Modifier.fillMaxSize().padding(12.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center
+                        ) {
+                            Text(
+                                text = "Private household",
+                                style = MaterialTheme.typography.titleMedium
+                            )
+                            Spacer(
+                                modifier = Modifier.requiredHeight(12.dp)
+                            )
+                            Text(
+                                text = "1200 Ft",
+                                style = MaterialTheme.typography.titleLarge
+                            )
+                            LinearProgressIndicator(
+                                progress = {
+                                    // TODO: calculate from transactions
+                                    0.6f
+                                },
+                                modifier = Modifier
+                                    .fillMaxWidth(0.75f)
+                                    .padding(vertical = 6.dp),
+                                color = Color.Red,
+                                trackColor = Color.Green,
+                                strokeCap = ProgressIndicatorDefaults.LinearStrokeCap,
+                                gapSize = 0.dp,
+                                drawStopIndicator = {}
+                            )
+                        }
+                    }
+                }
+                // Page indicator
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(3.dp)
+                ) {
+                    repeat(pagerState.pageCount) { index ->
+                        val color = if (index == pagerState.currentPage) MaterialTheme.colorScheme.onSurface else Color.Gray
+                        Box(
                             modifier = Modifier
-                                .fillMaxWidth(0.75f)
-                                .padding(vertical = 6.dp),
-                            color = Color.Red,
-                            trackColor = Color.Green,
-                            strokeCap = ProgressIndicatorDefaults.LinearStrokeCap,
-                            gapSize = 0.dp,
-                            drawStopIndicator = {}
+                                .size(8.dp)
+                                .clip(CircleShape)
+                                .background(color)
                         )
                     }
                 }
             }
-            // Page indicator
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(3.dp)
-            ) {
-                repeat(pagerState.pageCount) { index ->
-                    val color = if (index == pagerState.currentPage) MaterialTheme.colorScheme.onSurface else Color.Gray
-                    Box(
-                        modifier = Modifier
-                            .size(8.dp)
-                            .clip(CircleShape)
-                            .background(color)
-                    )
-                }
-            }
         }
 
 
+        // Actions
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -178,7 +227,7 @@ fun HomeScreen(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .clip(RoundedCornerShape(12.dp))
+                .clip(RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp))
                 .background(MaterialTheme.colorScheme.onSurface.copy(0.1f))
             //.padding(12.dp),
             ,

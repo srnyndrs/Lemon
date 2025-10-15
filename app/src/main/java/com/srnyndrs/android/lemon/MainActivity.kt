@@ -107,7 +107,7 @@ class MainActivity : ComponentActivity() {
                     */
                 ) { innerPadding ->
                     AppNavigationGraph(
-                        modifier = Modifier.padding(innerPadding),
+                        modifier = Modifier.padding(bottom = innerPadding.calculateBottomPadding()),
                         navController = navController,
                         sessionStatus = sessionStatus,
                     )

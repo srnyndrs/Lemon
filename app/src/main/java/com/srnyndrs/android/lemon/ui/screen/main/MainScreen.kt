@@ -3,6 +3,7 @@ package com.srnyndrs.android.lemon.ui.screen.main
 import android.widget.Toast
 import androidx.compose.animation.Animatable
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -17,6 +18,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredHeight
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
@@ -40,6 +42,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
@@ -56,6 +59,7 @@ import com.srnyndrs.android.lemon.ui.screen.main.content.home.HomeScreen
 import com.srnyndrs.android.lemon.ui.screen.main.content.profile.ProfileScreen
 import com.srnyndrs.android.lemon.ui.screen.main.content.wallet.WalletScreen
 import com.srnyndrs.android.lemon.ui.theme.LemonTheme
+import com.srnyndrs.android.lemon.ui.theme.bodyFontFamily
 import com.srnyndrs.android.lemon.ui.utils.UiState
 import compose.icons.FeatherIcons
 import compose.icons.feathericons.Eye
@@ -99,6 +103,8 @@ fun MainScreen(
         Screens.Profile
     )
 
+    val topPadding = 96.dp
+
     LaunchedEffect(navBackStackEntry) {
         navBackStackEntry?.destination?.route?.let { currentRoute ->
             screens.find { it.route == currentRoute }?.let { screen ->
@@ -110,83 +116,93 @@ fun MainScreen(
     Scaffold(
         modifier = Modifier.then(modifier),
         topBar = {
-            Row(
+            Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .requiredHeight(56.dp)
-                    /*.background(Brush.horizontalGradient(
-                        colors = listOf(
-                            Color.Yellow.copy(1f),
-                            Color.Yellow.copy(0.5f),
-                            Color.Yellow.copy(0.3f),
+                    .requiredHeight(topPadding)
+                    .clip(RoundedCornerShape(
+                        bottomStart = 16.dp,
+                        bottomEnd = 16.dp
+                    ))
+                    .background(
+                        Brush.verticalGradient(
+                            colors = listOf(
+                                MaterialTheme.colorScheme.primaryContainer,
+                                MaterialTheme.colorScheme.primaryContainer,
+                            )
                         )
-                    ))*/
-                    .padding(12.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+                    ),
+                contentAlignment = Alignment.BottomCenter
             ) {
                 Row(
-                    modifier = Modifier.fillMaxHeight(),
-                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 18.dp, vertical = 12.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Box(
-                        modifier = Modifier
-                            .size(32.dp)
-                            .clip(CircleShape)
-                            .border(1.dp, MaterialTheme.colorScheme.onSurface, CircleShape)
-                            .clickable(
-                                enabled = user is UiState.Success
-                            ) {
-                                // TODO: Open profile settings
-                                isExpanded = true
-                            },
-                        contentAlignment = Alignment.Center
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        // Placeholder for profile image
-                        Icon(
-                            imageVector = FeatherIcons.User,
-                            contentDescription = null,
-                        )
-                    }
-                    //
-                    if(user is UiState.Success) {
-                        Text(text = user.data.username)
-                    } else {
-                        Text(text = "household" )
-                    }
-                    //
-                    DropdownMenu(
-                        expanded = isExpanded,
-                        onDismissRequest = { isExpanded = false }
-                    ) {
-                        val households = when(user) {
-                            is UiState.Success -> user.data.households
-                            else -> emptyList()
-                        }
-                        households.forEach { household ->
-                            DropdownMenuItem(
-                                text = {
-                                    Text(text = household.name)
+                        Box(
+                            modifier = Modifier
+                                .size(32.dp)
+                                .clip(CircleShape)
+                                .border(1.dp, MaterialTheme.colorScheme.onSurface, CircleShape)
+                                .clickable(
+                                    enabled = user is UiState.Success
+                                ) {
+                                    // TODO: Open profile settings
+                                    isExpanded = true
                                 },
-                                onClick = {
-                                    // TODO: navigate to household
-                                }
+                            contentAlignment = Alignment.Center
+                        ) {
+                            // Placeholder for profile image
+                            Icon(
+                                imageVector = FeatherIcons.User,
+                                contentDescription = null,
                             )
                         }
+                        //
+                        if(user is UiState.Success) {
+                            Text(text = user.data.username)
+                        } else {
+                            Text(text = "household" )
+                        }
+                        //
+                        DropdownMenu(
+                            expanded = isExpanded,
+                            onDismissRequest = { isExpanded = false }
+                        ) {
+                            val households = when(user) {
+                                is UiState.Success -> user.data.households
+                                else -> emptyList()
+                            }
+                            households.forEach { household ->
+                                DropdownMenuItem(
+                                    text = {
+                                        Text(text = household.name)
+                                    },
+                                    onClick = {
+                                        // TODO: navigate to household
+                                    }
+                                )
+                            }
+                        }
                     }
-                }
-                IconButton(
-                    modifier = Modifier.size(24.dp),
-                    onClick = {
-                        privacyMode = !privacyMode
-                        // TODO: authentication
+                    IconButton(
+                        modifier = Modifier.size(24.dp),
+                        onClick = {
+                            privacyMode = !privacyMode
+                            // TODO: authentication
+                        }
+                    ) {
+                        Icon(
+                            imageVector = if(privacyMode) FeatherIcons.EyeOff else FeatherIcons.Eye,
+                            contentDescription = null
+                        )
                     }
-                ) {
-                    Icon(
-                        imageVector = if(privacyMode) FeatherIcons.EyeOff else FeatherIcons.Eye,
-                        contentDescription = null
-                    )
                 }
             }
         },
@@ -233,30 +249,38 @@ fun MainScreen(
         NavHost(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues),
+                .padding(bottom = paddingValues.calculateBottomPadding()),
             navController = navController,
             startDestination = Screens.Home.route
         ) {
             composable(route = Screens.Home.route) {
                 HomeScreen(
-                    modifier = Modifier.fillMaxSize()
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(top = topPadding - 24.dp)
                 )
             }
             composable(route = Screens.Wallet.route) {
                 WalletScreen(
-                    modifier = Modifier.fillMaxSize()
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(top = topPadding)
                 )
             }
             composable(route = Screens.Categories.route) {
                 CategoriesScreen(
-                    modifier = Modifier.fillMaxSize(),
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(top = topPadding),
                     categories = if (categories is UiState.Success) categories.data else emptyList(),
                     payments = if (payments is UiState.Success) payments.data else emptyList(),
                 )
             }
             composable(route = Screens.Profile.route) {
                 ProfileScreen(
-                    modifier = Modifier.fillMaxSize(),
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(top = topPadding),
                     onLogout = {
                         onMainEvent(MainEvent.Logout)
                     }

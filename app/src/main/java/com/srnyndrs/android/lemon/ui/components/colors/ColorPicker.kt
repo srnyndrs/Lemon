@@ -12,9 +12,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredHeight
 import androidx.compose.foundation.layout.requiredWidth
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.itemsIndexed
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
@@ -37,6 +39,7 @@ import com.srnyndrs.android.lemon.ui.utils.fromHex
 fun ColorPicker(
     modifier: Modifier = Modifier,
     initialColor: String? = null,
+    onSelection: (String) -> Unit
 ) {
 
     val colors = listOf(
@@ -48,15 +51,22 @@ fun ColorPicker(
 
     var selectedColorIndex by remember {
         mutableIntStateOf(
-        initialColor?.let { colors.indexOf(it) } ?: -1
+        colors.indexOf(initialColor).takeIf { it != -1 } ?: 0
         )
     }
 
-    LazyVerticalGrid(
+    /*LazyVerticalGrid(
         modifier = modifier,
         columns = GridCells.Adaptive(minSize = 32.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
         horizontalArrangement = Arrangement.spacedBy(12.dp),
+    )*/
+    LazyRow(
+        modifier = Modifier.then(modifier)
+            .requiredHeight(48.dp)
+            .padding(4.dp),
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        verticalAlignment = Alignment.CenterVertically
     ) {
         itemsIndexed(colors) { index, colorHex ->
             val selected = index == selectedColorIndex
@@ -71,6 +81,7 @@ fun ColorPicker(
                         .clickable {
                             // Handle color selections
                             selectedColorIndex = index
+                            onSelection(colorHex)
                         }
                         .background(Color.fromHex(colorHex))
                         .let {
@@ -96,10 +107,10 @@ fun ColorPickerPreview() {
             ColorPicker(
                 modifier = Modifier
                     .requiredWidth(256.dp)
-                    .border(1.dp, MaterialTheme.colorScheme.onSurface, RoundedCornerShape(6.dp))
+                    //.border(1.dp, MaterialTheme.colorScheme.onSurface, RoundedCornerShape(6.dp))
                     .padding(6.dp),
-                initialColor = "#B2EBF2"
-            )
+                //initialColor = "#B2EBF2"
+            ) {}
         }
     }
 }

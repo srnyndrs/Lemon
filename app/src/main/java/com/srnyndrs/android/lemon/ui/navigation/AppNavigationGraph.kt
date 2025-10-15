@@ -1,10 +1,12 @@
 package com.srnyndrs.android.lemon.ui.navigation
 
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -32,7 +34,7 @@ fun AppNavigationGraph(
             val authenticationViewModel = hiltViewModel<AuthenticationViewModel>()
             val authenticationState by authenticationViewModel.authState.collectAsState()
             AuthenticationScreen(
-                modifier = Modifier.fillMaxSize(),
+                modifier = Modifier.fillMaxSize().padding(top = 24.dp),
                 authenticationState = authenticationState,
                 onEvent = { event ->
                     authenticationViewModel.onEvent(event)

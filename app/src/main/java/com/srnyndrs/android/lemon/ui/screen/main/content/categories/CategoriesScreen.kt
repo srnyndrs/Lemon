@@ -5,7 +5,6 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -16,12 +15,12 @@ import androidx.compose.foundation.layout.requiredWidth
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -31,6 +30,10 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -40,13 +43,14 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
 import com.srnyndrs.android.lemon.domain.database.model.Category
 import com.srnyndrs.android.lemon.domain.database.model.PaymentMethod
+import com.srnyndrs.android.lemon.ui.components.forms.CategoryForm
 import com.srnyndrs.android.lemon.ui.theme.LemonTheme
 import com.srnyndrs.android.lemon.ui.utils.fromHex
 import compose.icons.FeatherIcons
 import compose.icons.feathericons.Bold
-import compose.icons.feathericons.CreditCard
 import compose.icons.feathericons.Menu
 import compose.icons.feathericons.Plus
 
@@ -58,6 +62,7 @@ fun CategoriesScreen(
 ) {
 
     val pagerState = rememberPagerState(initialPage = 1) { payments.size + 1 }
+    var showDialog by remember { mutableStateOf(false) }
 
     Column(
         modifier = Modifier
@@ -95,7 +100,7 @@ fun CategoriesScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .requiredHeight(180.dp)
-                        .shadow(1.dp, RoundedCornerShape(8.dp), ambientColor = MaterialTheme.colorScheme.onSurface)
+                        //.shadow(1.dp, RoundedCornerShape(8.dp), ambientColor = MaterialTheme.colorScheme.onSurface)
                         .padding(1.dp)
                         .clip(RoundedCornerShape(8.dp))
                         .border(1.dp, Color.Black, RoundedCornerShape(8.dp))
@@ -114,6 +119,7 @@ fun CategoriesScreen(
                         TextButton(
                             onClick = {
                                 // TODO: Add Payment Method
+                                showDialog = true
                             }
                         ) {
                             Text(
@@ -221,7 +227,8 @@ fun CategoriesScreen(
                 modifier = Modifier
                     .border(1.dp, MaterialTheme.colorScheme.onSurface, CircleShape),
                 onClick = {
-                    // TODO
+                    // TODO: Add Category
+                    showDialog = true
                 }
             ) {
                 Icon(
@@ -277,6 +284,28 @@ fun CategoriesScreen(
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis,
                         )
+                    }
+                }
+            }
+        }
+        // Dialog
+        if(showDialog) {
+            Dialog(
+                onDismissRequest = {
+                    showDialog = false
+                }
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(6.dp))
+                        .background(MaterialTheme.colorScheme.surface, RoundedCornerShape(6.dp))
+                        .border(1.dp, MaterialTheme.colorScheme.onSurface, RoundedCornerShape(6.dp))
+                ) {
+                    CategoryForm(
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        showDialog = false
                     }
                 }
             }
