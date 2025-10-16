@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredHeight
+import androidx.compose.foundation.layout.requiredWidth
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.pager.HorizontalPager
@@ -67,8 +68,7 @@ fun HomeScreen(
     Column(
         modifier = Modifier
             .then(modifier)
-            .verticalScroll(scrollState)
-            .padding(top = 4.dp),
+            .verticalScroll(scrollState),
         verticalArrangement = Arrangement.spacedBy(12.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
@@ -86,8 +86,7 @@ fun HomeScreen(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .requiredHeight(256.dp)
-            ,
+                .requiredHeight(256.dp),
             contentAlignment = Alignment.Center
         ) {
             val backgroundColor = MaterialTheme.colorScheme.surface
@@ -188,7 +187,10 @@ fun HomeScreen(
                 }
                 // Page indicator
                 Row(
-                    horizontalArrangement = Arrangement.spacedBy(3.dp)
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .requiredHeight(32.dp),
+                    horizontalArrangement = Arrangement.Center
                 ) {
                     repeat(pagerState.pageCount) { index ->
                         val color = if (index == pagerState.currentPage) MaterialTheme.colorScheme.onSurface else Color.Gray
@@ -198,6 +200,12 @@ fun HomeScreen(
                                 .clip(CircleShape)
                                 .background(color)
                         )
+                        if (index != pagerState.pageCount - 1) {
+                            Spacer(
+                                modifier = Modifier
+                                    .requiredWidth(4.dp)
+                            )
+                        }
                     }
                 }
             }

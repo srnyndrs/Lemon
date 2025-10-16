@@ -8,6 +8,7 @@ import com.srnyndrs.android.lemon.domain.database.model.User
 import com.srnyndrs.android.lemon.domain.database.model.UserMainData
 import com.srnyndrs.android.lemon.domain.database.usecase.GetUserUseCase
 import com.srnyndrs.android.lemon.domain.database.usecase.LogoutUserUseCase
+import com.srnyndrs.android.lemon.domain.database.usecase.category.AddCategoryUseCase
 import com.srnyndrs.android.lemon.domain.database.usecase.category.GetCategoriesUseCase
 import com.srnyndrs.android.lemon.domain.database.usecase.payment_method.GetPaymentMethodsUseCase
 import com.srnyndrs.android.lemon.ui.utils.UiState
@@ -30,7 +31,8 @@ class MainViewModel @AssistedInject constructor(
     private val getUserUseCase: GetUserUseCase,
     private val logoutUserUseCase: LogoutUserUseCase,
     private val getCategoriesUseCase: GetCategoriesUseCase,
-    private val getPaymentMethodsUseCase: GetPaymentMethodsUseCase
+    private val getPaymentMethodsUseCase: GetPaymentMethodsUseCase,
+    private val addCategoryUseCase: AddCategoryUseCase
 ): ViewModel() {
 
     @AssistedFactory
@@ -61,10 +63,23 @@ class MainViewModel @AssistedInject constructor(
             is MainEvent.Logout -> {
                 logoutUserUseCase()
             }
-
             is MainEvent.FetchCategories -> {
                 val householdId = event.householdId
                 fetchCategories(householdId)
+            }
+            is MainEvent.AddCategory -> {
+                // TODO
+                val householdId = (_user.value as? UiState.Success)?.data?.households?.get(0)?.id ?: return@launch
+                val category = event.data as Category
+                addCategoryUseCase(category, householdId).fold(
+                    onSuccess = {
+                        val currentCategories = (_categories.value as? UiState.Success)?.data ?: emptyList()
+                        _categories.value = UiState.Success(currentCategories + it)
+                    },
+                    onFailure = {
+                        // TODO
+                    }
+                )
             }
         }
     }

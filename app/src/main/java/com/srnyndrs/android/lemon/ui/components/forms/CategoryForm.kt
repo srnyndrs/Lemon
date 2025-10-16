@@ -1,10 +1,7 @@
 package com.srnyndrs.android.lemon.ui.components.forms
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -12,15 +9,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredHeight
 import androidx.compose.foundation.layout.requiredWidth
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -36,24 +26,20 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.TextFieldValue
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
+import com.srnyndrs.android.lemon.domain.database.model.Category
 import com.srnyndrs.android.lemon.ui.components.colors.ColorPicker
 import com.srnyndrs.android.lemon.ui.components.icons.IconPicker
 import com.srnyndrs.android.lemon.ui.theme.LemonTheme
-import com.srnyndrs.android.lemon.ui.utils.fromHex
 import compose.icons.FeatherIcons
-import compose.icons.feathericons.ArrowDown
-import compose.icons.feathericons.ChevronDown
 import compose.icons.feathericons.DollarSign
 
 @Composable
 fun CategoryForm(
     modifier: Modifier = Modifier,
+    onConfirm: (Category) -> Unit,
     onDismissRequest: () -> Unit
 ) {
 
@@ -176,6 +162,16 @@ fun CategoryForm(
                 ),
                 onClick = {
                     // TODO: save category with validation
+                    // validation
+                    if(categoryName.text.isNotBlank()) {
+                        val category = Category(
+                            name = categoryName.text.trim(),
+                            icon = selectedIcon.name,
+                            color = selectedColor,
+
+                        )
+                        onConfirm(category)
+                    }
                     onDismissRequest()
                 }
             ) {
@@ -196,7 +192,8 @@ fun CategoryFormPreview() {
             modifier = Modifier.fillMaxSize()
         ) {
             CategoryForm(
-                modifier = Modifier.requiredWidth(256.dp)
+                modifier = Modifier.requiredWidth(256.dp),
+                onConfirm = {}
             ) {}
         }
     }

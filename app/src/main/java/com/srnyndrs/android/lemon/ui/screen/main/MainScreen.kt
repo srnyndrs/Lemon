@@ -1,6 +1,5 @@
 package com.srnyndrs.android.lemon.ui.screen.main
 
-import android.widget.Toast
 import androidx.compose.animation.Animatable
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
@@ -10,7 +9,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsetsSides
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.only
@@ -44,7 +42,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.compose.NavHost
@@ -59,7 +56,6 @@ import com.srnyndrs.android.lemon.ui.screen.main.content.home.HomeScreen
 import com.srnyndrs.android.lemon.ui.screen.main.content.profile.ProfileScreen
 import com.srnyndrs.android.lemon.ui.screen.main.content.wallet.WalletScreen
 import com.srnyndrs.android.lemon.ui.theme.LemonTheme
-import com.srnyndrs.android.lemon.ui.theme.bodyFontFamily
 import com.srnyndrs.android.lemon.ui.utils.UiState
 import compose.icons.FeatherIcons
 import compose.icons.feathericons.Eye
@@ -73,7 +69,6 @@ fun MainScreen(
     categories: UiState<List<Category>>,
     payments: UiState<List<PaymentMethod>>,
     onMainEvent: (MainEvent<*>) -> Unit,
-    email: String?,
 ) {
 
     val color = remember { Animatable(Color.Gray) }
@@ -257,7 +252,7 @@ fun MainScreen(
                 HomeScreen(
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(top = topPadding - 24.dp)
+                        .padding(top = topPadding - 18.dp)
                 )
             }
             composable(route = Screens.Wallet.route) {
@@ -274,7 +269,9 @@ fun MainScreen(
                         .padding(top = topPadding),
                     categories = if (categories is UiState.Success) categories.data else emptyList(),
                     payments = if (payments is UiState.Success) payments.data else emptyList(),
-                )
+                ) { category ->
+                    onMainEvent(MainEvent.AddCategory(category))
+                }
             }
             composable(route = Screens.Profile.route) {
                 ProfileScreen(
@@ -300,7 +297,6 @@ fun MainScreenPreview() {
                 user = UiState.Empty(),
                 categories = UiState.Empty(),
                 payments = UiState.Empty(),
-                email = "test@test.com",
                 onMainEvent = {}
             )
         }

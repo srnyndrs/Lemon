@@ -54,11 +54,6 @@ fun AppNavigationGraph(
                 creationCallback = { factory -> factory.create(userId = userId) }
             )
 
-            val email = when(sessionStatus) {
-                is SessionStatus.Authenticated -> sessionStatus.userSession.user?.email
-                else -> null
-            }
-
             val user by mainViewModel.user.collectAsState()
             val categories by mainViewModel.categories.collectAsState()
             val paymentMethods by mainViewModel.paymentMethods.collectAsState()
@@ -68,7 +63,6 @@ fun AppNavigationGraph(
                 user = user,
                 categories = categories,
                 payments= paymentMethods,
-                email = email,
                 onMainEvent = { event ->
                     mainViewModel.onEvent(event)
                 }

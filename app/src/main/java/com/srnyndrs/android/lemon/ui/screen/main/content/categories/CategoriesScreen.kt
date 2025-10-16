@@ -47,6 +47,7 @@ import androidx.compose.ui.window.Dialog
 import com.srnyndrs.android.lemon.domain.database.model.Category
 import com.srnyndrs.android.lemon.domain.database.model.PaymentMethod
 import com.srnyndrs.android.lemon.ui.components.forms.CategoryForm
+import com.srnyndrs.android.lemon.ui.screen.main.MainEvent
 import com.srnyndrs.android.lemon.ui.theme.LemonTheme
 import com.srnyndrs.android.lemon.ui.utils.fromHex
 import compose.icons.FeatherIcons
@@ -58,7 +59,8 @@ import compose.icons.feathericons.Plus
 fun CategoriesScreen(
     modifier: Modifier = Modifier,
     categories: List<Category>,
-    payments: List<PaymentMethod>
+    payments: List<PaymentMethod>,
+    onAddCategory: (Category) -> Unit
 ) {
 
     val pagerState = rememberPagerState(initialPage = 1) { payments.size + 1 }
@@ -227,7 +229,6 @@ fun CategoriesScreen(
                 modifier = Modifier
                     .border(1.dp, MaterialTheme.colorScheme.onSurface, CircleShape),
                 onClick = {
-                    // TODO: Add Category
                     showDialog = true
                 }
             ) {
@@ -303,7 +304,11 @@ fun CategoriesScreen(
                         .border(1.dp, MaterialTheme.colorScheme.onSurface, RoundedCornerShape(6.dp))
                 ) {
                     CategoryForm(
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier.fillMaxWidth(),
+                        onConfirm = {
+                            onAddCategory(it)
+                            showDialog = false
+                        }
                     ) {
                         showDialog = false
                     }
@@ -325,19 +330,22 @@ fun CategoriesScreenPreview() {
                         id = "1",
                         name = "Food",
                         color = "FFE57373",
-                        icon = "Bold"
+                        icon = "Bold",
+                        householdId = "1"
                     ),
                     Category(
                         id = "2",
                         name = "Transport",
                         color = "FF64B5F6",
-                        icon = "Bold"
+                        icon = "Bold",
+                        householdId = "1"
                     ),
                     Category(
                         id = "3",
                         name = "Shopping",
                         color = "FFFFB74D",
-                        icon = "Bold"
+                        icon = "Bold",
+                        householdId = "1"
                     )
                 ),
                 payments = listOf(
@@ -357,7 +365,7 @@ fun CategoriesScreenPreview() {
                         color = "FF81C784",
                     )
                 )
-            )
+            ) {}
         }
     }
 }

@@ -5,11 +5,11 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class CategoryDto(
-    val id: String,
+    val id: String? = null,
     val household_id: String,
     val name: String,
     val icon: String,
     val color: String,
     @SerialName("created_at")
-    val createdAt: String,
+    val createdAt: String? = null,
 )

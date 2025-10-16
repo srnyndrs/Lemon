@@ -52,11 +52,13 @@ import compose.icons.feathericons.UserX
 @Composable
 fun ProfileScreen(
     modifier: Modifier = Modifier,
-    onLogout: () -> Unit = {},
+    onLogout: () -> Unit,
 ) {
 
     Column(
-        modifier = Modifier.then(modifier),
+        modifier = Modifier
+            .then(modifier)
+            .padding(6.dp),
         verticalArrangement = Arrangement.spacedBy(24.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
@@ -115,7 +117,9 @@ fun ProfileScreen(
             ActionButton(
                 title = "Sign out",
                 icon = FeatherIcons.Delete,
-            ) { }
+            ) {
+                onLogout()
+            }
         }
         // Households
         Column(
@@ -255,13 +259,6 @@ fun ProfileScreen(
                 }
             }
         }
-
-
-        Button(
-            onClick = { onLogout() }
-        ) {
-            Text(text = "Sign Out")
-        }
     }
 }
 
@@ -271,9 +268,7 @@ fun ProfileScreenPreview() {
     LemonTheme {
         Surface {
             ProfileScreen(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(6.dp)
+                modifier = Modifier.fillMaxSize()
             ) {  }
         }
     }
