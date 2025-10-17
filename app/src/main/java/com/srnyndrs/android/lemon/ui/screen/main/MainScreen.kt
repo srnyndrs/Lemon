@@ -75,7 +75,6 @@ fun MainScreen(
 ) {
 
     var privacyMode by rememberSaveable { mutableStateOf(true) }
-    var isExpanded by remember { mutableStateOf(false) }
     var selectedMenuItem by rememberSaveable { mutableIntStateOf(0) }
 
     val navController = rememberNavController()
@@ -130,7 +129,7 @@ fun MainScreen(
                                 .border(1.dp, MaterialTheme.colorScheme.onSurface, CircleShape)
                                 .clickable {
                                     // TODO: Open profile settings
-                                    isExpanded = true
+
                                 },
                             contentAlignment = Alignment.Center
                         ) {
@@ -142,30 +141,6 @@ fun MainScreen(
                         }
                         //
                         Text(text = mainState.user.username)
-                        //
-                        DropdownMenu(
-                            expanded = isExpanded,
-                            containerColor = MaterialTheme.colorScheme.surface.copy(0.7f),
-                            border = BorderStroke(0.dp, Color.Transparent),
-                            offset = DpOffset(0.dp, 4.dp),
-                            shape = RoundedCornerShape(4.dp),
-                            onDismissRequest = { isExpanded = false }
-                        ) {
-                            mainState.user.households.forEach { household ->
-                                DropdownMenuItem(
-                                    text = {
-                                        Text(text = household.name)
-                                    },
-                                    trailingIcon = {
-                                        // TODO: if selected household show check icon
-                                    },
-                                    onClick = {
-                                        // TODO: select household
-                                        isExpanded = false
-                                    }
-                                )
-                            }
-                        }
                     }
                     IconButton(
                         modifier = Modifier.size(24.dp),
@@ -193,7 +168,6 @@ fun MainScreen(
                     NavigationBarItem(
                         selected = it == selectedMenuItem,
                         onClick = {
-                            //selectedMenuItem = it
                             navController.navigate(screens[it].route)
                         },
                         icon = {
@@ -259,6 +233,9 @@ fun MainScreen(
                                     .padding(top = topPadding),
                                 categories = mainState.categories,
                                 payments = mainState.paymentMethods,
+                                onAddPaymentMethod = { paymentMethod ->
+                                    onMainEvent(MainEvent.AddPaymentMethod(paymentMethod))
+                                }
                             ) { category ->
                                 onMainEvent(MainEvent.AddCategory(category))
                             }

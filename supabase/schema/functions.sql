@@ -278,3 +278,47 @@ BEGIN
   );
 END;
 $$ LANGUAGE plpgsql;
+
+-- ==============================
+-- Function: add_payment_method
+-- Creates a payment_method for p_user_id and links it to p_household_id
+-- ==============================
+CREATE OR REPLACE FUNCTION public.add_payment_method(
+  p_user_id uuid,
+  p_household_id uuid,
+  p_name text,
+  p_icon text DEFAULT NULL,
+  p_color text DEFAULT NULL,
+  p_type payment_method_type DEFAULT 'card'
+)
+RETURNS uuid
+SET search_path = ''
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+  v_pm_id uuid;
+  v_auth_uid uuid := (SELECT auth.uid());
+BEGIN
+  -- Guard: callers can only act for themselves
+  IF p_user_id IS DISTINCT FROM v_auth_uid THEN
+    RAISE EXCEPTION 'Not allowed: user mismatch' USING ERRCODE = '28000';
+  END IF;
+
+  -- Guard: user must be a member of the household
+  IF NOT public.is_household_member(p_household_id, p_user_id) THEN
+    RAISE EXCEPTION 'User is not a member of the household' USING ERRCODE = '42501';
+  END IF;
+
+  -- Create payment method
+  INSERT INTO public.payment_methods (owner_user_id, name, icon, color, type)
+  VALUES (p_user_id, p_name, p_icon, p_color, p_type)
+  RETURNING id INTO v_pm_id;
+
+  -- Link to household
+  INSERT INTO public.household_payment_methods (household_id, payment_method_id)
+  VALUES (p_household_id, v_pm_id);
+
+  RETURN v_pm_id;
+END;
+$$;

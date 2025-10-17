@@ -47,6 +47,7 @@ import androidx.compose.ui.window.Dialog
 import com.srnyndrs.android.lemon.domain.database.model.Category
 import com.srnyndrs.android.lemon.domain.database.model.PaymentMethod
 import com.srnyndrs.android.lemon.ui.components.forms.CategoryForm
+import com.srnyndrs.android.lemon.ui.components.forms.PaymentMethodForm
 import com.srnyndrs.android.lemon.ui.screen.main.MainEvent
 import com.srnyndrs.android.lemon.ui.theme.LemonTheme
 import com.srnyndrs.android.lemon.ui.utils.fromHex
@@ -60,11 +61,12 @@ fun CategoriesScreen(
     modifier: Modifier = Modifier,
     categories: List<Category>,
     payments: List<PaymentMethod>,
+    onAddPaymentMethod: (PaymentMethod) -> Unit,
     onAddCategory: (Category) -> Unit
 ) {
 
     val pagerState = rememberPagerState(initialPage = 1) { payments.size + 1 }
-    var showDialog by remember { mutableStateOf(false) }
+    var showDialog by remember { mutableStateOf<FormType?>(null) }
 
     Column(
         modifier = Modifier
@@ -122,7 +124,7 @@ fun CategoriesScreen(
                         TextButton(
                             onClick = {
                                 // TODO: Add Payment Method
-                                showDialog = true
+                                showDialog = FormType.ADD_PAYMENT_METHOD
                             }
                         ) {
                             Text(
@@ -230,7 +232,7 @@ fun CategoriesScreen(
                 modifier = Modifier
                     .border(1.dp, MaterialTheme.colorScheme.onSurface, CircleShape),
                 onClick = {
-                    showDialog = true
+                    showDialog = FormType.ADD_CATEGORY
                 }
             ) {
                 Icon(
@@ -240,6 +242,7 @@ fun CategoriesScreen(
             }
         }
         LazyVerticalGrid(
+            modifier = Modifier.fillMaxSize(),
             columns = GridCells.Fixed(2),
             horizontalArrangement = Arrangement.spacedBy(12.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
@@ -259,7 +262,8 @@ fun CategoriesScreen(
                     ),
                     onClick = {
                         // TODO: Handle category click
-                    }
+
+                    },
                 ) {
                     Row (
                         modifier = Modifier
@@ -291,10 +295,10 @@ fun CategoriesScreen(
             }
         }
         // Dialog
-        if(showDialog) {
+        showDialog?.let { formType ->
             Dialog(
                 onDismissRequest = {
-                    showDialog = false
+                    showDialog = null
                 }
             ) {
                 Column(
@@ -304,14 +308,29 @@ fun CategoriesScreen(
                         .background(MaterialTheme.colorScheme.surface, RoundedCornerShape(6.dp))
                         .border(1.dp, MaterialTheme.colorScheme.onSurface, RoundedCornerShape(6.dp))
                 ) {
-                    CategoryForm(
-                        modifier = Modifier.fillMaxWidth(),
-                        onConfirm = {
-                            onAddCategory(it)
-                            showDialog = false
+                    when(formType) {
+                        FormType.ADD_PAYMENT_METHOD -> {
+                            PaymentMethodForm(
+                                modifier = Modifier.fillMaxWidth(),
+                                onConfirm = {
+                                    onAddPaymentMethod(it)
+                                    showDialog = null
+                                }
+                            ) {
+                                showDialog = null
+                            }
                         }
-                    ) {
-                        showDialog = false
+                        FormType.ADD_CATEGORY -> {
+                            CategoryForm(
+                                modifier = Modifier.fillMaxWidth(),
+                                onConfirm = {
+                                    onAddCategory(it)
+                                    showDialog = null
+                                }
+                            ) {
+                                showDialog = null
+                            }
+                        }
                     }
                 }
             }
@@ -365,8 +384,14 @@ fun CategoriesScreenPreview() {
                         name = "Cash",
                         color = "FF81C784",
                     )
-                )
+                ),
+                {}
             ) {}
         }
     }
+}
+
+enum class FormType {
+    ADD_PAYMENT_METHOD,
+    ADD_CATEGORY
 }
