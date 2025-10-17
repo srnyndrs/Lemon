@@ -5,8 +5,8 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class UserMainData(
-    val userId: String,
-    val username: String,
-    val email: String,
-    val households: List<Household>,
+    val userId: String = "",
+    val username: String = "",
+    val email: String = "",
+    val households: List<Household> = emptyList(),
 )

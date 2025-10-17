@@ -2,11 +2,13 @@ package com.srnyndrs.android.lemon.ui.screen.main
 
 import androidx.compose.animation.Animatable
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.fillMaxSize
@@ -17,6 +19,7 @@ import androidx.compose.foundation.layout.requiredHeight
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
@@ -43,7 +46,9 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.PopupProperties
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -65,24 +70,9 @@ import compose.icons.feathericons.User
 @Composable
 fun MainScreen(
     modifier: Modifier = Modifier,
-    user: UiState<UserMainData>,
-    categories: UiState<List<Category>>,
-    payments: UiState<List<PaymentMethod>>,
+    mainState: MainState,
     onMainEvent: (MainEvent<*>) -> Unit,
 ) {
-
-    val color = remember { Animatable(Color.Gray) }
-
-    LaunchedEffect(Unit) {
-        while(true) {
-            color.animateTo(Color.Red, animationSpec = tween(10000))
-            color.animateTo(Color.Green, animationSpec = tween(10000))
-            color.animateTo(Color.Blue, animationSpec = tween(10000))
-            color.animateTo(Color.Yellow, animationSpec = tween(10000))
-            color.animateTo(Color.Magenta, animationSpec = tween(10000))
-            color.animateTo(Color.Cyan, animationSpec = tween(10000))
-        }
-    }
 
     var privacyMode by rememberSaveable { mutableStateOf(true) }
     var isExpanded by remember { mutableStateOf(false) }
@@ -119,14 +109,7 @@ fun MainScreen(
                         bottomStart = 16.dp,
                         bottomEnd = 16.dp
                     ))
-                    .background(
-                        Brush.verticalGradient(
-                            colors = listOf(
-                                MaterialTheme.colorScheme.primaryContainer,
-                                MaterialTheme.colorScheme.primaryContainer,
-                            )
-                        )
-                    ),
+                    .background( MaterialTheme.colorScheme.primaryContainer),
                 contentAlignment = Alignment.BottomCenter
             ) {
                 Row(
@@ -145,9 +128,7 @@ fun MainScreen(
                                 .size(32.dp)
                                 .clip(CircleShape)
                                 .border(1.dp, MaterialTheme.colorScheme.onSurface, CircleShape)
-                                .clickable(
-                                    enabled = user is UiState.Success
-                                ) {
+                                .clickable {
                                     // TODO: Open profile settings
                                     isExpanded = true
                                 },
@@ -160,27 +141,27 @@ fun MainScreen(
                             )
                         }
                         //
-                        if(user is UiState.Success) {
-                            Text(text = user.data.username)
-                        } else {
-                            Text(text = "household" )
-                        }
+                        Text(text = mainState.user.username)
                         //
                         DropdownMenu(
                             expanded = isExpanded,
+                            containerColor = MaterialTheme.colorScheme.surface.copy(0.7f),
+                            border = BorderStroke(0.dp, Color.Transparent),
+                            offset = DpOffset(0.dp, 4.dp),
+                            shape = RoundedCornerShape(4.dp),
                             onDismissRequest = { isExpanded = false }
                         ) {
-                            val households = when(user) {
-                                is UiState.Success -> user.data.households
-                                else -> emptyList()
-                            }
-                            households.forEach { household ->
+                            mainState.user.households.forEach { household ->
                                 DropdownMenuItem(
                                     text = {
                                         Text(text = household.name)
                                     },
+                                    trailingIcon = {
+                                        // TODO: if selected household show check icon
+                                    },
                                     onClick = {
-                                        // TODO: navigate to household
+                                        // TODO: select household
+                                        isExpanded = false
                                     }
                                 )
                             }
@@ -241,47 +222,65 @@ fun MainScreen(
             }
         }
     ) { paddingValues ->
-        NavHost(
+        Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(bottom = paddingValues.calculateBottomPadding()),
-            navController = navController,
-            startDestination = Screens.Home.route
+                .padding(bottom = paddingValues.calculateBottomPadding())
         ) {
-            composable(route = Screens.Home.route) {
-                HomeScreen(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(top = topPadding - 18.dp)
-                )
-            }
-            composable(route = Screens.Wallet.route) {
-                WalletScreen(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(top = topPadding)
-                )
-            }
-            composable(route = Screens.Categories.route) {
-                CategoriesScreen(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(top = topPadding),
-                    categories = if (categories is UiState.Success) categories.data else emptyList(),
-                    payments = if (payments is UiState.Success) payments.data else emptyList(),
-                ) { category ->
-                    onMainEvent(MainEvent.AddCategory(category))
-                }
-            }
-            composable(route = Screens.Profile.route) {
-                ProfileScreen(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(top = topPadding),
-                    onLogout = {
-                        onMainEvent(MainEvent.Logout)
+            if (!mainState.isLoading) {
+                if (mainState.error == null) {
+                    NavHost(
+                        modifier = Modifier.fillMaxSize(),
+                        navController = navController,
+                        startDestination = Screens.Home.route
+                    ) {
+                        composable(route = Screens.Home.route) {
+                            HomeScreen(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .padding(top = topPadding - 18.dp),
+                                households = mainState.user.households,
+                                selectedHouseholdId = mainState.selectedHouseholdId
+                            ) { mainEvent ->
+                                onMainEvent(mainEvent)
+                            }
+                        }
+                        composable(route = Screens.Wallet.route) {
+                            WalletScreen(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .padding(top = topPadding)
+                            )
+                        }
+                        composable(route = Screens.Categories.route) {
+                            CategoriesScreen(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .padding(top = topPadding),
+                                categories = mainState.categories,
+                                payments = mainState.paymentMethods,
+                            ) { category ->
+                                onMainEvent(MainEvent.AddCategory(category))
+                            }
+                        }
+                        composable(route = Screens.Profile.route) {
+                            ProfileScreen(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .padding(top = topPadding),
+                                onLogout = {
+                                    onMainEvent(MainEvent.Logout)
+                                }
+                            )
+                        }
                     }
-                )
+                } else {
+                    // TODO: Show error screen
+                    Text(text = "Error: ${mainState.error}")
+                }
+            } else {
+                // TODO: user shimmer effect instead
+                CircularProgressIndicator()
             }
         }
     }
@@ -294,9 +293,7 @@ fun MainScreenPreview() {
         Surface {
             MainScreen(
                 modifier = Modifier.fillMaxSize(),
-                user = UiState.Empty(),
-                categories = UiState.Empty(),
-                payments = UiState.Empty(),
+                mainState = MainState(),
                 onMainEvent = {}
             )
         }

@@ -81,6 +81,7 @@ fun CategoriesScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(0.dp),
         ) {
+            // TODO: List all payment methods but disable which not part of the household yet
             // Pager
             HorizontalPager(
                 modifier = Modifier

@@ -1,10 +1,8 @@
 package com.srnyndrs.android.lemon.ui.screen.main.content.home
 
-import androidx.compose.foundation.Canvas
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.Orientation
-import androidx.compose.foundation.gestures.scrollable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -16,15 +14,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredHeight
 import androidx.compose.foundation.layout.requiredWidth
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ProgressIndicatorDefaults
@@ -32,37 +27,62 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithContent
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.srnyndrs.android.lemon.domain.database.model.Household
 import com.srnyndrs.android.lemon.ui.components.ActionButton
 import com.srnyndrs.android.lemon.ui.components.transaction.Transaction
 import com.srnyndrs.android.lemon.ui.components.transaction.TransactionRow
 import com.srnyndrs.android.lemon.ui.components.transaction.TransactionType
+import com.srnyndrs.android.lemon.ui.screen.main.MainEvent
 import com.srnyndrs.android.lemon.ui.screen.main.components.PieChartDiagram
 import com.srnyndrs.android.lemon.ui.theme.LemonTheme
-import com.srnyndrs.android.lemon.ui.utils.drawSpline
 import compose.icons.FeatherIcons
 import compose.icons.feathericons.Camera
 import compose.icons.feathericons.Plus
 
 @Composable
 fun HomeScreen(
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    households: List<Household>,
+    selectedHouseholdId: String,
+    onEvent: (MainEvent<*>) -> Unit
 ) {
 
+    val context = LocalContext.current
     val scrollState = rememberScrollState()
+    var isInitialized by rememberSaveable { mutableStateOf(false) }
     val pagerState = rememberPagerState(
-        initialPage = 0,
+        // TODO: proper way
+        initialPage = households.indexOf(households.find { it.id == selectedHouseholdId } ?: households.firstOrNull()),
         initialPageOffsetFraction = 0f
     ) {
-        3
+        //3
+        households.size
+    }
+
+    LaunchedEffect(pagerState.currentPage) {
+        if (isInitialized) {
+            val selectedHousehold = households.getOrNull(pagerState.currentPage)
+            selectedHousehold?.let {
+                onEvent(MainEvent.SwitchHousehold(it.id))
+                Toast.makeText(context, "Switched to ${it.name}", Toast.LENGTH_SHORT).show()
+            }
+        } else {
+            isInitialized = true
+        }
     }
 
     Column(
@@ -110,7 +130,6 @@ fun HomeScreen(
                                     Color.Yellow.copy(0.7f),
                                     Color.Yellow.copy(0.4f),
                                     Color.Yellow.copy(0.2f),
-                                    //Color.Black.copy(0.1f),
                                     backgroundColor
                                 ),
                                 startY = 0f,
@@ -139,6 +158,7 @@ fun HomeScreen(
                     state = pagerState,
                     pageSpacing = 12.dp,
                 ) { pageIndex ->
+                    val household = households[pageIndex]
                     Row (
                         modifier = Modifier
                             .fillMaxSize()
@@ -158,7 +178,7 @@ fun HomeScreen(
                             verticalArrangement = Arrangement.Center
                         ) {
                             Text(
-                                text = "Private household",
+                                text = household.name,
                                 style = MaterialTheme.typography.titleMedium
                             )
                             Spacer(
@@ -192,6 +212,7 @@ fun HomeScreen(
                         .requiredHeight(32.dp),
                     horizontalArrangement = Arrangement.Center
                 ) {
+                    if(pagerState.pageCount <= 1) return@Row
                     repeat(pagerState.pageCount) { index ->
                         val color = if (index == pagerState.currentPage) MaterialTheme.colorScheme.onSurface else Color.Gray
                         Box(
@@ -289,8 +310,19 @@ fun HomScreenPreview() {
     LemonTheme {
         Surface {
             HomeScreen(
-                modifier = Modifier.fillMaxSize()
-            )
+                modifier = Modifier.fillMaxSize(),
+                households = listOf(
+                    Household(
+                        id = "1",
+                        name = "Private household"
+                    ),
+                    Household(
+                        id = "2",
+                        name = "Work"
+                    )
+                ),
+                selectedHouseholdId = "1"
+            ) {}
         }
     }
 }

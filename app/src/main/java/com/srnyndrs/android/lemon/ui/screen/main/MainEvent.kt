@@ -7,6 +7,8 @@ sealed class MainEvent<T>(val data: T? = null) {
     class FetchCategories(val householdId: String): MainEvent<Unit>()
     class AddCategory(category: Category): MainEvent<Category>(data = category)
 
+    class SwitchHousehold(householdId: String): MainEvent<String>(data = householdId)
+
     //class Test(data2: Unit): MainEvent<Unit>(data = data2)
 
 }

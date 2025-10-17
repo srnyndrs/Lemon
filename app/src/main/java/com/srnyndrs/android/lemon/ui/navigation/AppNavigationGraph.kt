@@ -54,15 +54,11 @@ fun AppNavigationGraph(
                 creationCallback = { factory -> factory.create(userId = userId) }
             )
 
-            val user by mainViewModel.user.collectAsState()
-            val categories by mainViewModel.categories.collectAsState()
-            val paymentMethods by mainViewModel.paymentMethods.collectAsState()
+            val mainState by mainViewModel.mainState.collectAsState()
 
             MainScreen(
                 modifier = Modifier.fillMaxSize(),
-                user = user,
-                categories = categories,
-                payments= paymentMethods,
+                mainState = mainState,
                 onMainEvent = { event ->
                     mainViewModel.onEvent(event)
                 }
