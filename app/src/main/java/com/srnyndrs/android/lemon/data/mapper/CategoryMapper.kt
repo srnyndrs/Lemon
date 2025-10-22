@@ -5,11 +5,11 @@ import com.srnyndrs.android.lemon.domain.database.model.Category
 
 fun CategoryDto.toDomain(): Category {
     return Category(
-        id = id ?: "",
+        id = id,
         name = name,
         icon = icon,
         color = color,
-        householdId = household_id
+        householdId = householdId
     )
 }
 
@@ -18,7 +18,7 @@ fun Category.toDto(
 ): CategoryDto {
     return CategoryDto(
         id = null,
-        household_id = householdId,
+        householdId = householdId,
         name = name,
         icon = icon,
         color = color,

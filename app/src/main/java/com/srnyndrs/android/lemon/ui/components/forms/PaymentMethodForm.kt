@@ -27,10 +27,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.srnyndrs.android.lemon.domain.database.model.Category
 import com.srnyndrs.android.lemon.domain.database.model.PaymentMethod
 import com.srnyndrs.android.lemon.ui.components.colors.ColorPicker
-import com.srnyndrs.android.lemon.ui.components.icons.IconPicker
 import com.srnyndrs.android.lemon.ui.theme.LemonTheme
 import compose.icons.FeatherIcons
 import compose.icons.feathericons.DollarSign
@@ -44,7 +42,7 @@ fun PaymentMethodForm(
 
     var paymentMethodName by remember { mutableStateOf(TextFieldValue()) }
 
-    var selectedColor by remember { mutableStateOf<String>("#BBDEFB") }
+    var selectedColor by remember { mutableStateOf("#BBDEFB") }
     var selectedIcon by remember { mutableStateOf(FeatherIcons.DollarSign) }
 
     Column(

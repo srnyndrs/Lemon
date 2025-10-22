@@ -11,7 +11,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import com.srnyndrs.android.lemon.domain.authentication.model.SessionStatus
+import com.srnyndrs.android.lemon.domain.authentication.model.AuthStatus
 import com.srnyndrs.android.lemon.ui.screen.authentication.AuthenticationScreen
 import com.srnyndrs.android.lemon.ui.screen.authentication.AuthenticationViewModel
 import com.srnyndrs.android.lemon.ui.screen.main.MainScreen
@@ -21,7 +21,7 @@ import com.srnyndrs.android.lemon.ui.screen.main.MainViewModel
 fun AppNavigationGraph(
     modifier: Modifier = Modifier,
     navController: NavHostController,
-    sessionStatus: SessionStatus,
+    authStatus: AuthStatus,
 ) {
     NavHost(
         modifier = Modifier.then(modifier),
@@ -45,8 +45,8 @@ fun AppNavigationGraph(
             route = "main"
         ) {
 
-            val userId = when(sessionStatus) {
-                is SessionStatus.Authenticated -> sessionStatus.userSession.user?.id ?: ""
+            val userId = when(authStatus) {
+                is AuthStatus.Authenticated -> authStatus.userSession.user?.id ?: ""
                 else -> ""
             }
 

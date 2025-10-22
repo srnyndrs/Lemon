@@ -45,7 +45,7 @@ fun CategoryForm(
 
     var categoryName by remember { mutableStateOf(TextFieldValue()) }
 
-    var selectedColor by remember { mutableStateOf<String>("#BBDEFB") }
+    var selectedColor by remember { mutableStateOf("#BBDEFB") }
     var selectedIcon by remember { mutableStateOf(FeatherIcons.DollarSign) }
     var showColorPicker by remember { mutableStateOf(false) }
 

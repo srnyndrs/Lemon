@@ -14,9 +14,9 @@ class SupabaseUserRepository @Inject constructor(
     override suspend fun getUser(userId: String): Result<UserMainData> {
         try {
             val response = client
-                .from(DatabaseView.USER_HOUSEHOLDS.path)
+                .from(DatabaseEndpoint.USER_HOUSEHOLDS.path)
                 .select {
-                    filter { UserWithHousehold::user_id eq userId }
+                    filter { UserWithHousehold::userId eq userId }
                 }
                 .decodeList<UserWithHousehold>()
 

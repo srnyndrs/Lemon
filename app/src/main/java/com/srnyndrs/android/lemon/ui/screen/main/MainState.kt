@@ -1,10 +1,8 @@
 package com.srnyndrs.android.lemon.ui.screen.main
 
 import com.srnyndrs.android.lemon.domain.database.model.Category
-import com.srnyndrs.android.lemon.domain.database.model.Household
 import com.srnyndrs.android.lemon.domain.database.model.PaymentMethod
 import com.srnyndrs.android.lemon.domain.database.model.UserMainData
-import com.srnyndrs.android.lemon.ui.utils.UiState
 
 data class MainState(
     val isLoading: Boolean = false,

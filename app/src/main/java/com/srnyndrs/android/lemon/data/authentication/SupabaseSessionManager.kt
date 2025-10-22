@@ -1,6 +1,7 @@
 package com.srnyndrs.android.lemon.data.authentication
 
 import com.srnyndrs.android.lemon.domain.authentication.SessionManager
+import com.srnyndrs.android.lemon.domain.authentication.model.AuthStatus
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.auth.SignOutScope
 import io.github.jan.supabase.auth.auth
@@ -12,18 +13,18 @@ import javax.inject.Inject
 class SupabaseSessionManager @Inject constructor(
     private val client: SupabaseClient
 ): SessionManager {
-    override fun listenSessionStatus(): Flow<com.srnyndrs.android.lemon.domain.authentication.model.SessionStatus> {
+    override fun listenSessionStatus(): Flow<AuthStatus> {
         return flow {
             client.auth.sessionStatus.collect {
                 when(it) {
                     is SessionStatus.Authenticated -> {
-                        emit(com.srnyndrs.android.lemon.domain.authentication.model.SessionStatus.Authenticated(it.session))
+                        emit(AuthStatus.Authenticated(it.session))
                     }
                     is SessionStatus.NotAuthenticated -> {
-                        emit(com.srnyndrs.android.lemon.domain.authentication.model.SessionStatus.Unauthenticated)
+                        emit(AuthStatus.Unauthenticated)
                     }
                     else -> {
-                        emit(com.srnyndrs.android.lemon.domain.authentication.model.SessionStatus.Unknown)
+                        emit(AuthStatus.Unknown)
                     }
                 }
             }
@@ -31,11 +32,11 @@ class SupabaseSessionManager @Inject constructor(
     }
 
     override suspend fun logout(): Result<Unit> {
-        return try {
+        try {
             client.auth.signOut(SignOutScope.LOCAL)
-            Result.success(Unit)
         } catch (e: Exception) {
-            Result.failure(e)
+            return Result.failure(e)
         }
+        return Result.success(Unit)
     }
 }

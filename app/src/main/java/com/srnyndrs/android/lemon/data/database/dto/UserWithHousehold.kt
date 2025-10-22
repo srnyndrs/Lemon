@@ -5,11 +5,16 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class UserWithHousehold(
-    val user_id: String,
+    @SerialName("user_id")
+    val userId: String,
     val email: String,
     val username: String,
-    val household_id: String,
-    val household_name: String,
-    val household_role: String,
-    val household_created_at: String
+    @SerialName("household_id")
+    val householdId: String,
+    @SerialName("household_name")
+    val householdName: String,
+    @SerialName("household_role")
+    val householdRole: String,
+    @SerialName("household_created_at")
+    val householdCreatedAt: String
 )

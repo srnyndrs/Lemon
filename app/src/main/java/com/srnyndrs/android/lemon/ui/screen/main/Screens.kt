@@ -3,7 +3,6 @@ package com.srnyndrs.android.lemon.ui.screen.main
 import androidx.compose.ui.graphics.vector.ImageVector
 import compose.icons.FeatherIcons
 import compose.icons.feathericons.Home
-import compose.icons.feathericons.Menu
 import compose.icons.feathericons.Package
 import compose.icons.feathericons.Pocket
 import compose.icons.feathericons.User

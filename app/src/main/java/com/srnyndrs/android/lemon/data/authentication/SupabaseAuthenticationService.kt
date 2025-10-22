@@ -17,6 +17,7 @@ class SupabaseAuthenticationService @Inject constructor(
                 this.email = email
                 this.password = password
             }
+
             Result.success(Unit)
         } catch (e: Exception) {
             Result.failure(e)
@@ -29,9 +30,11 @@ class SupabaseAuthenticationService @Inject constructor(
                 this.email = email
                 this.password = password
                 this.data = buildJsonObject {
+                    // TODO: get username by parameter
                     put("display_name", "([^@]+)".toRegex().find(email)?.groups?.get(1)?.value)
                 }
             }
+
             Result.success(Unit)
         } catch (e: Exception) {
             Result.failure(e)

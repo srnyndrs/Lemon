@@ -1,6 +1,5 @@
 package com.srnyndrs.android.lemon.data.database
 
-import android.util.Log
 import com.srnyndrs.android.lemon.data.database.dto.CategoryDto
 import com.srnyndrs.android.lemon.data.mapper.toDomain
 import com.srnyndrs.android.lemon.data.mapper.toDto
@@ -13,25 +12,25 @@ import javax.inject.Inject
 class SupabaseCategoryRepository @Inject constructor(
     private val client: SupabaseClient
 ): CategoryRepository {
-    override suspend fun getCategories(householdId: String): List<Category> {
-        try {
+    override suspend fun getCategories(householdId: String): Result<List<Category>> {
+        return try {
             val response = client
-                .from(table = DatabaseView.CATEGORIES.path)
+                .from(table = DatabaseEndpoint.CATEGORIES.path)
                 .select {
-                    filter { CategoryDto::household_id eq householdId }
+                    filter { CategoryDto::householdId eq householdId }
                 }
                 .decodeList<CategoryDto>()
-            return response.map { it.toDomain() }
+
+            Result.success(response.map { it.toDomain() })
         } catch (e: Exception) {
-            // TODO: handle exceptions
-            return emptyList()
+            Result.failure(e)
         }
     }
 
     override suspend fun addCategory(category: Category, householdId: String): Result<Category> {
         return try {
             val response = client
-                .from(table = DatabaseView.CATEGORIES.path)
+                .from(table = DatabaseEndpoint.CATEGORIES.path)
                 .insert(
                     value = category.toDto(householdId)
                 ) {
