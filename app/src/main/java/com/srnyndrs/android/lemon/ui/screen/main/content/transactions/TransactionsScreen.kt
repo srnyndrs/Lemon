@@ -32,6 +32,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.srnyndrs.android.lemon.ui.components.transaction.Transaction
+import com.srnyndrs.android.lemon.ui.components.transaction.TransactionList
 import com.srnyndrs.android.lemon.ui.components.transaction.TransactionRow
 import com.srnyndrs.android.lemon.ui.components.transaction.TransactionType
 import com.srnyndrs.android.lemon.ui.theme.LemonTheme
@@ -157,23 +158,33 @@ fun TransactionsScreen(
             text = "Transactions",
             style = MaterialTheme.typography.titleLarge
         )
-        LazyColumn(
-            modifier = Modifier.fillMaxSize()
-        ) {
-            items(12) {
-                TransactionRow(
-                    modifier = Modifier.fillMaxWidth(),
-                    transaction = Transaction(
-                        id = it.toString(),
-                        name = "Transaction $it",
-                        amount = (it + 1) * 2500,
-                        transactionType = TransactionType.EXPENSE
+        TransactionList(
+            modifier = Modifier.fillMaxWidth(),
+            transactions = mapOf(
+                "June 20, 2024" to listOf(
+                    Transaction(
+                        id = "1",
+                        name = "Grocery Store",
+                        amount = 54000,
+                        transactionType = TransactionType.EXPENSE,
+                    ),
+                    Transaction(
+                        id = "2",
+                        name = "Salary",
+                        amount = 150000,
+                        transactionType = TransactionType.INCOME,
                     )
-                ) {
-
-                }
-            }
-        }
+                ),
+                "June 19, 2024" to listOf(
+                    Transaction(
+                        id = "3",
+                        name = "Electricity Bill",
+                        amount = 75000,
+                        transactionType = TransactionType.EXPENSE,
+                    )
+                )
+            )
+        )
     }
 }
 

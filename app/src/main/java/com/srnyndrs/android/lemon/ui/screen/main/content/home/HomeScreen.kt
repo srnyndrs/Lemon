@@ -44,6 +44,7 @@ import androidx.compose.ui.unit.dp
 import com.srnyndrs.android.lemon.domain.database.model.Household
 import com.srnyndrs.android.lemon.ui.components.ActionButton
 import com.srnyndrs.android.lemon.ui.components.transaction.Transaction
+import com.srnyndrs.android.lemon.ui.components.transaction.TransactionList
 import com.srnyndrs.android.lemon.ui.components.transaction.TransactionRow
 import com.srnyndrs.android.lemon.ui.components.transaction.TransactionType
 import com.srnyndrs.android.lemon.ui.screen.main.MainEvent
@@ -58,11 +59,11 @@ fun HomeScreen(
     modifier: Modifier = Modifier,
     households: List<Household>,
     selectedHouseholdId: String,
+    onUiEvent: () -> Unit,
     onEvent: (MainEvent<*>) -> Unit
 ) {
 
     val context = LocalContext.current
-    val scrollState = rememberScrollState()
     var isInitialized by rememberSaveable { mutableStateOf(false) }
     val pagerState = rememberPagerState(
         // TODO: proper way
@@ -87,8 +88,8 @@ fun HomeScreen(
 
     Column(
         modifier = Modifier
-            .then(modifier)
-            .verticalScroll(scrollState),
+            .then(modifier),
+            //.verticalScroll(scrollState),
         verticalArrangement = Arrangement.spacedBy(12.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
@@ -110,6 +111,7 @@ fun HomeScreen(
             contentAlignment = Alignment.Center
         ) {
             val backgroundColor = MaterialTheme.colorScheme.surface
+            val foregroundColor = MaterialTheme.colorScheme.tertiary
             // Background
             Box(
                 modifier = Modifier
@@ -126,10 +128,14 @@ fun HomeScreen(
                         drawRect(
                             Brush.verticalGradient(
                                 colors = listOf(
-                                    Color.Yellow,
+                                    /*Color.Yellow,
                                     Color.Yellow.copy(0.7f),
                                     Color.Yellow.copy(0.4f),
-                                    Color.Yellow.copy(0.2f),
+                                    Color.Yellow.copy(0.2f),*/
+                                    foregroundColor,
+                                    foregroundColor.copy(0.7f),
+                                    foregroundColor.copy(0.4f),
+                                    foregroundColor.copy(0.2f),
                                     backgroundColor
                                 ),
                                 startY = 0f,
@@ -162,9 +168,6 @@ fun HomeScreen(
                     Row (
                         modifier = Modifier
                             .fillMaxSize()
-                            .clickable {
-                                // TODO
-                            }
                             .padding(6.dp),
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.SpaceBetween
@@ -244,7 +247,9 @@ fun HomeScreen(
             ActionButton(
                 title = "Add new",
                 icon = FeatherIcons.Plus,
-                onClick = {}
+                onClick = {
+                    onUiEvent()
+                }
             )
             ActionButton(
                 title = "Scan Receipt",
@@ -257,7 +262,7 @@ fun HomeScreen(
             modifier = Modifier
                 .fillMaxWidth()
                 .clip(RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp))
-                .background(MaterialTheme.colorScheme.onSurface.copy(0.1f))
+                //.background(MaterialTheme.colorScheme.onSurface.copy(0.1f))
             //.padding(12.dp),
             ,
             verticalArrangement = Arrangement.spacedBy(8.dp)
@@ -284,21 +289,37 @@ fun HomeScreen(
             }
             Column (
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(bottom = 12.dp),
+                    .fillMaxSize()
+                    .padding(bottom = 12.dp, start = 6.dp, end = 6.dp),
                 verticalArrangement = Arrangement.spacedBy(6.dp)
             ) {
-                repeat(5) { index ->
-                    TransactionRow(
-                        modifier = Modifier.fillMaxWidth(),
-                        transaction = Transaction(
-                            id = "$index",
-                            name = "Transaction ${index + 1}",
-                            transactionType = if(index % 2 == 0) TransactionType.EXPENSE else TransactionType.INCOME,
-                            amount = (index + 1) * 2530
+                TransactionList(
+                    modifier = Modifier.fillMaxWidth(),
+                    transactions = mapOf(
+                        "June 20, 2024" to listOf(
+                            Transaction(
+                                id = "1",
+                                name = "Grocery Store",
+                                amount = 54000,
+                                transactionType = TransactionType.EXPENSE,
+                            ),
+                            Transaction(
+                                id = "2",
+                                name = "Salary",
+                                amount = 150000,
+                                transactionType = TransactionType.INCOME,
+                            )
+                        ),
+                        "June 19, 2024" to listOf(
+                            Transaction(
+                                id = "3",
+                                name = "Electricity Bill",
+                                amount = 75000,
+                                transactionType = TransactionType.EXPENSE,
+                            )
                         )
-                    ) { }
-                }
+                    )
+                )
             }
         }
     }
@@ -306,7 +327,7 @@ fun HomeScreen(
 
 @Preview
 @Composable
-fun HomScreenPreview() {
+fun HomeScreenPreview() {
     LemonTheme {
         Surface {
             HomeScreen(
@@ -321,7 +342,8 @@ fun HomScreenPreview() {
                         name = "Work"
                     )
                 ),
-                selectedHouseholdId = "1"
+                selectedHouseholdId = "1",
+                onUiEvent = {}
             ) {}
         }
     }

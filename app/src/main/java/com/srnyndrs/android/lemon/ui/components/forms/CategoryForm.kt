@@ -47,7 +47,6 @@ fun CategoryForm(
 
     var selectedColor by remember { mutableStateOf("#BBDEFB") }
     var selectedIcon by remember { mutableStateOf(FeatherIcons.DollarSign) }
-    var showColorPicker by remember { mutableStateOf(false) }
 
     Column(
         modifier = Modifier.then(modifier),

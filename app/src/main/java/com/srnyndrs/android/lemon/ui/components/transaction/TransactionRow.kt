@@ -1,5 +1,6 @@
 package com.srnyndrs.android.lemon.ui.components.transaction
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -24,6 +25,8 @@ import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import com.srnyndrs.android.lemon.ui.theme.LemonTheme
 import compose.icons.FeatherIcons
+import compose.icons.feathericons.ArrowDown
+import compose.icons.feathericons.ArrowUp
 import compose.icons.feathericons.CreditCard
 import compose.icons.feathericons.Minus
 import compose.icons.feathericons.Plus
@@ -50,10 +53,11 @@ fun TransactionRow(
         modifier = Modifier
             .then(modifier)
             .clip(RoundedCornerShape(8.dp))
+            .border(1.dp,MaterialTheme.colorScheme.onSurface.copy(0.05f), RoundedCornerShape(8.dp))
             .clickable {
                 onClick()
             }
-            .padding(vertical = 8.dp, horizontal = 6.dp),
+            .padding(vertical = 12.dp, horizontal = 6.dp),
             //.shadow(1.dp, RoundedCornerShape(8.dp)),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
@@ -71,7 +75,7 @@ fun TransactionRow(
             ) {
                 Icon(
                     modifier = Modifier.size(18.dp),
-                    imageVector = FeatherIcons.CreditCard,
+                    imageVector = if(transaction.transactionType == TransactionType.EXPENSE) FeatherIcons.ArrowDown else FeatherIcons.ArrowUp,
                     contentDescription = null
                 )
             }
@@ -83,7 +87,7 @@ fun TransactionRow(
                     style = MaterialTheme.typography.titleMedium
                 )
                 Text(
-                    text = "Jan 1, 2024", // TODO: date
+                    text = transaction.transactionType.name,
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurface.copy(0.7f)
                 )
