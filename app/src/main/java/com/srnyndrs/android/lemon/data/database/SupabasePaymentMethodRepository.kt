@@ -33,7 +33,7 @@ class SupabasePaymentMethodRepository @Inject constructor(
         return try {
             val dto = paymentMethod.toDto(householdId, userId)
             client.postgrest.rpc(
-                function = "add_payment_method",
+                function = DatabaseEndpoint.ADD_PAYMENT_FUNCTION.path,
                 parameters = dto.toJsonObject(householdId, userId)
             )
 

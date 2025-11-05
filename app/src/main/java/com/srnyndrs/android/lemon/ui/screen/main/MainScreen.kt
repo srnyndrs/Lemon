@@ -44,17 +44,16 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import com.srnyndrs.android.lemon.ui.screen.main.content.categories.CategoriesScreen
+import com.srnyndrs.android.lemon.ui.screen.main.content.wallet.WalletScreen
 import com.srnyndrs.android.lemon.ui.screen.main.content.home.HomeScreen
 import com.srnyndrs.android.lemon.ui.screen.main.content.profile.ProfileScreen
-import com.srnyndrs.android.lemon.ui.screen.main.content.wallet.WalletScreen
+import com.srnyndrs.android.lemon.ui.screen.main.content.transactions.TransactionsScreen
 import com.srnyndrs.android.lemon.ui.theme.LemonTheme
 import compose.icons.FeatherIcons
 import compose.icons.feathericons.Eye
@@ -81,7 +80,7 @@ fun MainScreen(
     val screens = listOf(
         Screens.Home,
         Screens.Wallet,
-        Screens.Categories,
+        Screens.Transactions,
         Screens.Profile
     )
 
@@ -265,13 +264,6 @@ fun MainScreen(
                             WalletScreen(
                                 modifier = Modifier
                                     .fillMaxSize()
-                                    .padding(top = topPadding)
-                            )
-                        }
-                        composable(route = Screens.Categories.route) {
-                            CategoriesScreen(
-                                modifier = Modifier
-                                    .fillMaxSize()
                                     .padding(top = topPadding),
                                 categories = mainState.categories,
                                 payments = mainState.paymentMethods,
@@ -281,6 +273,13 @@ fun MainScreen(
                             ) { category ->
                                 onMainEvent(MainEvent.AddCategory(category))
                             }
+                        }
+                        composable(route = Screens.Transactions.route) {
+                            TransactionsScreen(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .padding(top = topPadding)
+                            )
                         }
                         composable(route = Screens.Profile.route) {
                             ProfileScreen(
