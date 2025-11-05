@@ -1,8 +1,7 @@
 -- ==============================
 -- Function: handle_new_user
--- Automatikusan létrehoz egy users rekordot, amikor egy új auth.users bejegyzés születik
+-- Automatically creates a new users record when an auth.users record was created
 -- ==============================
-
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS trigger
 SET search_path = ''
@@ -12,7 +11,7 @@ BEGIN
   VALUES (
     NEW.id,
     NEW.email,
-    NEW.raw_user_meta_data->>'display_name' --COMES FROM SUPABASE AUTH USERS display_name FIELD
+    NEW.raw_user_meta_data->>'display_name' -- FROM AUTH USERS display_name FIELD
   );
   
   RETURN NEW;
@@ -42,7 +41,7 @@ $$;
 
 -- ==============================
 -- Function: handle_new_user_private_household
--- Automatikusan létrehoz egy privát householdot az új usernek
+-- Automatically creates a private household for new users
 -- ==============================
 CREATE OR REPLACE FUNCTION public.handle_new_user_private_household()
 RETURNS trigger
@@ -51,19 +50,19 @@ AS $$
 DECLARE
   new_household_id uuid;
 BEGIN
-  -- létrehozunk egy új householdot
+  -- Create a new household
   INSERT INTO public.households (name)
   VALUES ('Private household')
   RETURNING id INTO new_household_id;
 
-  -- hozzáadjuk a usert ownerként
+  -- Create a household member record with the user as an owner
   INSERT INTO public.household_members (household_id, user_id, role)
   VALUES (new_household_id, NEW.id, 'owner');
 
-  -- létrehozunk alapértelmezett kategóriákat
+  -- Create default categories
   PERFORM public.create_default_categories(new_household_id);
 
-  -- létrehozunk alapértelmezett fizetési módokat
+  -- Create default payment methods
   PERFORM public.create_default_payment_methods(NEW.id, new_household_id);
 
   RETURN NEW;
@@ -71,7 +70,7 @@ END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- ==============================
--- Trigger: on_auth_user_created_household
+-- Trigger: on_public_user_created_household
 -- ==============================
 DO $$
 BEGIN
@@ -79,12 +78,12 @@ BEGIN
     SELECT 1
     FROM pg_trigger t
     JOIN pg_class c ON t.tgrelid = c.oid
-    WHERE t.tgname = 'on_auth_user_created_household'
+    WHERE t.tgname = 'on_public_user_created_household'
       AND c.relname = 'users'
       AND t.tgenabled <> 'D'
   ) THEN
-    CREATE TRIGGER on_auth_user_created_household
-      AFTER INSERT ON auth.users
+    CREATE TRIGGER on_public_user_created_household
+      AFTER INSERT ON public.users
       FOR EACH ROW
       EXECUTE PROCEDURE public.handle_new_user_private_household();
   END IF;
@@ -134,6 +133,11 @@ AS $$
 DECLARE
   pm_id uuid;
 BEGIN
+  -- Validate that user is member of household first
+  IF NOT public.is_household_member(p_household_id, p_user_id) THEN
+    RAISE EXCEPTION 'User is not a member of the household' USING ERRCODE = '42501';
+  END IF;
+
   -- Create Cash payment method
   INSERT INTO public.payment_methods (owner_user_id, name, icon, color, type) 
   VALUES (p_user_id, 'Cash', 'cash', '#2ECC71', 'cash')
@@ -182,7 +186,7 @@ BEGIN
     WHEN 'yearly' THEN
       RETURN base_date + INTERVAL '1 year';
     ELSE
-      RETURN base_date + INTERVAL '1 month'; -- default to monthly
+      RETURN base_date + INTERVAL '1 month';
   END CASE;
 END;
 $$ LANGUAGE plpgsql;
@@ -320,5 +324,26 @@ BEGIN
   VALUES (p_household_id, v_pm_id);
 
   RETURN v_pm_id;
+END;
+$$;
+
+-- ==============================
+-- Trigger: on_recurring_payment_updated
+-- ==============================
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1
+    FROM pg_trigger t
+    JOIN pg_class c ON t.tgrelid = c.oid
+    WHERE t.tgname = 'on_recurring_payment_updated'
+      AND c.relname = 'recurring_payments'
+      AND t.tgenabled <> 'D'
+  ) THEN
+    CREATE TRIGGER on_recurring_payment_updated
+      BEFORE UPDATE ON public.recurring_payments
+      FOR EACH ROW
+      EXECUTE PROCEDURE public.update_recurring_payment_next_due();
+  END IF;
 END;
 $$;

@@ -14,7 +14,5 @@ data class UserWithHousehold(
     @SerialName("household_name")
     val householdName: String,
     @SerialName("household_role")
-    val householdRole: String,
-    @SerialName("household_created_at")
-    val householdCreatedAt: String
+    val householdRole: String
 )

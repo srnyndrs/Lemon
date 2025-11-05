@@ -17,7 +17,7 @@ class SupabasePaymentMethodRepository @Inject constructor(
     override suspend fun getPaymentMethods(householdId: String): Result<List<PaymentMethod>> {
         return try {
             val response = client
-                .from(table = DatabaseEndpoint.PAYMENT_METHODS.path)
+                .from(table = DatabaseEndpoint.PAYMENT_METHODS_VIEW.path)
                 .select {
                     filter { PaymentMethodDto::householdId eq householdId }
                 }

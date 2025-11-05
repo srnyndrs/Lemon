@@ -1,16 +1,14 @@
--- USERS (main auth table)
+-- USERS
 CREATE TABLE public.users (
   id uuid PRIMARY KEY,
-  email text UNIQUE NOT NULL,
   username text,
-  created_at timestamptz DEFAULT now()
+  email text UNIQUE NOT NULL
 );
 
 -- HOUSEHOLDS
 CREATE TABLE public.households (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  name text NOT NULL,
-  created_at timestamptz DEFAULT now()
+  name text NOT NULL
 );
 
 -- Enum type for household member roles
@@ -20,7 +18,7 @@ EXCEPTION
   WHEN duplicate_object THEN null;
 END $$;
 
--- HOUSEHOLD MEMBERS (profiles <-> households)
+-- HOUSEHOLD MEMBERS
 CREATE TABLE public.household_members (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   household_id uuid NOT NULL REFERENCES public.households(id) ON DELETE CASCADE,
@@ -39,19 +37,21 @@ END $$;
 -- PAYMENT METHODS
 CREATE TABLE public.payment_methods (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  owner_user_id uuid REFERENCES public.users(id) ON DELETE CASCADE,
+  owner_user_id uuid NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
   name text NOT NULL,
-  icon text, -- icon identifier
-  color text, -- hex color code for UI
-  type payment_method_type NOT NULL
+  icon text,
+  color text,
+  type payment_method_type NOT NULL DEFAULT 'other'
 );
 
--- PAYMENT METHOD SHARES
-CREATE TABLE public.payment_method_shares (
+-- CATEGORIES
+CREATE TABLE public.categories (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  payment_method_id uuid NOT NULL REFERENCES public.payment_methods(id) ON DELETE CASCADE,
-  user_id uuid NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
-  UNIQUE (payment_method_id, user_id)
+  household_id uuid NOT NULL REFERENCES public.households(id) ON DELETE CASCADE,
+  name text NOT NULL,
+  icon text,
+  color text,
+  UNIQUE (household_id, name)
 );
 
 -- Enum type for transaction types
@@ -61,39 +61,6 @@ EXCEPTION
   WHEN duplicate_object THEN null;
 END $$;
 
--- TRANSACTIONS
-CREATE TABLE public.transactions (
-  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  household_id uuid NOT NULL REFERENCES public.households(id) ON DELETE CASCADE,
-  user_id uuid NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
-  category_id uuid REFERENCES public.categories(id) ON DELETE SET NULL,
-  payment_method_id uuid REFERENCES public.payment_methods(id) ON DELETE SET NULL,
-  recurring_payment_id uuid REFERENCES public.recurring_payments(id) ON DELETE SET NULL,
-  type transaction_type NOT NULL,
-  amount numeric(12,2) NOT NULL,
-  description text,
-  transaction_date date NOT NULL DEFAULT now(), -- when the transaction actually occurred
-  created_at timestamptz DEFAULT now() -- when the record was created
-);
-
--- HOUSEHOLD PAYMENT METHODS (HOUSEHOLD <-> PAYMENT METHODS)
-CREATE TABLE public.household_payment_methods (
-  household_id uuid REFERENCES public.households(id) ON DELETE CASCADE,
-  payment_method_id uuid REFERENCES public.payment_methods(id) ON DELETE CASCADE,
-  PRIMARY KEY (household_id, payment_method_id)
-);
-
--- CATEGORIES (for organizing transactions and recurring payments)
-CREATE TABLE public.categories (
-  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  household_id uuid NOT NULL REFERENCES public.households(id) ON DELETE CASCADE,
-  name text NOT NULL,
-  icon text, -- icon identifier
-  color text, -- hex color code for UI
-  created_at timestamptz DEFAULT now(),
-  UNIQUE (household_id, name) -- unique category name per household
-);
-
 -- Enum type for recurring payment frequencies
 DO $$ BEGIN
   CREATE TYPE recurrence_period AS ENUM ('weekly', 'monthly', 'quarterly', 'yearly');
@@ -101,22 +68,22 @@ EXCEPTION
   WHEN duplicate_object THEN null;
 END $$;
 
--- RECURRING PAYMENTS (subscriptions, bills, etc.)
+-- RECURRING PAYMENTS
 CREATE TABLE public.recurring_payments (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   household_id uuid NOT NULL REFERENCES public.households(id) ON DELETE CASCADE,
-  user_id uuid NOT NULL REFERENCES public.users(id) ON DELETE CASCADE, -- who created it
+  user_id uuid NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
   category_id uuid REFERENCES public.categories(id) ON DELETE SET NULL,
-  payment_method_id uuid REFERENCES public.payment_methods(id) ON DELETE SET NULL,
+  payment_method_id uuid NOT NULL REFERENCES public.payment_methods(id) ON DELETE CASCADE,
   
   -- Payment details
-  name text NOT NULL, -- e.g., "Spotify Premium", "Electric Bill"
+  title text NOT NULL,
   description text,
-  amount numeric(12,2) NOT NULL,
+  amount numeric(12,2) NOT NULL CHECK (amount > 0),
   
   -- Recurrence settings
   recurrence_period recurrence_period NOT NULL,
-  start_date date NOT NULL, -- when the recurring payment starts
+  start_date date NOT NULL DEFAULT now(), -- when the recurring payment starts
   
   -- Next payment tracking
   next_due_date date NOT NULL, -- calculated next payment due date
@@ -124,6 +91,29 @@ CREATE TABLE public.recurring_payments (
   
   -- Status
   is_active boolean DEFAULT true,
-  
-  created_at timestamptz DEFAULT now()
+
+  -- Ensure next_due_date is after start_date
+  CONSTRAINT valid_due_date CHECK (next_due_date >= start_date)
+);
+
+-- TRANSACTIONS
+CREATE TABLE public.transactions (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  household_id uuid NOT NULL REFERENCES public.households(id) ON DELETE CASCADE,
+  user_id uuid NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
+  payment_method_id uuid NOT NULL REFERENCES public.payment_methods(id) ON DELETE CASCADE,
+  category_id uuid REFERENCES public.categories(id) ON DELETE SET NULL,
+  recurring_payment_id uuid REFERENCES public.recurring_payments(id) ON DELETE SET NULL,
+  type transaction_type NOT NULL,
+  title text NOT NULL,
+  description text,
+  amount numeric(12,2) NOT NULL CHECK (amount > 0),
+  transaction_date date NOT NULL DEFAULT now()
+);
+
+-- HOUSEHOLD PAYMENT METHODS
+CREATE TABLE public.household_payment_methods (
+  household_id uuid REFERENCES public.households(id) ON DELETE CASCADE,
+  payment_method_id uuid REFERENCES public.payment_methods(id) ON DELETE CASCADE,
+  PRIMARY KEY (household_id, payment_method_id)
 );

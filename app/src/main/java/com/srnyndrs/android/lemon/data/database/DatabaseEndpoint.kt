@@ -1,8 +1,7 @@
 package com.srnyndrs.android.lemon.data.database
 
 enum class DatabaseEndpoint(val path: String) {
-    USER_HOUSEHOLDS("user_with_households"),
-    CATEGORIES("categories"),
-    PAYMENT_METHODS("household_payment_methods_view"),
-    PAYMENT_METHODS_ROOT("payment_methods")
+    USER_HOUSEHOLDS_VIEW("user_households"),
+    CATEGORIES_TABLE("categories"),
+    PAYMENT_METHODS_VIEW("household_payment_methods_view"),
 }

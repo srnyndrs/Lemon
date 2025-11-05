@@ -15,7 +15,7 @@ class SupabaseCategoryRepository @Inject constructor(
     override suspend fun getCategories(householdId: String): Result<List<Category>> {
         return try {
             val response = client
-                .from(table = DatabaseEndpoint.CATEGORIES.path)
+                .from(table = DatabaseEndpoint.CATEGORIES_TABLE.path)
                 .select {
                     filter { CategoryDto::householdId eq householdId }
                 }
@@ -30,7 +30,7 @@ class SupabaseCategoryRepository @Inject constructor(
     override suspend fun addCategory(category: Category, householdId: String): Result<Category> {
         return try {
             val response = client
-                .from(table = DatabaseEndpoint.CATEGORIES.path)
+                .from(table = DatabaseEndpoint.CATEGORIES_TABLE.path)
                 .insert(
                     value = category.toDto(householdId)
                 ) {
