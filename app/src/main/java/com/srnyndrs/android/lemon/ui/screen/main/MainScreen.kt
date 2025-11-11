@@ -1,5 +1,12 @@
 package com.srnyndrs.android.lemon.ui.screen.main
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -50,6 +57,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.srnyndrs.android.lemon.ui.components.forms.TransactionForm
 import com.srnyndrs.android.lemon.ui.screen.main.content.wallet.WalletScreen
 import com.srnyndrs.android.lemon.ui.screen.main.content.home.HomeScreen
 import com.srnyndrs.android.lemon.ui.screen.main.content.profile.ProfileScreen
@@ -90,7 +98,8 @@ fun MainScreen(
         bottomSheetState = rememberStandardBottomSheetState(
             initialValue = SheetValue.Hidden,
             confirmValueChange = {
-                it != SheetValue.Expanded
+                //it != SheetValue.Expanded
+                it != SheetValue.PartiallyExpanded
             },
             skipHiddenState = false
         )
@@ -107,59 +116,65 @@ fun MainScreen(
     Scaffold(
         modifier = Modifier.then(modifier),
         topBar = {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .requiredHeight(topPadding)
-                    .clip(RoundedCornerShape(
-                        bottomStart = 16.dp,
-                        bottomEnd = 16.dp
-                    ))
-                    .background( MaterialTheme.colorScheme.primaryContainer),
-                contentAlignment = Alignment.BottomCenter
+            AnimatedVisibility(
+                visible = bottomSheetState.bottomSheetState.targetValue != SheetValue.Expanded,
+                enter = fadeIn() + slideInVertically { -it },
+                exit = fadeOut() + slideOutVertically { -it },
             ) {
-                Row(
+                Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 18.dp, vertical = 12.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
+                        .requiredHeight(topPadding)
+                        .clip(RoundedCornerShape(
+                            bottomStart = 16.dp,
+                            bottomEnd = 16.dp
+                        ))
+                        .background( MaterialTheme.colorScheme.primaryContainer),
+                    contentAlignment = Alignment.BottomCenter
                 ) {
                     Row(
-                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 18.dp, vertical = 12.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Box(
-                            modifier = Modifier
-                                .size(32.dp)
-                                .clip(CircleShape)
-                                .border(1.dp, MaterialTheme.colorScheme.onSurface, CircleShape)
-                                .clickable {
-                                    // TODO: Open profile settings
-
-                                },
-                            contentAlignment = Alignment.Center
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(6.dp),
+                            verticalAlignment = Alignment.CenterVertically
                         ) {
-                            // Placeholder for profile image
+                            Box(
+                                modifier = Modifier
+                                    .size(32.dp)
+                                    .clip(CircleShape)
+                                    .border(1.dp, MaterialTheme.colorScheme.onSurface, CircleShape)
+                                    .clickable {
+                                        // TODO: Open profile settings
+
+                                    },
+                                contentAlignment = Alignment.Center
+                            ) {
+                                // Placeholder for profile image
+                                Icon(
+                                    imageVector = FeatherIcons.User,
+                                    contentDescription = null,
+                                )
+                            }
+                            //
+                            Text(text = mainState.user.username)
+                        }
+                        IconButton(
+                            modifier = Modifier.size(24.dp),
+                            onClick = {
+                                privacyMode = !privacyMode
+                                // TODO: authentication
+                            }
+                        ) {
                             Icon(
-                                imageVector = FeatherIcons.User,
-                                contentDescription = null,
+                                imageVector = if (privacyMode) FeatherIcons.EyeOff else FeatherIcons.Eye,
+                                contentDescription = null
                             )
                         }
-                        //
-                        Text(text = mainState.user.username)
-                    }
-                    IconButton(
-                        modifier = Modifier.size(24.dp),
-                        onClick = {
-                            privacyMode = !privacyMode
-                            // TODO: authentication
-                        }
-                    ) {
-                        Icon(
-                            imageVector = if(privacyMode) FeatherIcons.EyeOff else FeatherIcons.Eye,
-                            contentDescription = null
-                        )
                     }
                 }
             }
@@ -208,6 +223,7 @@ fun MainScreen(
                 .fillMaxSize()
                 .padding(bottom = paddingValues.calculateBottomPadding()),
             scaffoldState = bottomSheetState,
+            sheetDragHandle = {},
             sheetContent = {
                 Column(
                     modifier = Modifier
@@ -216,25 +232,38 @@ fun MainScreen(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.spacedBy(18.dp)
                 ) {
-                    Text(
-                        text = "Bottom Sheet Content",
-                        style = MaterialTheme.typography.titleMedium
-                    )
-                    IconButton(
-                        onClick = {
-                            scope.launch {
-                                bottomSheetState.bottomSheetState.hide()
-                            }
-                        }
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Icon(
-                            imageVector = FeatherIcons.VolumeX,
-                            contentDescription = null
+                        Text(
+                            text = "Bottom Sheet Content",
+                            style = MaterialTheme.typography.titleMedium
                         )
+                        IconButton(
+                            onClick = {
+                                scope.launch {
+                                    bottomSheetState.bottomSheetState.hide()
+                                }
+                            }
+                        ) {
+                            Icon(
+                                imageVector = FeatherIcons.VolumeX,
+                                contentDescription = null
+                            )
+                        }
+                    }
+                    TransactionForm(
+                        modifier = Modifier.fillMaxSize(),
+                        categories = emptyList(),
+                        payments = emptyList()
+                    ) { transaction ->
+                        //onMainEvent(MainEvent.AddTransaction(transaction))
                     }
                 }
             },
-            sheetPeekHeight = 372.dp,
+            //sheetPeekHeight = 372.dp,
             sheetSwipeEnabled = false
         ) {
             if (!mainState.isLoading) {
@@ -253,7 +282,8 @@ fun MainScreen(
                                 selectedHouseholdId = mainState.selectedHouseholdId,
                                 onUiEvent = {
                                     scope.launch {
-                                        bottomSheetState.bottomSheetState.partialExpand()
+                                        //bottomSheetState.bottomSheetState.partialExpand()
+                                        bottomSheetState.bottomSheetState.expand()
                                     }
                                 }
                             ) { mainEvent ->
