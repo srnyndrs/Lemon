@@ -1,5 +1,6 @@
 package com.srnyndrs.android.lemon.ui.components.forms
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Arrangement
@@ -25,10 +26,12 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material3.DatePicker
+import androidx.compose.material3.DatePickerDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -74,12 +77,15 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Popup
 import com.srnyndrs.android.lemon.domain.database.model.Category
 import com.srnyndrs.android.lemon.domain.database.model.PaymentMethod
+import com.srnyndrs.android.lemon.ui.components.selectors.CategorySelector
 import com.srnyndrs.android.lemon.ui.components.transaction.Transaction
 import com.srnyndrs.android.lemon.ui.theme.LemonTheme
 import com.srnyndrs.android.lemon.ui.utils.fromHex
 import compose.icons.FeatherIcons
 import compose.icons.feathericons.ArrowDown
 import compose.icons.feathericons.ArrowUp
+import compose.icons.feathericons.ChevronDown
+import compose.icons.feathericons.ChevronUp
 import compose.icons.feathericons.Minus
 import compose.icons.feathericons.Plus
 import kotlinx.coroutines.launch
@@ -97,7 +103,7 @@ fun TransactionForm(
 ) {
 
     val scope = rememberCoroutineScope()
-    val pagerState = rememberPagerState(initialPage = 0) { 3 }
+    val pagerState = rememberPagerState(initialPage = 0) { 2 }
 
     val focusRequester = remember { FocusRequester() }
     val focusManager = LocalFocusManager.current
@@ -117,6 +123,10 @@ fun TransactionForm(
         mutableStateOf(TextFieldValue(""))
     }
 
+    var transactionDetails by remember {
+        mutableStateOf(TextFieldValue(""))
+    }
+
     var showDatePicker by remember { mutableStateOf(false) }
     val datePickerState = rememberDatePickerState(
         initialSelectedDateMillis = System.currentTimeMillis()
@@ -125,6 +135,8 @@ fun TransactionForm(
         convertMillisToDate(it)
     } ?: ""
 
+    var selectedCategoryIndex by rememberSaveable { mutableIntStateOf(0) }
+
     var expanded by remember { mutableStateOf(false) }
 
     val validateAmount = (transactionAmount.text.isNotBlank() && transactionAmount.text.toFloatOrNull() == null)
@@ -132,238 +144,319 @@ fun TransactionForm(
     val scrollState = rememberScrollState()
 
     Column(
-        modifier = Modifier.then(modifier)
-            .padding(vertical = 12.dp, horizontal = 6.dp)
-            .verticalScroll(rememberScrollState()),
+        modifier = Modifier
+            .fillMaxSize()
+            .verticalScroll(scrollState)
+            .padding(6.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(24.dp)
     ) {
-        // Title
-        Text(
-            text = "Add Transaction",
-            style = MaterialTheme.typography.headlineMedium,
-        )
         // Content
-        HorizontalPager(
-            modifier = Modifier.fillMaxWidth(),
-            state = pagerState,
-            userScrollEnabled = false
-        ) { page ->
-            when(page) {
-                0 -> {
-                    Column(
-                        modifier = Modifier.fillMaxWidth().padding(6.dp),
-                        verticalArrangement = Arrangement.spacedBy(16.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                    ) {
-                        // Income / Expense selector
-                        Column(
-                            modifier = Modifier.fillMaxWidth(),
-                            verticalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
-                            Text(
-                                text = "Transaction Type",
-                                style = MaterialTheme.typography.titleMedium
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(6.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            // Income / Expense selector
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Text(
+                    text = "Transaction Type",
+                    style = MaterialTheme.typography.titleMedium
+                )
+                SingleChoiceSegmentedButtonRow(
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    options.forEachIndexed { index, label ->
+                        SegmentedButton(
+                            /*shape = SegmentedButtonDefaults.itemShape(
+                                index = index,
+                                count = options.size
+                            ),*/
+                            shape = RectangleShape,
+                            onClick = { selectedIndex = index },
+                            selected = index == selectedIndex,
+                            label = {
+                                Text(label)
+                            },
+                            icon = {
+                                Icon(
+                                    imageVector = if (index == 1) FeatherIcons.ArrowDown else FeatherIcons.ArrowUp,
+                                    contentDescription = null
+                                )
+                            },
+                            colors = SegmentedButtonDefaults.colors(
+                                // TODO: custom color
+                                activeContainerColor = if (index == 1) MaterialTheme.colorScheme.errorContainer else Color.fromHex(
+                                    "4CAF50"
+                                ),
+                                inactiveContainerColor = MaterialTheme.colorScheme.inverseOnSurface,
+                                activeContentColor = if (index == 1) MaterialTheme.colorScheme.onErrorContainer else Color.White,
                             )
-                            SingleChoiceSegmentedButtonRow(
-                                modifier = Modifier.fillMaxWidth()
-                            ) {
-                                options.forEachIndexed { index, label ->
-                                    SegmentedButton(
-                                        /*shape = SegmentedButtonDefaults.itemShape(
-                                            index = index,
-                                            count = options.size
-                                        ),*/
-                                        shape = RectangleShape,
-                                        onClick = { selectedIndex = index },
-                                        selected = index == selectedIndex,
-                                        label = {
-                                            Text(label)
-                                        },
-                                        icon = {
-                                            Icon(
-                                                imageVector = if (index == 1) FeatherIcons.ArrowDown else FeatherIcons.ArrowUp,
-                                                contentDescription = null
-                                            )
-                                        },
-                                        colors = SegmentedButtonDefaults.colors(
-                                            // TODO: custom color
-                                            activeContainerColor = if (index == 1) MaterialTheme.colorScheme.errorContainer else Color.fromHex(
-                                                "4CAF50"
-                                            ),
-                                            inactiveContainerColor = MaterialTheme.colorScheme.inverseOnSurface,
-                                            activeContentColor = if (index == 1) MaterialTheme.colorScheme.onErrorContainer else Color.White,
-                                        )
-                                    )
+                        )
 
-                                }
+                    }
+                }
+            }
+            // Amount
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Text(
+                    text = "Transaction Amount",
+                    style = MaterialTheme.typography.titleMedium
+                )
+                // TODO: custom amount input
+                TextField(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .focusRequester(focusRequester),
+                    value = transactionAmount,
+                    onValueChange = { transactionAmount = it },
+                    colors = TextFieldDefaults.colors(
+                        unfocusedContainerColor = Color.Transparent,
+                        focusedContainerColor = Color.Transparent,
+                        errorContainerColor = Color.Transparent,
+                    ),
+                    prefix = {
+                        Text(
+                            modifier = Modifier.padding(end = 12.dp),
+                            text = "HUF",
+                            style = MaterialTheme.typography.titleLarge
+                        )
+                    },
+                    textStyle = MaterialTheme.typography.titleLarge.copy(
+                        //textAlign = TextAlign.Center,
+                    ),
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions.Default.copy(
+                        keyboardType = KeyboardType.Number,
+                        imeAction = ImeAction.Next
+                    ),
+                    keyboardActions = KeyboardActions(
+                        onNext = {
+                            focusManager.moveFocus(FocusDirection.Down)
+                        }
+                    ),
+                    isError = validateAmount
+                )
+            }
+            // Name
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .focusRequester(focusRequester),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Text(
+                    text = "Transaction Name",
+                    style = MaterialTheme.typography.titleMedium
+                )
+                TextField(
+                    modifier = Modifier.fillMaxWidth(),
+                    value = transactionName,
+                    onValueChange = { transactionName = it },
+                    colors = TextFieldDefaults.colors(
+                        unfocusedContainerColor = Color.Transparent,
+                        focusedContainerColor = Color.Transparent,
+                        errorContainerColor = Color.Transparent,
+                    ),
+                    placeholder = {
+                        Text(
+                            text = "Shopping",
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                    },
+                    keyboardOptions = KeyboardOptions.Default.copy(
+                        keyboardType = KeyboardType.Text,
+                        imeAction = ImeAction.Next
+                    ),
+                    keyboardActions = KeyboardActions(
+                        onNext = {
+                            focusManager.moveFocus(FocusDirection.Down)
+                        }
+                    ),
+                    singleLine = true,
+                )
+            }
+            // Transaction date
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Text(
+                    text = "Transaction Date",
+                    style = MaterialTheme.typography.titleMedium
+                )
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    // Selected date
+                    OutlinedTextField(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .requiredHeight(64.dp)
+                            .focusRequester(focusRequester),
+                        value = selectedDate,
+                        onValueChange = { },
+                        readOnly = true,
+                        trailingIcon = {
+                            IconButton(
+                                onClick = { showDatePicker = !showDatePicker }
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.DateRange,
+                                    contentDescription = "Select date"
+                                )
                             }
-                        }
-                        // Amount
-                        Column(
-                            modifier = Modifier.fillMaxWidth(),
-                            verticalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
-                            Text(
-                                text = "Transaction Amount",
-                                style = MaterialTheme.typography.titleMedium
-                            )
-                            // TODO: custom amount input
-                            TextField(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .focusRequester(focusRequester),
-                                value = transactionAmount,
-                                onValueChange = { transactionAmount = it },
-                                colors = TextFieldDefaults.colors(
-                                    unfocusedContainerColor = Color.Transparent,
-                                    focusedContainerColor = Color.Transparent,
-                                    errorContainerColor = Color.Transparent,
-                                ),
-                                prefix = {
-                                    Text(
-                                        modifier = Modifier.padding(end = 12.dp),
-                                        text = "HUF",
-                                        style = MaterialTheme.typography.titleLarge
-                                    )
-                                },
-                                textStyle = MaterialTheme.typography.titleLarge.copy(
-                                    //textAlign = TextAlign.Center,
-                                ),
-                                singleLine = true,
-                                keyboardOptions = KeyboardOptions.Default.copy(
-                                    keyboardType = KeyboardType.Number,
-                                    imeAction = ImeAction.Next
-                                ),
-                                keyboardActions = KeyboardActions(
-                                    onNext = {
-                                        focusManager.moveFocus(FocusDirection.Down)
-                                    }
-                                ),
-                                isError = validateAmount
-                            )
-                        }
-                        // Name
+                        },
+                        keyboardOptions = KeyboardOptions.Default.copy(
+                            keyboardType = KeyboardType.Text,
+                            imeAction = ImeAction.Done
+                        ),
+                        keyboardActions = KeyboardActions(
+                            onDone = {
+                                focusManager.clearFocus()
+                            }
+                        ),
+                        singleLine = true,
+                    )
+                    // Date picker
+                    AnimatedVisibility(showDatePicker) {
                         Column(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .focusRequester(focusRequester),
-                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                                .background(
+                                    DatePickerDefaults.colors().containerColor
+                                ),
                         ) {
-                            Text(
-                                text = "Transaction Name",
-                                style = MaterialTheme.typography.titleMedium
-                            )
-                            TextField(
+                            DatePicker(
                                 modifier = Modifier.fillMaxWidth(),
-                                value = transactionName,
-                                onValueChange = { transactionName = it },
-                                colors = TextFieldDefaults.colors(
-                                    unfocusedContainerColor = Color.Transparent,
-                                    focusedContainerColor = Color.Transparent,
-                                    errorContainerColor = Color.Transparent,
-                                ),
-                                placeholder = {
-                                    Text(
-                                        text = "Shopping",
-                                        style = MaterialTheme.typography.bodyMedium
-                                    )
-                                },
-                                keyboardOptions = KeyboardOptions.Default.copy(
-                                    keyboardType = KeyboardType.Text,
-                                    imeAction = ImeAction.Next
-                                ),
-                                keyboardActions = KeyboardActions(
-                                    onNext = {
-                                        focusManager.moveFocus(FocusDirection.Down)
-                                    }
-                                ),
-                                singleLine = true,
+                                state = datePickerState,
+                                showModeToggle = false
                             )
-                        }
-                        // Transaction date
-                        Column(
-                            modifier = Modifier.fillMaxWidth(),
-                            verticalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
-                            Text(
-                                text = "Transaction Date",
-                                style = MaterialTheme.typography.titleMedium
-                            )
-                            Box(
-                                modifier = Modifier.fillMaxWidth()
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 6.dp),
+                                horizontalArrangement = Arrangement.End
                             ) {
-                                OutlinedTextField(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .requiredHeight(64.dp)
-                                        .focusRequester(focusRequester),
-                                    value = selectedDate,
-                                    onValueChange = { },
-                                    readOnly = true,
-                                    trailingIcon = {
-                                        IconButton(
-                                            onClick = { showDatePicker = !showDatePicker }
-                                        ) {
-                                            Icon(
-                                                imageVector = Icons.Default.DateRange,
-                                                contentDescription = "Select date"
-                                            )
-                                        }
-                                    },
-                                    keyboardOptions = KeyboardOptions.Default.copy(
-                                        keyboardType = KeyboardType.Text,
-                                        imeAction = ImeAction.Done
-                                    ),
-                                    keyboardActions = KeyboardActions(
-                                        onDone = {
-                                            focusManager.clearFocus()
-                                        }
-                                    ),
-                                    singleLine = true,
-                                )
-
-                                if (showDatePicker) {
-                                    Popup(
-                                        onDismissRequest = { showDatePicker = false },
-                                        alignment = Alignment.TopStart
-                                    ) {
-                                        Box(
-                                            modifier = Modifier
-                                                .fillMaxWidth()
-                                                .offset(y = 64.dp)
-                                                .shadow(elevation = 4.dp)
-                                                .background(MaterialTheme.colorScheme.surface)
-                                                .padding(16.dp)
-                                        ) {
-                                            DatePicker(
-                                                state = datePickerState,
-                                                showModeToggle = false
-                                            )
-                                        }
+                                TextButton(
+                                    onClick = {
+                                        showDatePicker = false
                                     }
+                                ) {
+                                    Text(
+                                        text = "Done",
+                                        style = MaterialTheme.typography.bodyLarge
+                                    )
                                 }
                             }
                         }
                     }
                 }
-                1 -> {
+            }
+            // Payment selector
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {  }
+
+
+            // Optional fields
+            var showOptionalFields by rememberSaveable { mutableStateOf(false) }
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceAround,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                HorizontalDivider(
+                    modifier = Modifier.weight(1f)
+                )
+                TextButton(
+                    modifier = Modifier.weight(1f),
+                    onClick = { showOptionalFields = !showOptionalFields }
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
+                        Text(
+                            text = "More",
+                            style = MaterialTheme.typography.bodyLarge,
+                        )
+                        Icon(
+                            imageVector = if(showOptionalFields) FeatherIcons.ChevronUp else FeatherIcons.ChevronDown,
+                            contentDescription = null
+                        )
+                    }
+
+                }
+                HorizontalDivider(
+                    modifier = Modifier.weight(1f)
+                )
+            }
+            // Optional Fields
+            AnimatedVisibility(
+                visible = showOptionalFields
+            ) {
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
                     Column(
                         modifier = Modifier.fillMaxWidth(),
-                        verticalArrangement = Arrangement.spacedBy(16.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        // Payment method selector
-
-                        // Category selector
-
+                        Text(
+                            text = "Transaction Details",
+                            style = MaterialTheme.typography.titleMedium
+                        )
+                        // Details
+                        TextField(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .requiredHeight(128.dp),
+                            value = transactionDetails,
+                            onValueChange = {
+                                transactionDetails = it
+                            },
+                            singleLine = false,
+                            colors = TextFieldDefaults.colors(
+                                unfocusedContainerColor = Color.Transparent,
+                                focusedContainerColor = Color.Transparent,
+                                errorContainerColor = Color.Transparent,
+                            ),
+                        )
                     }
-                }
-                2 -> {
-                    // Notes, date, confirm
-                    Column {
-                        Text(text = "Done")
+                    // Category selector
+                    AnimatedVisibility(
+                        visible = selectedIndex == 1
+                    ) {
+                        Column(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Text(
+                                text = "Transaction Category",
+                                style = MaterialTheme.typography.titleMedium
+                            )
+                            CategorySelector(
+                                modifier = Modifier.fillMaxWidth(),
+                                categories = categories,
+                                selectedIndex = selectedCategoryIndex
+                            ) {
+                                selectedCategoryIndex = it
+                            }
+                        }
                     }
+
                 }
             }
         }
@@ -376,20 +469,15 @@ fun TransactionForm(
                 onClick = {
                     focusRequester.requestFocus()
                     scope.launch {
-                        if(pagerState.currentPage == pagerState.pageCount - 1) {
-                            // TODO: validate and submit
+                        // TODO: validate and submit
 
+                        // TODO: clear form after submission
 
-                            // TODO: clear form after submission
-
-                        } else {
-                             pagerState.animateScrollToPage(pagerState.currentPage + 1)
-                        }
                     }
                 }
             ) {
                 Text(
-                    text = if(pagerState.currentPage == pagerState.pageCount - 1) "Confirm" else "Next",
+                    text = "Done",
                     style = MaterialTheme.typography.bodyLarge
                 )
             }
@@ -408,7 +496,26 @@ fun TransactionFormPreview() {
         ) {
             TransactionForm(
                 modifier = Modifier,
-                categories = emptyList(),
+                categories = listOf(
+                    Category(
+                        id = "1",
+                        name = "Shopping",
+                        color = "FF5722",
+                        icon = "shopping-bag"
+                    ),
+                    Category(
+                        id = "2",
+                        name = "Salary",
+                        color = "4CAF50",
+                        icon = "dollar-sign"
+                    ),
+                    Category(
+                        id = "3",
+                        name = "Food",
+                        color = "FFC107",
+                        icon = "coffee"
+                    ),
+                ),
                 payments = emptyList(),
             ) {}
         }

@@ -68,6 +68,7 @@ import compose.icons.feathericons.Eye
 import compose.icons.feathericons.EyeOff
 import compose.icons.feathericons.User
 import compose.icons.feathericons.VolumeX
+import compose.icons.feathericons.X
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -117,6 +118,7 @@ fun MainScreen(
         modifier = Modifier.then(modifier),
         topBar = {
             AnimatedVisibility(
+                modifier = Modifier.fillMaxWidth(),
                 visible = bottomSheetState.bottomSheetState.targetValue != SheetValue.Expanded,
                 enter = fadeIn() + slideInVertically { -it },
                 exit = fadeOut() + slideOutVertically { -it },
@@ -221,6 +223,7 @@ fun MainScreen(
         BottomSheetScaffold(
             modifier = Modifier
                 .fillMaxSize()
+                .background(MaterialTheme.colorScheme.tertiary)
                 .padding(bottom = paddingValues.calculateBottomPadding()),
             scaffoldState = bottomSheetState,
             sheetDragHandle = {},
@@ -228,18 +231,20 @@ fun MainScreen(
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(18.dp),
+                        .padding(top = 18.dp, bottom = paddingValues.calculateBottomPadding()),
                     horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(18.dp)
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     Row(
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(6.dp),
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            text = "Bottom Sheet Content",
-                            style = MaterialTheme.typography.titleMedium
+                            text = "Add Transaction",
+                            style = MaterialTheme.typography.headlineMedium
                         )
                         IconButton(
                             onClick = {
@@ -249,14 +254,14 @@ fun MainScreen(
                             }
                         ) {
                             Icon(
-                                imageVector = FeatherIcons.VolumeX,
+                                imageVector = FeatherIcons.X,
                                 contentDescription = null
                             )
                         }
                     }
                     TransactionForm(
                         modifier = Modifier.fillMaxSize(),
-                        categories = emptyList(),
+                        categories = mainState.categories,
                         payments = emptyList()
                     ) { transaction ->
                         //onMainEvent(MainEvent.AddTransaction(transaction))
