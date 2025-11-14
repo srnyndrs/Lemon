@@ -2,6 +2,7 @@ package com.srnyndrs.android.lemon.ui.components.forms
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -77,8 +78,11 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Popup
 import com.srnyndrs.android.lemon.domain.database.model.Category
 import com.srnyndrs.android.lemon.domain.database.model.PaymentMethod
+import com.srnyndrs.android.lemon.domain.database.model.Transaction
+import com.srnyndrs.android.lemon.domain.database.model.TransactionType
+import com.srnyndrs.android.lemon.domain.database.model.dto.TransactionDetailsDto
 import com.srnyndrs.android.lemon.ui.components.selectors.CategorySelector
-import com.srnyndrs.android.lemon.ui.components.transaction.Transaction
+import com.srnyndrs.android.lemon.ui.components.selectors.PaymentMethodSelector
 import com.srnyndrs.android.lemon.ui.theme.LemonTheme
 import com.srnyndrs.android.lemon.ui.utils.fromHex
 import compose.icons.FeatherIcons
@@ -92,6 +96,7 @@ import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import java.util.TimeZone
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -99,11 +104,10 @@ fun TransactionForm(
     modifier: Modifier = Modifier,
     categories: List<Category>,
     payments: List<PaymentMethod>,
-    onConfirm: (Transaction) -> Unit
+    onConfirm: (TransactionDetailsDto) -> Unit
 ) {
 
     val scope = rememberCoroutineScope()
-    val pagerState = rememberPagerState(initialPage = 0) { 2 }
 
     val focusRequester = remember { FocusRequester() }
     val focusManager = LocalFocusManager.current
@@ -111,6 +115,12 @@ fun TransactionForm(
     val convertMillisToDate = { millis: Long ->
         val formatter = SimpleDateFormat("MM/dd/yyyy", Locale.getDefault())
         formatter.format(Date(millis))
+    }
+
+    val convertMillisToIsoDate = { millis: Long ->
+        val sdf = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX", Locale.getDefault())
+        sdf.timeZone = TimeZone.getDefault()
+        sdf.format(Date(millis))
     }
 
     var selectedIndex by rememberSaveable { mutableIntStateOf(1) }
@@ -135,16 +145,30 @@ fun TransactionForm(
         convertMillisToDate(it)
     } ?: ""
 
-    var selectedCategoryIndex by rememberSaveable { mutableIntStateOf(0) }
+    var selectedPaymentIndex by rememberSaveable { mutableIntStateOf(0) }
 
-    var expanded by remember { mutableStateOf(false) }
+    var selectedCategoryIndex by rememberSaveable { mutableIntStateOf(0) }
 
     val validateAmount = (transactionAmount.text.isNotBlank() && transactionAmount.text.toFloatOrNull() == null)
 
     val scrollState = rememberScrollState()
 
+    val validateForm: () -> Boolean = {
+        var isValid = true
+        if (transactionAmount.text.isBlank() || transactionAmount.text.toFloatOrNull() == null) {
+            isValid = false
+        }
+        if (transactionName.text.isBlank()) {
+            isValid = false
+        }
+        if (selectedIndex == 1 && categories.isEmpty()) {
+            isValid = false
+        }
+        isValid
+    }
+
     Column(
-        modifier = Modifier
+        modifier = Modifier.then(modifier)
             .fillMaxSize()
             .verticalScroll(scrollState)
             .padding(6.dp),
@@ -284,6 +308,23 @@ fun TransactionForm(
                     singleLine = true,
                 )
             }
+            //
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Text(
+                    text = "Payment Method",
+                    style = MaterialTheme.typography.titleMedium
+                )
+                PaymentMethodSelector(
+                    modifier = Modifier.fillMaxWidth(),
+                    selectedItem = selectedPaymentIndex,
+                    paymentMethods = payments
+                ) {
+                    selectedPaymentIndex = it
+                }
+            }
             // Transaction date
             Column(
                 modifier = Modifier.fillMaxWidth(),
@@ -362,13 +403,6 @@ fun TransactionForm(
                     }
                 }
             }
-            // Payment selector
-            Column(
-                modifier = Modifier.fillMaxWidth(),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {  }
-
-
             // Optional fields
             var showOptionalFields by rememberSaveable { mutableStateOf(false) }
             Row(
@@ -396,7 +430,6 @@ fun TransactionForm(
                             contentDescription = null
                         )
                     }
-
                 }
                 HorizontalDivider(
                     modifier = Modifier.weight(1f)
@@ -422,7 +455,12 @@ fun TransactionForm(
                         TextField(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .requiredHeight(128.dp),
+                                .requiredHeight(128.dp)
+                                .clip(RoundedCornerShape(8.dp))
+                                .border(1.dp, MaterialTheme.colorScheme.onSurface, RoundedCornerShape(8.dp))
+                                .focusRequester(focusRequester) // TODO
+                            ,
+
                             value = transactionDetails,
                             onValueChange = {
                                 transactionDetails = it
@@ -470,6 +508,18 @@ fun TransactionForm(
                     focusRequester.requestFocus()
                     scope.launch {
                         // TODO: validate and submit
+                        if(validateForm()) {
+                            val transactionDetailsDto = TransactionDetailsDto(
+                                title = transactionName.text,
+                                amount = transactionAmount.text.toDouble(),
+                                type = if(selectedIndex == 1) TransactionType.EXPENSE else TransactionType.INCOME,
+                                date = datePickerState.selectedDateMillis?.let { convertMillisToDate(it) },
+                                paymentMethodId = payments[selectedPaymentIndex].id!!,
+                                categoryId = if(selectedIndex == 1) categories.getOrNull(selectedCategoryIndex)?.id else null,
+                                description = transactionDetails.text.ifBlank { null },
+                            )
+                            onConfirm(transactionDetailsDto)
+                        }
 
                         // TODO: clear form after submission
 
@@ -516,7 +566,23 @@ fun TransactionFormPreview() {
                         icon = "coffee"
                     ),
                 ),
-                payments = emptyList(),
+                payments = listOf(
+                    PaymentMethod(
+                        id = "1",
+                        name = "Cash",
+                        color = "#FFCDD2",
+                    ),
+                    PaymentMethod(
+                        id = "2",
+                        name = "Card",
+                        color = "#C8E6C9",
+                    ),
+                    PaymentMethod(
+                        id = "3",
+                        name = "Wallet",
+                        color = "#BBDEFB",
+                    ),
+                ),
             ) {}
         }
     }

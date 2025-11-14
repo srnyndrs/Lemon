@@ -11,6 +11,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.compose.rememberNavController
 import com.srnyndrs.android.lemon.domain.authentication.model.AuthStatus
@@ -60,7 +61,7 @@ class MainActivity : ComponentActivity() {
                     AppNavigationGraph(
                         modifier = Modifier
                             .fillMaxSize()
-                            .padding(bottom = innerPadding.calculateBottomPadding()),
+                            .padding(bottom = innerPadding.calculateBottomPadding(), top = 0.dp),
                         navController = navController,
                         authStatus = sessionStatus,
                     )

@@ -1,9 +1,11 @@
 package com.srnyndrs.android.lemon.ui.utils
 
+import android.annotation.SuppressLint
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.DrawScope
+import androidx.compose.ui.text.intl.Locale
 import androidx.core.graphics.toColorInt
 
 fun Color.Companion.fromHex(colorString: String): Color {
@@ -32,4 +34,16 @@ fun DrawScope.drawSpline(points: List<Offset>, color: Color) {
         lineTo(points.last().x, points.last().y)
     }
     drawPath(path, color, style = androidx.compose.ui.graphics.drawscope.Stroke(width = 4f))
+}
+
+@SuppressLint("DefaultLocale")
+fun Double.formatAsCurrency(): String {
+    val symbols = java.text.DecimalFormatSymbols().apply {
+        groupingSeparator = ' '
+    }
+    val df = java.text.DecimalFormat("#,##0", symbols).apply {
+        isGroupingUsed = true
+        maximumFractionDigits = 0
+    }
+    return df.format(this.toLong())
 }

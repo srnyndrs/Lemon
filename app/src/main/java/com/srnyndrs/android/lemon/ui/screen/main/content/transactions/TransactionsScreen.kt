@@ -31,10 +31,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.srnyndrs.android.lemon.ui.components.transaction.Transaction
+import com.srnyndrs.android.lemon.domain.database.model.Transaction
+import com.srnyndrs.android.lemon.domain.database.model.TransactionItem
+import com.srnyndrs.android.lemon.domain.database.model.TransactionType
 import com.srnyndrs.android.lemon.ui.components.transaction.TransactionList
-import com.srnyndrs.android.lemon.ui.components.transaction.TransactionRow
-import com.srnyndrs.android.lemon.ui.components.transaction.TransactionType
 import com.srnyndrs.android.lemon.ui.theme.LemonTheme
 import compose.icons.FeatherIcons
 import compose.icons.feathericons.Airplay
@@ -162,25 +162,28 @@ fun TransactionsScreen(
             modifier = Modifier.fillMaxWidth(),
             transactions = mapOf(
                 "June 20, 2024" to listOf(
-                    Transaction(
+                    TransactionItem(
                         id = "1",
-                        name = "Grocery Store",
-                        amount = 54000,
-                        transactionType = TransactionType.EXPENSE,
+                        title = "Grocery Store",
+                        amount = 54000.0,
+                        type = TransactionType.EXPENSE,
+                        date = "June 19, 2024"
                     ),
-                    Transaction(
+                    TransactionItem(
                         id = "2",
-                        name = "Salary",
-                        amount = 150000,
-                        transactionType = TransactionType.INCOME,
+                        title = "Salary",
+                        amount = 150000.0,
+                        type = TransactionType.INCOME,
+                        date = "June 19, 2024"
                     )
                 ),
                 "June 19, 2024" to listOf(
-                    Transaction(
+                    TransactionItem(
                         id = "3",
-                        name = "Electricity Bill",
-                        amount = 75000,
-                        transactionType = TransactionType.EXPENSE,
+                        title = "Electricity Bill",
+                        amount = 7500.0,
+                        type = TransactionType.EXPENSE,
+                        date = "June 19, 2024"
                     )
                 )
             )

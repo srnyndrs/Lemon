@@ -2,9 +2,11 @@ package com.srnyndrs.android.lemon.di
 
 import com.srnyndrs.android.lemon.data.database.SupabaseCategoryRepository
 import com.srnyndrs.android.lemon.data.database.SupabasePaymentMethodRepository
+import com.srnyndrs.android.lemon.data.database.SupabaseTransactionRepository
 import com.srnyndrs.android.lemon.data.database.SupabaseUserRepository
 import com.srnyndrs.android.lemon.domain.database.CategoryRepository
 import com.srnyndrs.android.lemon.domain.database.PaymentMethodRepository
+import com.srnyndrs.android.lemon.domain.database.TransactionRepository
 import com.srnyndrs.android.lemon.domain.database.UserRepository
 import dagger.Module
 import dagger.Provides
@@ -38,5 +40,13 @@ object DatabaseModule {
         supabaseClient: SupabaseClient
     ): PaymentMethodRepository {
         return SupabasePaymentMethodRepository(supabaseClient)
+    }
+
+    @Provides
+    @Singleton
+    fun provideTransactionRepository(
+        supabaseClient: SupabaseClient
+    ): TransactionRepository {
+        return SupabaseTransactionRepository(supabaseClient)
     }
 }

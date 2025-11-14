@@ -51,8 +51,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -115,10 +117,13 @@ fun MainScreen(
     }
 
     Scaffold(
-        modifier = Modifier.then(modifier),
+        modifier = Modifier.then(modifier).background(MaterialTheme.colorScheme.tertiary),
         topBar = {
             AnimatedVisibility(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .zIndex(1f),
+                //visible = false,
                 visible = bottomSheetState.bottomSheetState.targetValue != SheetValue.Expanded,
                 enter = fadeIn() + slideInVertically { -it },
                 exit = fadeOut() + slideOutVertically { -it },
@@ -223,10 +228,11 @@ fun MainScreen(
         BottomSheetScaffold(
             modifier = Modifier
                 .fillMaxSize()
-                .background(MaterialTheme.colorScheme.tertiary)
-                .padding(bottom = paddingValues.calculateBottomPadding()),
+                .background(if(!mainState.isLoading) MaterialTheme.colorScheme.tertiary else Color.Transparent)
+                .padding(bottom = paddingValues.calculateBottomPadding(), top = topPadding),
             scaffoldState = bottomSheetState,
             sheetDragHandle = {},
+            sheetShape = RectangleShape,
             sheetContent = {
                 Column(
                     modifier = Modifier
@@ -262,9 +268,9 @@ fun MainScreen(
                     TransactionForm(
                         modifier = Modifier.fillMaxSize(),
                         categories = mainState.categories,
-                        payments = emptyList()
+                        payments = mainState.paymentMethods
                     ) { transaction ->
-                        //onMainEvent(MainEvent.AddTransaction(transaction))
+                        onMainEvent(MainEvent.AddTransaction(transaction))
                     }
                 }
             },
@@ -280,14 +286,13 @@ fun MainScreen(
                     ) {
                         composable(route = Screens.Home.route) {
                             HomeScreen(
-                                modifier = Modifier
-                                    .fillMaxSize()
-                                    .padding(top = topPadding - 18.dp),
+                                modifier = Modifier.fillMaxSize(),
                                 households = mainState.user.households,
                                 selectedHouseholdId = mainState.selectedHouseholdId,
+                                transactions = mainState.transactions,
+                                statistics = mainState.statistics,
                                 onUiEvent = {
                                     scope.launch {
-                                        //bottomSheetState.bottomSheetState.partialExpand()
                                         bottomSheetState.bottomSheetState.expand()
                                     }
                                 }
@@ -297,9 +302,7 @@ fun MainScreen(
                         }
                         composable(route = Screens.Wallet.route) {
                             WalletScreen(
-                                modifier = Modifier
-                                    .fillMaxSize()
-                                    .padding(top = topPadding),
+                                modifier = Modifier.fillMaxSize(),
                                 categories = mainState.categories,
                                 payments = mainState.paymentMethods,
                                 onAddPaymentMethod = { paymentMethod ->
@@ -311,16 +314,12 @@ fun MainScreen(
                         }
                         composable(route = Screens.Transactions.route) {
                             TransactionsScreen(
-                                modifier = Modifier
-                                    .fillMaxSize()
-                                    .padding(top = topPadding)
+                                modifier = Modifier.fillMaxSize()
                             )
                         }
                         composable(route = Screens.Profile.route) {
                             ProfileScreen(
-                                modifier = Modifier
-                                    .fillMaxSize()
-                                    .padding(top = topPadding),
+                                modifier = Modifier.fillMaxSize(),
                                 onLogout = {
                                     onMainEvent(MainEvent.Logout)
                                 }
@@ -329,7 +328,13 @@ fun MainScreen(
                     }
                 } else {
                     // TODO: Show error screen
-                    Text(text = "Error: ${mainState.error}")
+                    Column(
+                        modifier = Modifier.fillMaxSize(),
+                        verticalArrangement = Arrangement.Center,
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(text = "Error: ${mainState.error}")
+                    }
                 }
             } else {
                 // TODO: user shimmer effect instead

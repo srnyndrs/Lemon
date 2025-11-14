@@ -8,6 +8,7 @@ import com.srnyndrs.android.lemon.domain.database.usecase.GetUserUseCase
 import com.srnyndrs.android.lemon.domain.database.usecase.LogoutUserUseCase
 import com.srnyndrs.android.lemon.domain.database.usecase.category.AllCategoryUseCase
 import com.srnyndrs.android.lemon.domain.database.usecase.payment_method.AllPaymentMethodUseCase
+import com.srnyndrs.android.lemon.domain.database.usecase.transaction.AllTransactionUseCase
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
@@ -26,6 +27,7 @@ class MainViewModel @AssistedInject constructor(
     private val logoutUserUseCase: LogoutUserUseCase,
     private val allCategoryUseCase: AllCategoryUseCase,
     private val allPaymentMethodUseCase: AllPaymentMethodUseCase,
+    private val allTransactionUseCase: AllTransactionUseCase
 ): ViewModel() {
 
     @AssistedFactory
@@ -97,6 +99,25 @@ class MainViewModel @AssistedInject constructor(
                 // Reload data
                 fetchData(householdId)
             }
+            is MainEvent.AddTransaction -> {
+                val transactionDetailsDto = event.data
+                val currentHouseholdId = _mainState.value.selectedHouseholdId
+                if (transactionDetailsDto != null) {
+                    allTransactionUseCase.addTransactionUseCase(
+                        householdId = currentHouseholdId,
+                        userId = userId,
+                        transactionDetailsDto = transactionDetailsDto
+                    ).fold(
+                        onSuccess = {
+                            fetchTransactions(currentHouseholdId)
+                            fetchStatistics(currentHouseholdId)
+                        },
+                        onFailure = {
+                            // TODO
+                        }
+                    )
+                }
+            }
         }
     }
 
@@ -120,6 +141,40 @@ class MainViewModel @AssistedInject constructor(
                 )
             }
         )
+    }
+
+    private suspend fun fetchTransactions(householdId: String) {
+        allTransactionUseCase.getMonthlyTransactionsUseCase(householdId).let { response ->
+            response.fold(
+                onSuccess = { transactions ->
+                    _mainState.value = _mainState.value.copy(
+                        transactions = transactions
+                    )
+                },
+                onFailure = { exception ->
+                    _mainState.value = _mainState.value.copy(
+                        error = "An error occurred: ${exception.message}"
+                    )
+                }
+            )
+        }
+    }
+
+    private suspend fun fetchStatistics(householdId: String) {
+        allTransactionUseCase.getMonthlyStatsUseCase(householdId).let { response ->
+            response.fold(
+                onSuccess = { statistics ->
+                    _mainState.value = _mainState.value.copy(
+                        statistics = statistics
+                    )
+                },
+                onFailure = { exception ->
+                    _mainState.value = _mainState.value.copy(
+                        error = "An error occurred: ${exception.message}"
+                    )
+                }
+            )
+        }
     }
 
     private suspend fun fetchData(householdId: String) {
@@ -151,6 +206,8 @@ class MainViewModel @AssistedInject constructor(
                 }
             )
         }
+        fetchTransactions(householdId)
+        fetchStatistics(householdId)
     }
 
 }

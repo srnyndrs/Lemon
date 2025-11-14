@@ -42,11 +42,12 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.srnyndrs.android.lemon.domain.database.model.Household
+import com.srnyndrs.android.lemon.domain.database.model.StatisticGroupItem
+import com.srnyndrs.android.lemon.domain.database.model.Transaction
+import com.srnyndrs.android.lemon.domain.database.model.TransactionItem
+import com.srnyndrs.android.lemon.domain.database.model.TransactionType
 import com.srnyndrs.android.lemon.ui.components.ActionButton
-import com.srnyndrs.android.lemon.ui.components.transaction.Transaction
 import com.srnyndrs.android.lemon.ui.components.transaction.TransactionList
-import com.srnyndrs.android.lemon.ui.components.transaction.TransactionRow
-import com.srnyndrs.android.lemon.ui.components.transaction.TransactionType
 import com.srnyndrs.android.lemon.ui.screen.main.MainEvent
 import com.srnyndrs.android.lemon.ui.screen.main.components.PieChartDiagram
 import com.srnyndrs.android.lemon.ui.theme.LemonTheme
@@ -59,6 +60,8 @@ fun HomeScreen(
     modifier: Modifier = Modifier,
     households: List<Household>,
     selectedHouseholdId: String,
+    transactions: Map<String, List<TransactionItem>>,
+    statistics: List<StatisticGroupItem>,
     onUiEvent: () -> Unit,
     onEvent: (MainEvent<*>) -> Unit
 ) {
@@ -173,7 +176,8 @@ fun HomeScreen(
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
                         PieChartDiagram(
-                            modifier = Modifier.size(128.dp)
+                            modifier = Modifier.size(128.dp),
+                            chartData = statistics
                         )
                         Column(
                             modifier = Modifier.fillMaxSize().padding(12.dp),
@@ -295,30 +299,7 @@ fun HomeScreen(
             ) {
                 TransactionList(
                     modifier = Modifier.fillMaxWidth(),
-                    transactions = mapOf(
-                        "June 20, 2024" to listOf(
-                            Transaction(
-                                id = "1",
-                                name = "Grocery Store",
-                                amount = 54000,
-                                transactionType = TransactionType.EXPENSE,
-                            ),
-                            Transaction(
-                                id = "2",
-                                name = "Salary",
-                                amount = 150000,
-                                transactionType = TransactionType.INCOME,
-                            )
-                        ),
-                        "June 19, 2024" to listOf(
-                            Transaction(
-                                id = "3",
-                                name = "Electricity Bill",
-                                amount = 75000,
-                                transactionType = TransactionType.EXPENSE,
-                            )
-                        )
-                    )
+                    transactions = transactions
                 )
             }
         }
@@ -343,6 +324,38 @@ fun HomeScreenPreview() {
                     )
                 ),
                 selectedHouseholdId = "1",
+                transactions = mapOf(
+                    "June 20, 2024" to listOf(
+                        TransactionItem(
+                            id = "1",
+                            title = "Grocery Store",
+                            amount = 54000.0,
+                            type = TransactionType.EXPENSE,
+                            date = "June 19, 2024"
+                        ),
+                        TransactionItem(
+                            id = "2",
+                            title = "Salary",
+                            amount = 150000.0,
+                            type = TransactionType.INCOME,
+                            date = "June 19, 2024"
+                        )
+                    ),
+                    "June 19, 2024" to listOf(
+                        TransactionItem(
+                            id = "3",
+                            title = "Electricity Bill",
+                            amount = 7500.0,
+                            type = TransactionType.EXPENSE,
+                            date = "June 19, 2024"
+                        )
+                    )
+                ),
+                statistics = listOf(
+                    StatisticGroupItem("Food", "", "#FFB74D", 200.0),
+                    StatisticGroupItem("Transport", "", "#64B5F6", 150.0),
+                    StatisticGroupItem("Entertainment", "", "#BA68C8", 100.0),
+                ),
                 onUiEvent = {}
             ) {}
         }
