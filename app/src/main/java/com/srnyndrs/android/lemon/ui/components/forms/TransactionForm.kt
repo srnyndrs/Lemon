@@ -117,12 +117,6 @@ fun TransactionForm(
         formatter.format(Date(millis))
     }
 
-    val convertMillisToIsoDate = { millis: Long ->
-        val sdf = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX", Locale.getDefault())
-        sdf.timeZone = TimeZone.getDefault()
-        sdf.format(Date(millis))
-    }
-
     var selectedIndex by rememberSaveable { mutableIntStateOf(1) }
     val options = listOf("Income", "Expense")
     var transactionAmount by remember {

@@ -299,7 +299,10 @@ fun HomeScreen(
             ) {
                 TransactionList(
                     modifier = Modifier.fillMaxWidth(),
-                    transactions = transactions
+                    transactions = transactions,
+                    onDelete = {
+                        onEvent(MainEvent.DeleteTransaction(it))
+                    }
                 )
             }
         }

@@ -4,6 +4,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.srnyndrs.android.lemon.domain.database.model.Category
 import com.srnyndrs.android.lemon.domain.database.model.PaymentMethod
+import com.srnyndrs.android.lemon.domain.database.model.TransactionItem
+import com.srnyndrs.android.lemon.domain.database.model.TransactionType
 import com.srnyndrs.android.lemon.domain.database.usecase.GetUserUseCase
 import com.srnyndrs.android.lemon.domain.database.usecase.LogoutUserUseCase
 import com.srnyndrs.android.lemon.domain.database.usecase.category.AllCategoryUseCase
@@ -118,6 +120,21 @@ class MainViewModel @AssistedInject constructor(
                     )
                 }
             }
+            is MainEvent.DeleteTransaction -> {
+                val transactionId = event.data as String
+                val currentHouseholdId = _mainState.value.selectedHouseholdId
+                allTransactionUseCase.deleteTransactionUseCase(
+                    transactionId = transactionId
+                ).fold(
+                    onSuccess = {
+                        fetchTransactions(currentHouseholdId)
+                        fetchStatistics(currentHouseholdId)
+                    },
+                    onFailure = {
+                        // TODO
+                    }
+                )
+            }
         }
     }
 
@@ -143,6 +160,19 @@ class MainViewModel @AssistedInject constructor(
         )
     }
 
+    private fun calculateExpenses(transactions: Map<String, List<TransactionItem>>) {
+        val expenses = mutableMapOf(
+            TransactionType.EXPENSE to 0.0,
+            TransactionType.INCOME to 0.0
+        )
+        transactions.values.flatten().forEach { transaction ->
+            expenses[transaction.type] = expenses.getOrDefault(transaction.type, 0.0) + transaction.amount
+        }
+        _mainState.value = _mainState.value.copy(
+            expenses = expenses
+        )
+    }
+
     private suspend fun fetchTransactions(householdId: String) {
         allTransactionUseCase.getMonthlyTransactionsUseCase(householdId).let { response ->
             response.fold(
@@ -150,6 +180,7 @@ class MainViewModel @AssistedInject constructor(
                     _mainState.value = _mainState.value.copy(
                         transactions = transactions
                     )
+                    calculateExpenses(transactions)
                 },
                 onFailure = { exception ->
                     _mainState.value = _mainState.value.copy(

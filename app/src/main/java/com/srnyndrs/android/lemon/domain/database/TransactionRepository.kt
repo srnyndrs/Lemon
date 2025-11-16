@@ -13,4 +13,7 @@ interface TransactionRepository {
         userId: String,
         transactionDetailsDto: TransactionDetailsDto
     ): Result<Transaction>
+
+    suspend fun deleteTransaction(transactionId: String): Result<Unit>
+
 }

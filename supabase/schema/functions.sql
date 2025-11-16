@@ -347,3 +347,65 @@ BEGIN
   END IF;
 END;
 $$;
+
+-- ==============================
+-- Function: delete_transaction
+-- Deletes a transaction if the user is the creator or a household owner
+-- ==============================
+CREATE OR REPLACE FUNCTION public.delete_transaction(
+  p_transaction_id uuid
+)
+RETURNS void
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_user_id uuid;
+  v_household_id uuid;
+  v_is_owner boolean;
+BEGIN
+  -- Get current user
+  v_user_id := auth.uid();
+  
+  IF v_user_id IS NULL THEN
+    RAISE EXCEPTION 'Not authenticated' USING ERRCODE = '42501';
+  END IF;
+  
+  -- Get transaction details
+  SELECT household_id, user_id 
+  INTO v_household_id, v_user_id
+  FROM transactions
+  WHERE id = p_transaction_id;
+  
+  IF NOT FOUND THEN
+    RAISE EXCEPTION 'Transaction not found' USING ERRCODE = '42704';
+  END IF;
+  
+  -- Check if user is transaction creator
+  IF v_user_id = auth.uid() THEN
+    DELETE FROM transactions WHERE id = p_transaction_id;
+    RETURN;
+  END IF;
+  
+  -- Check if user is household owner
+  SELECT EXISTS (
+    SELECT 1 
+    FROM household_members hm
+    WHERE hm.household_id = v_household_id
+      AND hm.user_id = auth.uid()
+      AND hm.role = 'owner'
+  ) INTO v_is_owner;
+  
+  IF v_is_owner THEN
+    DELETE FROM transactions WHERE id = p_transaction_id;
+    RETURN;
+  END IF;
+  
+  -- User is neither creator nor owner
+  RAISE EXCEPTION 'Permission denied' USING ERRCODE = '42501';
+END;
+$$ LANGUAGE plpgsql;
+
+-- Grant execute permission
+GRANT EXECUTE ON FUNCTION public.delete_transaction(uuid) TO authenticated;
+

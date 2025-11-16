@@ -13,6 +13,8 @@ import com.srnyndrs.android.lemon.domain.database.model.StatisticGroupItem
 import com.srnyndrs.android.lemon.domain.database.model.TransactionItem
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.postgrest.from
+import io.github.jan.supabase.postgrest.postgrest
+import io.github.jan.supabase.postgrest.rpc
 import javax.inject.Inject
 
 class SupabaseTransactionRepository @Inject constructor(
@@ -62,6 +64,19 @@ class SupabaseTransactionRepository @Inject constructor(
                 }.decodeSingle<TransactionDto>()
 
             Result.success(response.toDomain())
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun deleteTransaction(transactionId: String): Result<Unit> {
+        return try {
+            client.postgrest.rpc(
+                function = "delete_transaction",
+                parameters = mapOf("p_transaction_id" to transactionId)
+            )
+
+            Result.success(Unit)
         } catch (e: Exception) {
             Result.failure(e)
         }

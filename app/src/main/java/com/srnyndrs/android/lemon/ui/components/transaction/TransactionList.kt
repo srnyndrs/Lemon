@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.requiredHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -23,7 +24,8 @@ import com.srnyndrs.android.lemon.ui.theme.LemonTheme
 @Composable
 fun TransactionList(
     modifier: Modifier = Modifier,
-    transactions: Map<String, List<TransactionItem>> = emptyMap()
+    transactions: Map<String, List<TransactionItem>> = emptyMap(),
+    onDelete: (String) -> Unit
 ) {
 
     LazyColumn(
@@ -44,9 +46,15 @@ fun TransactionList(
                 }
             }
             items(transactionList.size) { index ->
+                val item = transactionList[index]
                 TransactionRow(
-                    modifier = Modifier.fillMaxWidth(),
-                    transaction = transactionList[index]
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .requiredHeight(96.dp),
+                    transaction = item,
+                    onDelete = {
+                        onDelete(item.id)
+                    }
                 ) {
                     // TODO: Handle transaction click
                 }
@@ -93,7 +101,9 @@ fun TransactionListPreview() {
                         )
                     )
                 )
-            )
+            ) {
+
+            }
         }
     }
 }

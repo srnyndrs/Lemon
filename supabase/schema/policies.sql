@@ -62,11 +62,11 @@ DROP POLICY IF EXISTS "Users can view household members in shared households" ON
 CREATE POLICY "Users can view household members in shared households"
   ON public.household_members FOR SELECT
   USING (
-    -- Users can see all members of households they belong to
-    EXISTS (
-      SELECT 1 FROM public.household_members hm2
-      WHERE hm2.household_id = household_members.household_id
-        AND hm2.user_id = auth.uid()
+    -- Users can see members of households where they have a direct membership
+    household_id IN (
+      SELECT hm2.household_id 
+      FROM public.household_members hm2 
+      WHERE hm2.user_id = auth.uid()
     )
   );
 
@@ -78,22 +78,22 @@ CREATE POLICY "Users can add themselves or owners can add others"
     (user_id = auth.uid() AND role = 'owner')
     OR
     -- Existing owners can add new members
-    EXISTS (
-      SELECT 1 FROM public.household_members hm 
-      WHERE hm.household_id = household_members.household_id
-        AND hm.user_id = auth.uid() 
+    (household_id IN (
+      SELECT hm.household_id 
+      FROM public.household_members hm 
+      WHERE hm.user_id = auth.uid() 
         AND hm.role = 'owner'
-    )
+    ))
   );
 
 DROP POLICY IF EXISTS "Only owners can remove members" ON public.household_members;
 CREATE POLICY "Only owners can remove members"
   ON public.household_members FOR DELETE
   USING (
-    EXISTS (
-      SELECT 1 FROM public.household_members hm 
-      WHERE hm.household_id = household_members.household_id
-        AND hm.user_id = auth.uid() 
+    household_id IN (
+      SELECT hm.household_id 
+      FROM public.household_members hm 
+      WHERE hm.user_id = auth.uid() 
         AND hm.role = 'owner'
     )
   );
