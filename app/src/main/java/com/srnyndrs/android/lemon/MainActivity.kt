@@ -12,6 +12,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.compose.rememberNavController
 import com.srnyndrs.android.lemon.domain.authentication.model.AuthStatus
@@ -19,11 +20,20 @@ import com.srnyndrs.android.lemon.ui.SessionViewModel
 import com.srnyndrs.android.lemon.ui.navigation.AppNavigationGraph
 import com.srnyndrs.android.lemon.ui.theme.LemonTheme
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.delay
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        val splashscreen = installSplashScreen()
+        var keepSplashScreen = true
+
+        splashscreen.setKeepOnScreenCondition {
+            keepSplashScreen
+        }
+
         enableEdgeToEdge()
         setContent {
 
@@ -35,6 +45,7 @@ class MainActivity : ComponentActivity() {
                 // Auto-login
                 when(sessionStatus) {
                     is AuthStatus.Unauthenticated -> {
+                        keepSplashScreen = false
                         navController.navigate("auth") {
                             popUpTo("main") {
                                 inclusive = true
@@ -50,6 +61,10 @@ class MainActivity : ComponentActivity() {
                                 inclusive = true
                             }
                         }
+
+                        // Ensure main screen is ready
+                        delay(500L)
+                        keepSplashScreen = false
                     }
                 }
             }

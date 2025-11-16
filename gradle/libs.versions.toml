@@ -1,5 +1,6 @@
 [versions]
 agp = "8.5.2"
+coreSplashscreenVersion = "1.0.1"
 feather = "1.1.1"
 kotlin = "2.0.0"
 coreKtx = "1.15.0"
@@ -22,6 +23,7 @@ cameraVersion = "1.3.3"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
+androidx-core-splashscreen = { module = "androidx.core:core-splashscreen", version.ref = "coreSplashscreenVersion" }
 androidx-hilt-navigation-compose = { module = "androidx.hilt:hilt-navigation-compose", version.ref = "hiltNavigationCompose" }
 androidx-ui-text-google-fonts = { module = "androidx.compose.ui:ui-text-google-fonts", version.ref = "uiTextGoogleFonts" }
 compose-auth-ui = { module = "io.github.jan-tennert.supabase:compose-auth-ui", version = "3.0.0" }
