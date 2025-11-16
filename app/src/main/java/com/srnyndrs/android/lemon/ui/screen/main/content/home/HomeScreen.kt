@@ -20,6 +20,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ProgressIndicatorDefaults
@@ -41,6 +42,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.srnyndrs.android.lemon.domain.database.model.Household
 import com.srnyndrs.android.lemon.domain.database.model.StatisticGroupItem
 import com.srnyndrs.android.lemon.domain.database.model.Transaction
@@ -51,8 +53,10 @@ import com.srnyndrs.android.lemon.ui.components.transaction.TransactionList
 import com.srnyndrs.android.lemon.ui.screen.main.MainEvent
 import com.srnyndrs.android.lemon.ui.screen.main.components.PieChartDiagram
 import com.srnyndrs.android.lemon.ui.theme.LemonTheme
+import com.srnyndrs.android.lemon.ui.utils.formatAsCurrency
 import compose.icons.FeatherIcons
 import compose.icons.feathericons.Camera
+import compose.icons.feathericons.Home
 import compose.icons.feathericons.Plus
 
 @Composable
@@ -61,6 +65,7 @@ fun HomeScreen(
     households: List<Household>,
     selectedHouseholdId: String,
     transactions: Map<String, List<TransactionItem>>,
+    expenses: Map<TransactionType, Double>,
     statistics: List<StatisticGroupItem>,
     onUiEvent: () -> Unit,
     onEvent: (MainEvent<*>) -> Unit
@@ -77,6 +82,10 @@ fun HomeScreen(
         households.size
     }
 
+    val expense = expenses[TransactionType.EXPENSE]
+    val income = expenses[TransactionType.INCOME]
+    val total = expense?.plus(income ?: 0.0) ?: income ?: 0.0
+
     LaunchedEffect(pagerState.currentPage) {
         if (isInitialized) {
             val selectedHousehold = households.getOrNull(pagerState.currentPage)
@@ -92,7 +101,6 @@ fun HomeScreen(
     Column(
         modifier = Modifier
             .then(modifier),
-            //.verticalScroll(scrollState),
         verticalArrangement = Arrangement.spacedBy(12.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
@@ -175,30 +183,43 @@ fun HomeScreen(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
-                        PieChartDiagram(
+                        /*PieChartDiagram(
                             modifier = Modifier.size(128.dp),
                             chartData = statistics
-                        )
+                        )*/
                         Column(
                             modifier = Modifier.fillMaxSize().padding(12.dp),
                             horizontalAlignment = Alignment.CenterHorizontally,
                             verticalArrangement = Arrangement.Center
                         ) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                Icon(
+                                    modifier = Modifier.size(22.dp),
+                                    imageVector = FeatherIcons.Home,
+                                    contentDescription = null
+                                )
+                                Text(
+                                    text = household.name,
+                                    style = MaterialTheme.typography.headlineSmall
+                                )
+                            }
+                            Spacer(
+                                modifier = Modifier.requiredHeight(16.dp)
+                            )
                             Text(
-                                text = household.name,
-                                style = MaterialTheme.typography.titleMedium
+                                text = (income?.minus(expense ?: 0.0) ?: expense?.times(-1) ?: 0.0).formatAsCurrency() + " Ft", // TODO
+                                style = MaterialTheme.typography.headlineLarge,
+                                fontSize = 28.sp
                             )
                             Spacer(
-                                modifier = Modifier.requiredHeight(12.dp)
-                            )
-                            Text(
-                                text = "1200 Ft",
-                                style = MaterialTheme.typography.titleLarge
+                                modifier = Modifier.requiredHeight(8.dp)
                             )
                             LinearProgressIndicator(
                                 progress = {
-                                    // TODO: calculate from transactions
-                                    0.6f
+                                    (expense?.div(total) ?: 1.0).toFloat()
                                 },
                                 modifier = Modifier
                                     .fillMaxWidth(0.75f)
@@ -353,6 +374,10 @@ fun HomeScreenPreview() {
                             date = "June 19, 2024"
                         )
                     )
+                ),
+                expenses = mapOf(
+                    TransactionType.EXPENSE to 50000.0,
+                    TransactionType.INCOME  to 50000.0
                 ),
                 statistics = listOf(
                     StatisticGroupItem("Food", "", "#FFB74D", 200.0),

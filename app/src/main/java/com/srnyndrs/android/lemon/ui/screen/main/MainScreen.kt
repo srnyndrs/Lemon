@@ -62,6 +62,7 @@ import androidx.navigation.compose.rememberNavController
 import com.srnyndrs.android.lemon.ui.components.forms.TransactionForm
 import com.srnyndrs.android.lemon.ui.screen.main.content.wallet.WalletScreen
 import com.srnyndrs.android.lemon.ui.screen.main.content.home.HomeScreen
+import com.srnyndrs.android.lemon.ui.screen.main.content.insights.InsightsScreen
 import com.srnyndrs.android.lemon.ui.screen.main.content.profile.ProfileScreen
 import com.srnyndrs.android.lemon.ui.screen.main.content.transactions.TransactionsScreen
 import com.srnyndrs.android.lemon.ui.theme.LemonTheme
@@ -90,8 +91,8 @@ fun MainScreen(
 
     val screens = listOf(
         Screens.Home,
+        Screens.Insights,
         Screens.Wallet,
-        Screens.Transactions,
         Screens.Profile
     )
 
@@ -101,7 +102,6 @@ fun MainScreen(
         bottomSheetState = rememberStandardBottomSheetState(
             initialValue = SheetValue.Hidden,
             confirmValueChange = {
-                //it != SheetValue.Expanded
                 it != SheetValue.PartiallyExpanded
             },
             skipHiddenState = false
@@ -290,6 +290,7 @@ fun MainScreen(
                                 households = mainState.user.households,
                                 selectedHouseholdId = mainState.selectedHouseholdId,
                                 transactions = mainState.transactions,
+                                expenses = mainState.expenses,
                                 statistics = mainState.statistics,
                                 onUiEvent = {
                                     scope.launch {
@@ -299,6 +300,12 @@ fun MainScreen(
                             ) { mainEvent ->
                                 onMainEvent(mainEvent)
                             }
+                        }
+                        composable(route = Screens.Insights.route) {
+                            InsightsScreen(
+                                modifier = Modifier.fillMaxSize(),
+                                statistics = mainState.statistics,
+                            )
                         }
                         composable(route = Screens.Wallet.route) {
                             WalletScreen(
@@ -312,11 +319,11 @@ fun MainScreen(
                                 onMainEvent(MainEvent.AddCategory(category))
                             }
                         }
-                        composable(route = Screens.Transactions.route) {
+                        /*composable(route = Screens.Transactions.route) {
                             TransactionsScreen(
                                 modifier = Modifier.fillMaxSize()
                             )
-                        }
+                        }*/
                         composable(route = Screens.Profile.route) {
                             ProfileScreen(
                                 modifier = Modifier.fillMaxSize(),

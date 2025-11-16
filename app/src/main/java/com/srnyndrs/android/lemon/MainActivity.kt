@@ -61,7 +61,7 @@ class MainActivity : ComponentActivity() {
                     AppNavigationGraph(
                         modifier = Modifier
                             .fillMaxSize()
-                            .padding(bottom = innerPadding.calculateBottomPadding(), top = 0.dp),
+                            .padding(bottom = innerPadding.calculateBottomPadding()),
                         navController = navController,
                         authStatus = sessionStatus,
                     )
