@@ -5,4 +5,6 @@ data class StatisticGroupItem(
     val icon: String? = null,
     val color: String? = null,
     val totalAmount: Double,
+    val year: Int? = null,
+    val month: Int? = null
 )

@@ -10,6 +10,8 @@ data class TransactionsView(
     val transactionId: String,
     @SerialName("household_id")
     val householdId: String,
+    val year: Int,
+    val month: Int,
     @SerialName("category_name")
     val categoryName: String? = null,
     @SerialName("category_icon")

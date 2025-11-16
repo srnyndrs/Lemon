@@ -64,10 +64,13 @@ LEFT JOIN (
 -- View: household_transactions_view
 -- All transactions with related data
 -- ==============================
+DROP VIEW IF EXISTS household_transactions_view;
 CREATE OR REPLACE VIEW household_transactions_view AS
 SELECT 
   t.id as transaction_id,
   t.household_id,
+  EXTRACT(YEAR FROM t.transaction_date)::integer AS year,
+  EXTRACT(MONTH FROM t.transaction_date)::integer AS month,
   c.name as category_name,
   c.icon as category_icon,
   c.color as category_color,
@@ -77,7 +80,6 @@ SELECT
   t.transaction_date
 FROM public.transactions t
 LEFT JOIN public.categories c ON t.category_id = c.id
-WHERE DATE_TRUNC('month', t.transaction_date) = DATE_TRUNC('month', CURRENT_DATE);
 ORDER BY t.transaction_date DESC;
 
 -- ==============================
@@ -136,11 +138,32 @@ JOIN public.households h ON hm.household_id = h.id
 JOIN public.users u ON hm.user_id = u.id;
 
 -- ==============================
+-- View: household_monthly_expenses_view
+-- Monthly expense totals by household
+-- ==============================
+DROP VIEW IF EXISTS household_monthly_expenses_view;
+CREATE OR REPLACE VIEW household_monthly_expenses_view AS
+SELECT
+  household_id,
+  EXTRACT(YEAR FROM transaction_date)::integer AS year,
+  EXTRACT(MONTH FROM transaction_date)::integer AS month,
+  SUM(amount) AS total_expenses
+FROM public.transactions
+WHERE type = 'expense'
+GROUP BY household_id, 
+  EXTRACT(YEAR FROM transaction_date),
+  EXTRACT(MONTH FROM transaction_date)
+ORDER BY household_id, year ASC, month ASC;
+
+-- ==============================
 -- View: household_summary_view
+-- ==============================
 DROP VIEW IF EXISTS household_summary_view;
 CREATE OR REPLACE VIEW household_summary_view AS
 SELECT
   t.household_id,
+  EXTRACT(YEAR FROM t.transaction_date)::integer AS year,
+  EXTRACT(MONTH FROM t.transaction_date)::integer AS month,
   COALESCE(
     CASE 
       WHEN t.type = 'income' THEN 'Income'
@@ -167,6 +190,8 @@ FROM public.transactions t
 LEFT JOIN public.categories c ON t.category_id = c.id
 WHERE DATE_TRUNC('month', t.transaction_date) = DATE_TRUNC('month', CURRENT_DATE)
 GROUP BY t.household_id,
+  EXTRACT(YEAR FROM t.transaction_date),
+  EXTRACT(MONTH FROM t.transaction_date),
   COALESCE(
     CASE 
       WHEN t.type = 'income' THEN 'Income'
@@ -188,7 +213,7 @@ GROUP BY t.household_id,
       ELSE c.color
     END, '#cccccc'
   )
-ORDER BY t.household_id, category_name;
+ORDER BY t.household_id, year, month, category_name;
 
 GRANT SELECT ON user_households TO authenticated;
 GRANT SELECT ON household_payment_methods_view TO authenticated;
@@ -196,4 +221,5 @@ GRANT SELECT ON household_categories_view TO authenticated;
 GRANT SELECT ON household_transactions_view TO authenticated;
 GRANT SELECT ON household_recurring_payments_view TO authenticated;
 GRANT SELECT ON household_members_view TO authenticated;
+GRANT SELECT ON household_monthly_expenses_view TO authenticated;
 GRANT SELECT ON household_summary_view TO authenticated;

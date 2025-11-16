@@ -5,6 +5,10 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class TransactionStatsDto(
+    @SerialName("household_id")
+    val householdId: String,
+    val year: Int,
+    val month: Int,
     @SerialName("category_name")
     val categoryName: String,
     @SerialName("category_icon")

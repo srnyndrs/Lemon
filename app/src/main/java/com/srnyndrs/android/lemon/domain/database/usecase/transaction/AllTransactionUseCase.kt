@@ -6,5 +6,6 @@ class AllTransactionUseCase @Inject constructor(
     val addTransactionUseCase: AddTransactionUseCase,
     val getMonthlyTransactionsUseCase: GetMonthlyTransactionsUseCase,
     val getMonthlyStatsUseCase: GetMonthlyStatsUseCase,
-    val deleteTransactionUseCase: DeleteTransactionUseCase
+    val deleteTransactionUseCase: DeleteTransactionUseCase,
+    val getStatisticsUseCase: GetStatisticsUseCase
 )

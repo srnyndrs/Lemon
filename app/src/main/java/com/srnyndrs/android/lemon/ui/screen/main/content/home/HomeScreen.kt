@@ -2,7 +2,6 @@ package com.srnyndrs.android.lemon.ui.screen.main.content.home
 
 import android.widget.Toast
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -16,10 +15,8 @@ import androidx.compose.foundation.layout.requiredWidth
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
@@ -44,14 +41,11 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.srnyndrs.android.lemon.domain.database.model.Household
-import com.srnyndrs.android.lemon.domain.database.model.StatisticGroupItem
-import com.srnyndrs.android.lemon.domain.database.model.Transaction
 import com.srnyndrs.android.lemon.domain.database.model.TransactionItem
 import com.srnyndrs.android.lemon.domain.database.model.TransactionType
 import com.srnyndrs.android.lemon.ui.components.ActionButton
 import com.srnyndrs.android.lemon.ui.components.transaction.TransactionList
 import com.srnyndrs.android.lemon.ui.screen.main.MainEvent
-import com.srnyndrs.android.lemon.ui.screen.main.components.PieChartDiagram
 import com.srnyndrs.android.lemon.ui.theme.LemonTheme
 import com.srnyndrs.android.lemon.ui.utils.formatAsCurrency
 import compose.icons.FeatherIcons
@@ -66,7 +60,6 @@ fun HomeScreen(
     selectedHouseholdId: String,
     transactions: Map<String, List<TransactionItem>>,
     expenses: Map<TransactionType, Double>,
-    statistics: List<StatisticGroupItem>,
     onUiEvent: () -> Unit,
     onEvent: (MainEvent<*>) -> Unit
 ) {
@@ -82,9 +75,11 @@ fun HomeScreen(
         households.size
     }
 
-    val expense = expenses[TransactionType.EXPENSE]
-    val income = expenses[TransactionType.INCOME]
-    val total = expense?.plus(income ?: 0.0) ?: income ?: 0.0
+    val expense = expenses[TransactionType.EXPENSE] ?: 0.0
+    val income = expenses[TransactionType.INCOME] ?: 0.0
+    val total = expense + income
+    // Avoid division by zero - if total is 0, progress should be 0
+    val expenseRatio = if (total > 0.0) (expense / total).toFloat() else 0f
 
     LaunchedEffect(pagerState.currentPage) {
         if (isInitialized) {
@@ -210,7 +205,7 @@ fun HomeScreen(
                                 modifier = Modifier.requiredHeight(16.dp)
                             )
                             Text(
-                                text = (income?.minus(expense ?: 0.0) ?: expense?.times(-1) ?: 0.0).formatAsCurrency() + " Ft", // TODO
+                                text = (income.minus(expense)).formatAsCurrency() + " Ft", // TODO
                                 style = MaterialTheme.typography.headlineLarge,
                                 fontSize = 28.sp
                             )
@@ -218,9 +213,7 @@ fun HomeScreen(
                                 modifier = Modifier.requiredHeight(8.dp)
                             )
                             LinearProgressIndicator(
-                                progress = {
-                                    (expense?.div(total) ?: 1.0).toFloat()
-                                },
+                                progress = { expenseRatio },
                                 modifier = Modifier
                                     .fillMaxWidth(0.75f)
                                     .padding(vertical = 6.dp),
@@ -376,13 +369,8 @@ fun HomeScreenPreview() {
                     )
                 ),
                 expenses = mapOf(
-                    TransactionType.EXPENSE to 50000.0,
-                    TransactionType.INCOME  to 50000.0
-                ),
-                statistics = listOf(
-                    StatisticGroupItem("Food", "", "#FFB74D", 200.0),
-                    StatisticGroupItem("Transport", "", "#64B5F6", 150.0),
-                    StatisticGroupItem("Entertainment", "", "#BA68C8", 100.0),
+                    TransactionType.EXPENSE to 5000.0,
+                    TransactionType.INCOME  to 10000.0
                 ),
                 onUiEvent = {}
             ) {}

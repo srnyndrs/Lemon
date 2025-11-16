@@ -1,6 +1,7 @@
 package com.srnyndrs.android.lemon.data.database
 
 import android.util.Log
+import com.srnyndrs.android.lemon.data.database.dto.MonthlyExpenses
 import com.srnyndrs.android.lemon.data.database.dto.TransactionDto
 import com.srnyndrs.android.lemon.data.database.dto.TransactionStatsDto
 import com.srnyndrs.android.lemon.data.database.dto.TransactionsView
@@ -20,32 +21,57 @@ import javax.inject.Inject
 class SupabaseTransactionRepository @Inject constructor(
     private val client: SupabaseClient
 ): TransactionRepository {
-    override suspend fun getTransactions(householdId: String): Result<Map<String, List<TransactionItem>>> {
+    override suspend fun getTransactions(householdId: String, year: Int?, month: Int?): Result<Map<String, List<TransactionItem>>> {
         return try {
-            val response = client.from(table = "household_transactions_view")
+            val response = client.from(table = "household_transactions_view") // TODO: proper constant
                 .select {
-                    filter { TransactionsView::householdId eq householdId }
+                    filter {
+                        TransactionsView::householdId eq householdId
+                        year?.let { TransactionsView::year eq it }
+                        month?.let { TransactionsView::month eq it }
+                    }
                 }
                 .decodeList<TransactionsView>()
 
-            Result.success(response.map { it.toDomain() }.groupBy { it.date })
+            Result.success(
+                response.map { it.toDomain() }
+                    .groupBy { it.date }
+            )
         } catch (e: Exception) {
             Result.failure(e)
         }
     }
 
-    override suspend fun getMonthlyStats(householdId: String): Result<List<StatisticGroupItem>> {
+    override suspend fun getMonthlyStats(householdId: String, year: Int?, month: Int?): Result<List<StatisticGroupItem>> {
         return try {
-            val response = client.from(table = "household_summary_view")
+            val response = client.from(table = "household_summary_view") // TODO: proper constant
                 .select {
-                    filter { TransactionsView::householdId eq householdId }
+                    filter {
+                        TransactionStatsDto::householdId eq householdId
+                        year?.let { TransactionsView::year eq it }
+                        month?.let { TransactionsView::month eq it }
+                    }
                 }
                 .decodeList<TransactionStatsDto>()
 
-            Log.d("SupabaseTransactionRepo", "Fetched monthly stats: $response")
-            Result.success(response.map{ it.toDomain() })
+            Result.success(response.map { it.toDomain() })
         } catch (e: Exception) {
-            Log.d("SupabaseTransactionRepo", "Error fetching monthly stats", e)
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun getStatistics(householdId: String): Result<List<Pair<Int, Double>>> {
+        return try {
+            val response = client.from(table = "household_monthly_expenses_view")
+                .select {
+                    filter {
+                        MonthlyExpenses::householdId eq householdId
+                    }
+                }
+                .decodeList<MonthlyExpenses>()
+
+            Result.success(response.map { it.month to it.totalExpenses })
+        } catch (e: Exception) {
             Result.failure(e)
         }
     }

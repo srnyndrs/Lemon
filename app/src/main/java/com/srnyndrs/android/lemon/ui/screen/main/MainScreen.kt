@@ -1,8 +1,6 @@
 package com.srnyndrs.android.lemon.ui.screen.main
 
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.EnterTransition
-import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
@@ -64,13 +62,11 @@ import com.srnyndrs.android.lemon.ui.screen.main.content.wallet.WalletScreen
 import com.srnyndrs.android.lemon.ui.screen.main.content.home.HomeScreen
 import com.srnyndrs.android.lemon.ui.screen.main.content.insights.InsightsScreen
 import com.srnyndrs.android.lemon.ui.screen.main.content.profile.ProfileScreen
-import com.srnyndrs.android.lemon.ui.screen.main.content.transactions.TransactionsScreen
 import com.srnyndrs.android.lemon.ui.theme.LemonTheme
 import compose.icons.FeatherIcons
 import compose.icons.feathericons.Eye
 import compose.icons.feathericons.EyeOff
 import compose.icons.feathericons.User
-import compose.icons.feathericons.VolumeX
 import compose.icons.feathericons.X
 import kotlinx.coroutines.launch
 
@@ -291,7 +287,6 @@ fun MainScreen(
                                 selectedHouseholdId = mainState.selectedHouseholdId,
                                 transactions = mainState.transactions,
                                 expenses = mainState.expenses,
-                                statistics = mainState.statistics,
                                 onUiEvent = {
                                     scope.launch {
                                         bottomSheetState.bottomSheetState.expand()
@@ -305,6 +300,7 @@ fun MainScreen(
                             InsightsScreen(
                                 modifier = Modifier.fillMaxSize(),
                                 statistics = mainState.statistics,
+                                allExpenses = mainState.allExpenses
                             )
                         }
                         composable(route = Screens.Wallet.route) {

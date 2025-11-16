@@ -1,6 +1,7 @@
 package com.srnyndrs.android.lemon.domain.database.usecase.transaction
 
 import com.srnyndrs.android.lemon.domain.database.TransactionRepository
+import com.srnyndrs.android.lemon.domain.database.model.dto.TransactionDetailsDto
 import javax.inject.Inject
 
 class AddTransactionUseCase @Inject constructor(
@@ -9,7 +10,7 @@ class AddTransactionUseCase @Inject constructor(
     suspend operator fun invoke(
         householdId: String,
         userId: String,
-        transactionDetailsDto: com.srnyndrs.android.lemon.domain.database.model.dto.TransactionDetailsDto
+        transactionDetailsDto: TransactionDetailsDto
     ) =
         transactionRepository.addTransaction(
             householdId,

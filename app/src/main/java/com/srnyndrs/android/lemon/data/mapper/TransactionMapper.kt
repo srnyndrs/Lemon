@@ -56,6 +56,8 @@ fun TransactionStatsDto.toDomain(): StatisticGroupItem {
         categoryName = categoryName,
         icon = icon,
         color = color,
-        totalAmount = totalAmount
+        totalAmount = totalAmount,
+        year = year,
+        month = month
     )
 }
