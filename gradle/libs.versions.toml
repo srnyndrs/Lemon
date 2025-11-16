@@ -13,8 +13,12 @@ ksp = "2.0.0-1.0.22"
 ktor = "3.0.0"
 hilt = "2.50"
 hiltNavigationCompose = "1.2.0"
+kotlinxSerialization = "1.9.22"
 kotlinxSerializationJson = "1.6.3"
 uiTextGoogleFonts = "1.8.0"
+generativeAiVersion = "0.3.0"
+accompanistVersion = "0.22.0-rc"
+cameraVersion = "1.3.3"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -42,6 +46,12 @@ hilt-android-compiler = { group = "com.google.dagger", name = "hilt-android-comp
 hilt-android = { group = "com.google.dagger", name = "hilt-android", version.ref = "hilt" }
 ktor-client-okhttp = { module = "io.ktor:ktor-client-okhttp", version.ref = "ktor" }
 kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinxSerializationJson" }
+generativeai = {group = "com.google.ai.client.generativeai", name = "generativeai", version.ref = "generativeAiVersion"}
+accompanist-permissions = { group = "com.google.accompanist", name = "accompanist-permissions", version.ref = "accompanistVersion" }
+camera-core = { group = "androidx.camera", name = "camera-core", version.ref = "cameraVersion" }
+camera-camera2 = { group = "androidx.camera", name = "camera-camera2", version.ref = "cameraVersion" }
+camera-view = { group = "androidx.camera", name = "camera-view", version.ref = "cameraVersion" }
+camera-lifecycle = {group = "androidx.camera", name = "camera-lifecycle", version.ref = "cameraVersion"}
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

@@ -79,6 +79,15 @@ dependencies {
     implementation(libs.androidx.ui.text.google.fonts)
     // Charts
     implementation ("io.github.ehsannarmani:compose-charts:0.1.0")
+    // CameraX
+    implementation(libs.camera.core)
+    implementation(libs.camera.camera2)
+    implementation(libs.camera.view)
+    implementation(libs.camera.lifecycle)
+    // GenAI
+    implementation(libs.generativeai)
+    // Permission
+    implementation(libs.accompanist.permissions)
     // Test
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
