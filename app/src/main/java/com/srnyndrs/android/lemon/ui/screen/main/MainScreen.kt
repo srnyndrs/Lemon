@@ -350,9 +350,9 @@ fun MainScreen(
                             modifier = Modifier.fillMaxSize(),
                             username = mainState.user.username,
                             email = mainState.user.email,
-                            onLogout = {
-                                onMainEvent(MainEvent.Logout)
-                            }
+                            onMainEvent = {
+                                onMainEvent(it)
+                            },
                         )
                     }
                 }

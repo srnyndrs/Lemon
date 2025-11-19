@@ -31,7 +31,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
 import com.srnyndrs.android.lemon.ui.components.ActionButton
+import com.srnyndrs.android.lemon.ui.components.forms.CategoryForm
+import com.srnyndrs.android.lemon.ui.components.forms.HouseholdForm
+import com.srnyndrs.android.lemon.ui.components.forms.PaymentMethodForm
+import com.srnyndrs.android.lemon.ui.screen.main.MainEvent
+import com.srnyndrs.android.lemon.ui.screen.main.content.wallet.FormType
 import com.srnyndrs.android.lemon.ui.theme.LemonTheme
 import compose.icons.FeatherIcons
 import compose.icons.feathericons.ChevronDown
@@ -48,8 +54,10 @@ fun ProfileScreen(
     modifier: Modifier = Modifier,
     username: String,
     email: String,
-    onLogout: () -> Unit,
+    onMainEvent: (MainEvent<*>) -> Unit
 ) {
+
+    var showDialog by remember { mutableStateOf(false) }
 
     Column(
         modifier = Modifier
@@ -109,12 +117,14 @@ fun ProfileScreen(
             ActionButton(
                 title = "Create Household",
                 icon = FeatherIcons.Home,
-            ) { }
+            ) {
+                showDialog = true
+            }
             ActionButton(
                 title = "Sign out",
                 icon = FeatherIcons.Delete,
             ) {
-                onLogout()
+                onMainEvent(MainEvent.Logout)
             }
         }
         // Households
@@ -128,7 +138,7 @@ fun ProfileScreen(
                 style = MaterialTheme.typography.headlineSmall
             )
             // Household list
-            LazyColumn(
+            /*LazyColumn(
                 modifier = Modifier.fillMaxWidth(),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
@@ -253,6 +263,31 @@ fun ProfileScreen(
 
                     }
                 }
+            }*/
+        }
+
+        // Dialog
+        if(showDialog) {
+            Dialog(
+                onDismissRequest = {
+                    showDialog = false
+                }
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(6.dp))
+                        .background(MaterialTheme.colorScheme.surface, RoundedCornerShape(6.dp))
+                        .border(1.dp, MaterialTheme.colorScheme.onSurface, RoundedCornerShape(6.dp))
+                ) {
+                    HouseholdForm(
+                        modifier = Modifier.fillMaxWidth(),
+                        onDismissRequest = { showDialog = false },
+                    ) { householdName ->
+                        onMainEvent(MainEvent.CreateHousehold(householdName))
+                        showDialog = false
+                    }
+                }
             }
         }
     }
@@ -266,7 +301,7 @@ fun ProfileScreenPreview() {
             ProfileScreen(
                 modifier = Modifier.fillMaxSize(),
                 username = "John Doe",
-                email = "johndoe@example.com"
+                email = "johndoe@example.com",
             ) {  }
         }
     }

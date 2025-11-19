@@ -1,5 +1,6 @@
 package com.srnyndrs.android.lemon.data.database
 
+import android.util.Log
 import com.srnyndrs.android.lemon.domain.database.HouseholdRepository
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.postgrest.postgrest
@@ -18,8 +19,10 @@ class SupabaseHouseholdRepository @Inject constructor(
                     put("p_name", name)
                 }
             ).data
+            Log.d("SupabaseHouseholdRepo", "success:",)
             Result.success(result)
         } catch (e: Exception) {
+            Log.d("SupabaseHouseholdRepo", "error: ", e)
             Result.failure(e)
         }
     }
