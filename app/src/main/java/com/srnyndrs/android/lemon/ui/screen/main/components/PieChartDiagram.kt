@@ -4,6 +4,8 @@ import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.FlowRow
@@ -15,7 +17,9 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -35,13 +39,16 @@ import ir.ehsannarmani.compose_charts.models.Pie
 @Composable
 fun PieChartDiagram(
     modifier: Modifier = Modifier,
-    chartData: List<StatisticGroupItem>
+    chartData: List<StatisticGroupItem>,
+    selectedIndex: Int? = null,
+    onClick: (Int?) -> Unit
 ) {
 
     var data by remember {
         mutableStateOf(
-            chartData.map { item -> 
+            chartData.mapIndexed { index, item ->
                 Pie(
+                    selected = selectedIndex == index,
                     label = item.categoryName,
                     data = item.totalAmount,
                     color = Color.fromHex(item.color ?:"#CCCCCC"), // TODO
@@ -62,18 +69,44 @@ fun PieChartDiagram(
         )
     }
 
-    Row(
-        modifier = Modifier.then(modifier),
-        horizontalArrangement = Arrangement.spacedBy(18.dp)
+    var selectedPercent by remember { mutableStateOf<Float?>(null) }
+
+    val selectPie = { index: Int? ->
+        data = data.mapIndexed { mapIndex, pie ->
+            pie.copy(selected = index == mapIndex)
+        }
+        selectedPercent = if (index != null) {
+            val selectedData = data[index].data.toFloat()
+            val totalData = data.sumOf { it.data }.toFloat()
+            if (totalData == 0f) 0f else (selectedData / totalData * 100f)
+        } else {
+            null
+        }
+    }
+
+    LaunchedEffect(selectedIndex) {
+        selectPie(selectedIndex)
+    }
+
+    Box(
+        modifier = Modifier.then(modifier)
+            .clickable(
+                indication = null,
+                interactionSource = remember { MutableInteractionSource() },
+            ) {
+                onClick(null)
+                selectPie(null)
+            },
+        contentAlignment = Alignment.Center
     ) {
         PieChart(
             modifier = Modifier.size(200.dp),
             data = data,
             onPieClick = {
-                //onClick()
-                /*println("${it.label} Clicked")
+                if(it.data == 0.0) return@PieChart
                 val pieIndex = data.indexOf(it)
-                data = data.mapIndexed { mapIndex, pie -> pie.copy(selected = pieIndex == mapIndex) }*/
+                onClick(pieIndex)
+                selectPie(pieIndex)
             },
             selectedScale = 1.2f,
             scaleAnimEnterSpec = spring(
@@ -88,29 +121,12 @@ fun PieChartDiagram(
             selectedPaddingDegree = 12f,
             style = Pie.Style.Stroke(width = 32.dp)
         )
-        FlowRow(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            chartData.forEach { item ->
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(4.dp)
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .size(12.dp)
-                            .clip(RectangleShape)
-                            .background(Color.fromHex(item.color ?:"#CCCCCC" ))
-                    )
-                    Text(
-                        text = item.categoryName,
-                        style = MaterialTheme.typography.labelMedium
-                    )
-                }
-            }
-        }
+        Text(
+            text = selectedPercent?.let {
+                "%.0f".format(selectedPercent).plus(" %")
+            } ?: "",
+            style = MaterialTheme.typography.titleLarge
+        )
     }
 }
 
@@ -123,12 +139,13 @@ fun PieChartDiagramPreview() {
                 modifier = Modifier
                     .fillMaxWidth()
                     .requiredHeight(200.dp),
+                selectedIndex = 0,
                 chartData = listOf(
                     StatisticGroupItem("Food", "", "#FFB74D", 200.0),
                     StatisticGroupItem("Transport", "", "#64B5F6", 150.0),
                     StatisticGroupItem("Entertainment", "", "#BA68C8", 100.0),
                 )
-            )
+            ) {}
         }
     }
 }

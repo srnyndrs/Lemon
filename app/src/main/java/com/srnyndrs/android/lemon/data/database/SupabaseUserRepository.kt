@@ -25,4 +25,9 @@ class SupabaseUserRepository @Inject constructor(
             return Result.failure(e)
         }
     }
+
+    override suspend fun getUsers(): Result<List<Pair<String, String>>> {
+        // TODO
+        return Result.success(emptyList())
+    }
 }

@@ -14,9 +14,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.srnyndrs.android.lemon.ui.theme.LemonTheme
 import com.srnyndrs.android.lemon.ui.utils.formatAsCurrency
 import ir.ehsannarmani.compose_charts.ColumnChart
@@ -74,16 +77,33 @@ fun ColumnChartDiagram(
             labelProperties = LabelProperties(
                 enabled = true,
                 padding = 12.dp,
-                textStyle = MaterialTheme.typography.bodySmall.copy(
-                    textAlign = TextAlign.Center
+                textStyle = MaterialTheme.typography.labelSmall.copy(
+                    fontWeight = FontWeight.Normal,
+                    color = MaterialTheme.colorScheme.onSurface
                 ),
+                labels = buildList {
+                    repeat(12) {
+                        add((it + 1).toString())
+                    }
+                },
+                rotation = LabelProperties.Rotation(
+                    mode = LabelProperties.Rotation.Mode.Force,
+                    degree = 0f,
+                    padding = 0.dp
+                )
             ),
             indicatorProperties = HorizontalIndicatorProperties(
                 enabled = true,
                 count = IndicatorCount.CountBased(count = 3),
                 contentBuilder = {
+                    // TODO: maximize label characters
                     it.formatAsCurrency().plus(" Ft")
-                }
+                },
+                textStyle = MaterialTheme.typography.labelSmall.copy(
+                    fontWeight = FontWeight.Normal,
+                    color = MaterialTheme.colorScheme.onSurface
+                ),
+                padding = 4.dp
             ),
             popupProperties = PopupProperties(
                 enabled = true,
@@ -118,8 +138,8 @@ fun ColumnChartDiagram(
             ),
             barProperties = BarProperties(
                 cornerRadius = Bars.Data.Radius.Rectangle(topRight = 6.dp, topLeft = 6.dp),
-                spacing = 12.dp,
-                thickness = 24.dp
+                spacing = 6.dp,
+                thickness = 16.dp
             ),
             animationSpec = spring(
                 dampingRatio = Spring.DampingRatioMediumBouncy,
@@ -133,7 +153,9 @@ fun ColumnChartDiagram(
 @Composable
 private fun ColumChartDiagramPreview() {
     LemonTheme {
-        Surface {
+        Surface(
+            modifier = Modifier.fillMaxSize()
+        ) {
             ColumnChartDiagram(
                 modifier = Modifier
                     .fillMaxWidth()

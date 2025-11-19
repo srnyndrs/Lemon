@@ -46,6 +46,8 @@ import compose.icons.feathericons.UserX
 @Composable
 fun ProfileScreen(
     modifier: Modifier = Modifier,
+    username: String,
+    email: String,
     onLogout: () -> Unit,
 ) {
 
@@ -85,11 +87,11 @@ fun ProfileScreen(
                 verticalArrangement = Arrangement.spacedBy(0.dp)
             ) {
                 Text(
-                    text = "username",
+                    text = username,
                     style = MaterialTheme.typography.titleLarge
                 )
                 Text(
-                    text = "johndoe@gmail.com",
+                    text = email,
                     style = MaterialTheme.typography.bodyMedium
                 )
             }
@@ -262,7 +264,9 @@ fun ProfileScreenPreview() {
     LemonTheme {
         Surface {
             ProfileScreen(
-                modifier = Modifier.fillMaxSize()
+                modifier = Modifier.fillMaxSize(),
+                username = "John Doe",
+                email = "johndoe@example.com"
             ) {  }
         }
     }

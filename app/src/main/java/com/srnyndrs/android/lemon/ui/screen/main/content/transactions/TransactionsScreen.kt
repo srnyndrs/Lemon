@@ -160,6 +160,7 @@ fun TransactionsScreen(
         )
         TransactionList(
             modifier = Modifier.fillMaxWidth(),
+            isLoading = false, // TODO
             transactions = mapOf(
                 "June 20, 2024" to listOf(
                     TransactionItem(

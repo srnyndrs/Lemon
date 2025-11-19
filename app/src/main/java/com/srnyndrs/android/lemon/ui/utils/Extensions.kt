@@ -5,8 +5,48 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.DrawScope
-import androidx.compose.ui.text.intl.Locale
 import androidx.core.graphics.toColorInt
+import androidx.compose.animation.core.*
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.composed
+import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.graphics.Brush
+
+fun Modifier.shimmer(
+    shimmerColors: List<Color> = listOf(
+        Color.LightGray.copy(alpha = 0.6f),
+        Color.LightGray.copy(alpha = 0.2f),
+        Color.LightGray.copy(alpha = 0.6f)
+    ),
+    durationMillis: Int = 1000
+): Modifier = composed {
+    val transition = rememberInfiniteTransition(label = "shimmer")
+    val translateAnim = transition.animateFloat(
+        initialValue = 0f,
+        targetValue = 1000f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(durationMillis, easing = LinearEasing),
+            repeatMode = RepeatMode.Restart
+        ),
+        label = "shimmerAnim"
+    )
+
+    drawWithContent {
+        drawContent()
+        val width = size.width
+        val height = size.height
+        val gradientWidth = 0.2f * width
+        val x = translateAnim.value % (width + gradientWidth)
+        drawRect(
+            brush = Brush.linearGradient(
+                colors = shimmerColors,
+                start = Offset(x - gradientWidth, 0f),
+                end = Offset(x, height)
+            ),
+            size = size
+        )
+    }
+}
 
 fun Color.Companion.fromHex(colorString: String): Color {
     return if (colorString.startsWith("#")) {

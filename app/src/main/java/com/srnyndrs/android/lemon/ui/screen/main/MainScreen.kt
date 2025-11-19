@@ -1,6 +1,7 @@
 package com.srnyndrs.android.lemon.ui.screen.main
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
@@ -62,6 +63,7 @@ import com.srnyndrs.android.lemon.ui.screen.main.content.wallet.WalletScreen
 import com.srnyndrs.android.lemon.ui.screen.main.content.home.HomeScreen
 import com.srnyndrs.android.lemon.ui.screen.main.content.insights.InsightsScreen
 import com.srnyndrs.android.lemon.ui.screen.main.content.profile.ProfileScreen
+import com.srnyndrs.android.lemon.ui.screen.main.content.transactions.TransactionsScreen
 import com.srnyndrs.android.lemon.ui.theme.LemonTheme
 import compose.icons.FeatherIcons
 import compose.icons.feathericons.Eye
@@ -119,7 +121,6 @@ fun MainScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .zIndex(1f),
-                //visible = false,
                 visible = bottomSheetState.bottomSheetState.targetValue != SheetValue.Expanded,
                 enter = fadeIn() + slideInVertically { -it },
                 exit = fadeOut() + slideOutVertically { -it },
@@ -267,81 +268,107 @@ fun MainScreen(
                         payments = mainState.paymentMethods
                     ) { transaction ->
                         onMainEvent(MainEvent.AddTransaction(transaction))
+                        scope.launch {
+                            bottomSheetState.bottomSheetState.hide()
+                        }
                     }
                 }
             },
-            //sheetPeekHeight = 372.dp,
             sheetSwipeEnabled = false
         ) {
-            if (!mainState.isLoading) {
-                if (mainState.error == null) {
-                    NavHost(
-                        modifier = Modifier.fillMaxSize(),
-                        navController = navController,
-                        startDestination = Screens.Home.route
-                    ) {
-                        composable(route = Screens.Home.route) {
-                            HomeScreen(
-                                modifier = Modifier.fillMaxSize(),
-                                households = mainState.user.households,
-                                selectedHouseholdId = mainState.selectedHouseholdId,
-                                transactions = mainState.transactions,
-                                expenses = mainState.expenses,
-                                onUiEvent = {
-                                    scope.launch {
-                                        bottomSheetState.bottomSheetState.expand()
+            if (mainState.error == null) {
+                NavHost(
+                    modifier = Modifier.fillMaxSize(),
+                    navController = navController,
+                    startDestination = Screens.Home.route
+                ) {
+                    composable(route = Screens.Home.route) {
+                        HomeScreen(
+                            modifier = Modifier.fillMaxSize(),
+                            households = mainState.user.households,
+                            selectedHouseholdId = mainState.selectedHouseholdId,
+                            transactions = mainState.transactions,
+                            expenses = mainState.expenses,
+                            isLoading = mainState.isLoading,
+                            onUiEvent = { event ->
+                                when(event) {
+                                    is MainUiEvent.ShowBottomSheet -> {
+                                        scope.launch {
+                                            bottomSheetState.bottomSheetState.expand()
+                                        }
+                                    }
+                                    is MainUiEvent.ShowTransactions -> {
+                                        navController.navigate(Screens.Transactions.route)
                                     }
                                 }
-                            ) { mainEvent ->
-                                onMainEvent(mainEvent)
+
                             }
-                        }
-                        composable(route = Screens.Insights.route) {
-                            InsightsScreen(
-                                modifier = Modifier.fillMaxSize(),
-                                statistics = mainState.statistics,
-                                allExpenses = mainState.allExpenses
-                            )
-                        }
-                        composable(route = Screens.Wallet.route) {
-                            WalletScreen(
-                                modifier = Modifier.fillMaxSize(),
-                                categories = mainState.categories,
-                                payments = mainState.paymentMethods,
-                                onAddPaymentMethod = { paymentMethod ->
-                                    onMainEvent(MainEvent.AddPaymentMethod(paymentMethod))
-                                }
-                            ) { category ->
-                                onMainEvent(MainEvent.AddCategory(category))
-                            }
-                        }
-                        /*composable(route = Screens.Transactions.route) {
-                            TransactionsScreen(
-                                modifier = Modifier.fillMaxSize()
-                            )
-                        }*/
-                        composable(route = Screens.Profile.route) {
-                            ProfileScreen(
-                                modifier = Modifier.fillMaxSize(),
-                                onLogout = {
-                                    onMainEvent(MainEvent.Logout)
-                                }
-                            )
+                        ) { mainEvent ->
+                            onMainEvent(mainEvent)
                         }
                     }
-                } else {
-                    // TODO: Show error screen
-                    Column(
-                        modifier = Modifier.fillMaxSize(),
-                        verticalArrangement = Arrangement.Center,
-                        horizontalAlignment = Alignment.CenterHorizontally
+                    composable(route = Screens.Insights.route) {
+                        InsightsScreen(
+                            modifier = Modifier.fillMaxSize(),
+                            statistics = mainState.statistics,
+                            allExpenses = mainState.allExpenses
+                        )
+                    }
+                    composable(route = Screens.Wallet.route) {
+                        WalletScreen(
+                            modifier = Modifier.fillMaxSize(),
+                            categories = mainState.categories,
+                            payments = mainState.paymentMethods,
+                            onAddPaymentMethod = { paymentMethod ->
+                                onMainEvent(MainEvent.AddPaymentMethod(paymentMethod))
+                            }
+                        ) { category ->
+                            onMainEvent(MainEvent.AddCategory(category))
+                        }
+                    }
+                    composable(
+                        route = Screens.Transactions.route,
+                        enterTransition = {
+                            slideInVertically(
+                                initialOffsetY = { it },
+                                animationSpec = tween(400)
+                            )
+                        },
+                        exitTransition = {
+                            slideOutVertically(
+                                targetOffsetY = { it },
+                                animationSpec = tween(400)
+                            )
+                        }
                     ) {
-                        Text(text = "Error: ${mainState.error}")
+                        TransactionsScreen(
+                            modifier = Modifier.fillMaxSize()
+                        )
+                    }
+                    composable(route = Screens.Profile.route) {
+                        ProfileScreen(
+                            modifier = Modifier.fillMaxSize(),
+                            username = mainState.user.username,
+                            email = mainState.user.email,
+                            onLogout = {
+                                onMainEvent(MainEvent.Logout)
+                            }
+                        )
                     }
                 }
             } else {
-                // TODO: user shimmer effect instead
-                CircularProgressIndicator()
+                // TODO: Show error screen
+                Column(
+                    modifier = Modifier.fillMaxSize(),
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(
+                        text = "Error: ${mainState.error}",
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.error
+                    )
+                }
             }
         }
     }

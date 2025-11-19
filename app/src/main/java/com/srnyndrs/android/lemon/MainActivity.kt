@@ -14,6 +14,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.compose.rememberNavController
 import com.srnyndrs.android.lemon.domain.authentication.model.AuthStatus
 import com.srnyndrs.android.lemon.ui.SessionViewModel
@@ -21,6 +22,7 @@ import com.srnyndrs.android.lemon.ui.navigation.AppNavigationGraph
 import com.srnyndrs.android.lemon.ui.theme.LemonTheme
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -32,6 +34,11 @@ class MainActivity : ComponentActivity() {
 
         splashscreen.setKeepOnScreenCondition {
             keepSplashScreen
+        }
+
+        lifecycleScope.launch {
+            delay(5000L)
+            keepSplashScreen = false
         }
 
         enableEdgeToEdge()

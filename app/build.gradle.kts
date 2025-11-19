@@ -60,6 +60,7 @@ dependencies {
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
     implementation(libs.androidx.core.splashscreen)
+    implementation(libs.accompanist.navigation.animation)
     // Dagger  - Hilt
     ksp(libs.hilt.android.compiler)
     implementation(libs.hilt.android)

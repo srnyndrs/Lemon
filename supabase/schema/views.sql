@@ -164,6 +164,7 @@ SELECT
   t.household_id,
   EXTRACT(YEAR FROM t.transaction_date)::integer AS year,
   EXTRACT(MONTH FROM t.transaction_date)::integer AS month,
+  c.id as category_id,
   COALESCE(
     CASE 
       WHEN t.type = 'income' THEN 'Income'
@@ -192,6 +193,7 @@ WHERE DATE_TRUNC('month', t.transaction_date) = DATE_TRUNC('month', CURRENT_DATE
 GROUP BY t.household_id,
   EXTRACT(YEAR FROM t.transaction_date),
   EXTRACT(MONTH FROM t.transaction_date),
+  c.id,
   COALESCE(
     CASE 
       WHEN t.type = 'income' THEN 'Income'
