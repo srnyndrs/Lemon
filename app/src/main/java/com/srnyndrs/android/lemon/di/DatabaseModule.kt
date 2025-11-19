@@ -5,6 +5,8 @@ import com.srnyndrs.android.lemon.data.database.SupabasePaymentMethodRepository
 import com.srnyndrs.android.lemon.data.database.SupabaseTransactionRepository
 import com.srnyndrs.android.lemon.data.database.SupabaseUserRepository
 import com.srnyndrs.android.lemon.domain.database.CategoryRepository
+import com.srnyndrs.android.lemon.data.database.SupabaseHouseholdRepository
+import com.srnyndrs.android.lemon.domain.database.HouseholdRepository
 import com.srnyndrs.android.lemon.domain.database.PaymentMethodRepository
 import com.srnyndrs.android.lemon.domain.database.TransactionRepository
 import com.srnyndrs.android.lemon.domain.database.UserRepository
@@ -48,5 +50,13 @@ object DatabaseModule {
         supabaseClient: SupabaseClient
     ): TransactionRepository {
         return SupabaseTransactionRepository(supabaseClient)
+    }
+
+    @Provides
+    @Singleton
+    fun provideHouseholdRepository(
+        supabaseClient: SupabaseClient
+    ): HouseholdRepository {
+        return SupabaseHouseholdRepository(supabaseClient)
     }
 }

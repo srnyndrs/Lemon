@@ -40,11 +40,16 @@ END;
 $$;
 
 -- ==============================
--- Function: handle_new_user_private_household
--- Automatically creates a private household for new users
+-- Function: create_household_for_user
+-- Creates a new household for a given user and sets them as the owner.
+-- Also adds default categories and payment methods to the new household.
+-- This is a core function intended to be called by other functions.
 -- ==============================
-CREATE OR REPLACE FUNCTION public.handle_new_user_private_household()
-RETURNS trigger
+CREATE OR REPLACE FUNCTION public.create_household_for_user(
+  p_user_id uuid,
+  p_name TEXT
+)
+RETURNS uuid
 SET search_path = ''
 AS $$
 DECLARE
@@ -52,19 +57,49 @@ DECLARE
 BEGIN
   -- Create a new household
   INSERT INTO public.households (name)
-  VALUES ('Private household')
+  VALUES (p_name)
   RETURNING id INTO new_household_id;
 
   -- Create a household member record with the user as an owner
   INSERT INTO public.household_members (household_id, user_id, role)
-  VALUES (new_household_id, NEW.id, 'owner');
+  VALUES (new_household_id, p_user_id, 'owner');
 
   -- Create default categories
   PERFORM public.create_default_categories(new_household_id);
 
   -- Create default payment methods
-  PERFORM public.create_default_payment_methods(NEW.id, new_household_id);
+  PERFORM public.create_default_payment_methods(p_user_id, new_household_id);
 
+  RETURN new_household_id;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- ==============================
+-- Function: handle_new_user_private_household
+-- Creates a new household for the current user with a given name.
+-- This is intended to be called by the user.
+-- ==============================
+CREATE OR REPLACE FUNCTION public.handle_new_user_private_household(
+  p_name TEXT
+)
+RETURNS uuid
+SET search_path = ''
+AS $$
+BEGIN
+  RETURN public.create_household_for_user(auth.uid(), p_name);
+END;
+$$ LANGUAGE plpgsql SECURITY INVOKER;
+
+-- ==============================
+-- Function: trigger_create_default_household_for_new_user
+-- Trigger function to automatically create a private household for new users.
+-- ==============================
+CREATE OR REPLACE FUNCTION public.trigger_create_default_household_for_new_user()
+RETURNS trigger
+SET search_path = ''
+AS $$
+BEGIN
+  PERFORM public.create_household_for_user(NEW.id, 'Private household');
   RETURN NEW;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
@@ -85,7 +120,7 @@ BEGIN
     CREATE TRIGGER on_public_user_created_household
       AFTER INSERT ON public.users
       FOR EACH ROW
-      EXECUTE PROCEDURE public.handle_new_user_private_household();
+      EXECUTE PROCEDURE public.trigger_create_default_household_for_new_user();
   END IF;
 END;
 $$;

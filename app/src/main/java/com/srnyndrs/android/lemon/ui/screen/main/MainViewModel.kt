@@ -9,6 +9,7 @@ import com.srnyndrs.android.lemon.domain.database.model.TransactionType
 import com.srnyndrs.android.lemon.domain.database.usecase.GetUserUseCase
 import com.srnyndrs.android.lemon.domain.database.usecase.LogoutUserUseCase
 import com.srnyndrs.android.lemon.domain.database.usecase.category.AllCategoryUseCase
+import com.srnyndrs.android.lemon.domain.database.usecase.household.AllHouseholdUseCase
 import com.srnyndrs.android.lemon.domain.database.usecase.payment_method.AllPaymentMethodUseCase
 import com.srnyndrs.android.lemon.domain.database.usecase.transaction.AllTransactionUseCase
 import dagger.assisted.Assisted
@@ -29,7 +30,8 @@ class MainViewModel @AssistedInject constructor(
     private val logoutUserUseCase: LogoutUserUseCase,
     private val allCategoryUseCase: AllCategoryUseCase,
     private val allPaymentMethodUseCase: AllPaymentMethodUseCase,
-    private val allTransactionUseCase: AllTransactionUseCase
+    private val allTransactionUseCase: AllTransactionUseCase,
+    private val allHouseholdUseCase: AllHouseholdUseCase
 ): ViewModel() {
 
     @AssistedFactory
@@ -129,6 +131,17 @@ class MainViewModel @AssistedInject constructor(
                     onSuccess = {
                         fetchTransactions(currentHouseholdId)
                         fetchStatistics(currentHouseholdId)
+                    },
+                    onFailure = {
+                        // TODO
+                    }
+                )
+            }
+            is MainEvent.CreateHousehold -> {
+                val householdName = event.data as String
+                allHouseholdUseCase.createHouseholdUseCase(householdName).fold(
+                    onSuccess = {
+                        init()
                     },
                     onFailure = {
                         // TODO

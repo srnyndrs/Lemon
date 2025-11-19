@@ -11,4 +11,5 @@ sealed class MainEvent<T>(val data: T? = null) {
     class AddTransaction(transactionDetailsDto: TransactionDetailsDto): MainEvent<TransactionDetailsDto>(data = transactionDetailsDto)
     class SwitchHousehold(householdId: String): MainEvent<String>(data = householdId)
     class DeleteTransaction(transactionId: String): MainEvent<String>(data = transactionId)
+    class CreateHousehold(householdName: String): MainEvent<String>(data = householdName)
 }
