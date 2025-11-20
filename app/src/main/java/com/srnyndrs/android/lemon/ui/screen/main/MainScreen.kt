@@ -61,6 +61,7 @@ import androidx.navigation.compose.rememberNavController
 import com.srnyndrs.android.lemon.ui.components.forms.TransactionForm
 import com.srnyndrs.android.lemon.ui.screen.main.content.wallet.WalletScreen
 import com.srnyndrs.android.lemon.ui.screen.main.content.home.HomeScreen
+import com.srnyndrs.android.lemon.ui.screen.main.content.household.HouseholdScreen
 import com.srnyndrs.android.lemon.ui.screen.main.content.insights.InsightsScreen
 import com.srnyndrs.android.lemon.ui.screen.main.content.profile.ProfileScreen
 import com.srnyndrs.android.lemon.ui.screen.main.content.transactions.TransactionsScreen
@@ -115,7 +116,8 @@ fun MainScreen(
     }
 
     Scaffold(
-        modifier = Modifier.then(modifier).background(MaterialTheme.colorScheme.tertiary),
+        modifier = Modifier.then(modifier)
+            .background(MaterialTheme.colorScheme.tertiary),
         topBar = {
             AnimatedVisibility(
                 modifier = Modifier
@@ -185,7 +187,9 @@ fun MainScreen(
         },
         bottomBar = {
             NavigationBar(
-                modifier = Modifier.fillMaxWidth().requiredHeight(72.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .requiredHeight(72.dp),
                 containerColor = MaterialTheme.colorScheme.primaryContainer,
                 contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
                 windowInsets = NavigationBarDefaults.windowInsets.only(WindowInsetsSides.Horizontal)
@@ -282,7 +286,9 @@ fun MainScreen(
                     navController = navController,
                     startDestination = Screens.Home.route
                 ) {
-                    composable(route = Screens.Home.route) {
+                    composable(
+                        route = Screens.Home.route
+                    ) {
                         HomeScreen(
                             modifier = Modifier.fillMaxSize(),
                             households = mainState.user.households,
@@ -300,6 +306,9 @@ fun MainScreen(
                                     is MainUiEvent.ShowTransactions -> {
                                         navController.navigate(Screens.Transactions.route)
                                     }
+                                    is MainUiEvent.ShowHousehold -> {
+                                        navController.navigate(Screens.Household.route)
+                                    }
                                 }
 
                             }
@@ -307,14 +316,18 @@ fun MainScreen(
                             onMainEvent(mainEvent)
                         }
                     }
-                    composable(route = Screens.Insights.route) {
+                    composable(
+                        route = Screens.Insights.route
+                    ) {
                         InsightsScreen(
                             modifier = Modifier.fillMaxSize(),
                             statistics = mainState.statistics,
                             allExpenses = mainState.allExpenses
                         )
                     }
-                    composable(route = Screens.Wallet.route) {
+                    composable(
+                        route = Screens.Wallet.route
+                    ) {
                         WalletScreen(
                             modifier = Modifier.fillMaxSize(),
                             categories = mainState.categories,
@@ -345,7 +358,9 @@ fun MainScreen(
                             modifier = Modifier.fillMaxSize()
                         )
                     }
-                    composable(route = Screens.Profile.route) {
+                    composable(
+                        route = Screens.Profile.route
+                    ) {
                         ProfileScreen(
                             modifier = Modifier.fillMaxSize(),
                             username = mainState.user.username,
@@ -353,6 +368,25 @@ fun MainScreen(
                             onMainEvent = {
                                 onMainEvent(it)
                             },
+                        )
+                    }
+                    composable(
+                        route = Screens.Household.route,
+                        enterTransition = {
+                            slideInVertically(
+                                initialOffsetY = { it },
+                                animationSpec = tween(400)
+                            )
+                        },
+                        exitTransition = {
+                            slideOutVertically(
+                                targetOffsetY = { it },
+                                animationSpec = tween(400)
+                            )
+                        }
+                    ) {
+                        HouseholdScreen(
+                            modifier = Modifier.fillMaxSize()
                         )
                     }
                 }

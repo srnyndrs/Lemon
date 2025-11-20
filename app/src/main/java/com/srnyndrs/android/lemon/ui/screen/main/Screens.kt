@@ -10,8 +10,9 @@ import compose.icons.feathericons.User
 
 sealed class Screens(val route: String, val title: String, val icon: ImageVector? = null) {
     object Home : Screens("home", "Home", FeatherIcons.Home)
-    object Wallet: Screens("wallet", "Wallet", FeatherIcons.Pocket)
     object Insights: Screens("insights", "Insights", FeatherIcons.PieChart)
-    object Transactions: Screens("transactions", "Transactions", FeatherIcons.Aperture)
+    object Wallet: Screens("wallet", "Wallet", FeatherIcons.Pocket)
     object Profile: Screens("profile", "Profile", FeatherIcons.User)
+    object Transactions: Screens("transactions", "Transactions")
+    object Household: Screens("household", "Household")
 }

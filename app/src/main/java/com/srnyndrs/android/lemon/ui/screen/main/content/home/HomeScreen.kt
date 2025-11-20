@@ -154,72 +154,72 @@ fun HomeScreen(
                     state = pagerState,
                     pageSpacing = 12.dp,
                 ) { pageIndex ->
-                        Row (
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .let {
-                                    if (isLoading) {
-                                        it.shimmer()
-                                    } else {
-                                        it
-                                    }
+                    Row (
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .let {
+                                if (isLoading) {
+                                    it.shimmer()
+                                } else {
+                                    it
                                 }
-                                .padding(6.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.SpaceBetween
-                        ) {
-                            if(!isLoading) {
-                                households.getOrNull(pageIndex)?.let { household ->
-                                    Column(
-                                        modifier = Modifier
-                                            .fillMaxSize()
-                                            .clickable {
-                                                // TODO: Open household details
-                                            }
-                                            .padding(12.dp),
-                                        horizontalAlignment = Alignment.CenterHorizontally,
-                                        verticalArrangement = Arrangement.Center
-                                    ) {
-                                        Row(
-                                            verticalAlignment = Alignment.CenterVertically,
-                                            horizontalArrangement = Arrangement.spacedBy(8.dp)
-                                        ) {
-                                            Icon(
-                                                modifier = Modifier.size(22.dp),
-                                                imageVector = FeatherIcons.Home,
-                                                contentDescription = null
-                                            )
-                                            Text(
-                                                text = household.name,
-                                                style = MaterialTheme.typography.headlineSmall
-                                            )
+                            }
+                            .padding(6.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        if(!isLoading) {
+                            households.getOrNull(pageIndex)?.let { household ->
+                                Column(
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .clickable {
+                                            onUiEvent(MainUiEvent.ShowHousehold)
                                         }
-                                        Spacer(
-                                            modifier = Modifier.requiredHeight(16.dp)
+                                        .padding(12.dp),
+                                    horizontalAlignment = Alignment.CenterHorizontally,
+                                    verticalArrangement = Arrangement.Center
+                                ) {
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                    ) {
+                                        Icon(
+                                            modifier = Modifier.size(22.dp),
+                                            imageVector = FeatherIcons.Home,
+                                            contentDescription = null
                                         )
                                         Text(
-                                            text = (income.minus(expense)).formatAsCurrency() + " Ft", // TODO
-                                            style = MaterialTheme.typography.headlineLarge,
-                                            fontSize = 28.sp
-                                        )
-                                        Spacer(
-                                            modifier = Modifier.requiredHeight(8.dp)
-                                        )
-                                        LinearProgressIndicator(
-                                            modifier = Modifier
-                                                .fillMaxWidth(0.75f)
-                                                .padding(vertical = 6.dp),
-                                            progress = { expenseRatio },
-                                            color = Color.Red,
-                                            trackColor = Color.Green,
-                                            strokeCap = ProgressIndicatorDefaults.LinearStrokeCap,
-                                            gapSize = 0.dp,
-                                            drawStopIndicator = {}
+                                            text = household.name,
+                                            style = MaterialTheme.typography.headlineSmall
                                         )
                                     }
+                                    Spacer(
+                                        modifier = Modifier.requiredHeight(16.dp)
+                                    )
+                                    Text(
+                                        text = (income.minus(expense)).formatAsCurrency() + " Ft", // TODO
+                                        style = MaterialTheme.typography.headlineLarge,
+                                        fontSize = 28.sp
+                                    )
+                                    Spacer(
+                                        modifier = Modifier.requiredHeight(8.dp)
+                                    )
+                                    LinearProgressIndicator(
+                                        modifier = Modifier
+                                            .fillMaxWidth(0.75f)
+                                            .padding(vertical = 6.dp),
+                                        progress = { expenseRatio },
+                                        color = Color.Red,
+                                        trackColor = Color.Green,
+                                        strokeCap = ProgressIndicatorDefaults.LinearStrokeCap,
+                                        gapSize = 0.dp,
+                                        drawStopIndicator = {}
+                                    )
                                 }
                             }
                         }
+                    }
                 }
                 // Page indicator
                 Row(
