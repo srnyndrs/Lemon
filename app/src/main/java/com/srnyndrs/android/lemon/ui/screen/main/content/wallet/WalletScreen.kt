@@ -21,6 +21,8 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -64,6 +66,8 @@ fun WalletScreen(
     val pagerState = rememberPagerState(initialPage = 1) { payments.size + 1 }
     var showDialog by remember { mutableStateOf<FormType?>(null) }
 
+    var showDropdown by remember { mutableStateOf(false) }
+
     Column(
         modifier = Modifier
             .then(modifier)
@@ -94,8 +98,9 @@ fun WalletScreen(
                     id = "123",
                     name = "placeholder",
                     color = "FF64B5F6",
+                    ownerUserId = "123"
                 )
-                val color = Color.Companion.fromHex(payment.color)
+                val color = Color.Companion.fromHex(payment.color ?: "#cccccc")
                 // First Index
                 Box(
                     modifier = Modifier
@@ -133,7 +138,8 @@ fun WalletScreen(
                             modifier = Modifier
                                 .fillMaxSize()
                                 .background(Color.Transparent)
-                                .padding(top = 24.dp)
+                                .padding(top = 24.dp),
+                            horizontalAlignment = Alignment.End
                         ) {
                             Row(
                                 modifier = Modifier
@@ -164,9 +170,53 @@ fun WalletScreen(
                                 horizontalArrangement = Arrangement.End,
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
-                                Icon(
-                                    imageVector = FeatherIcons.Menu,
-                                    contentDescription = null,
+                                IconButton(
+                                    modifier = Modifier.size(32.dp),
+                                    onClick = {
+                                        showDropdown = true
+                                    }
+                                ) {
+                                    Icon(
+                                        imageVector = FeatherIcons.Menu,
+                                        contentDescription = null,
+                                    )
+                                }
+                            }
+                            DropdownMenu(
+                                modifier = Modifier.align(Alignment.End),
+                                expanded = showDropdown,
+                                onDismissRequest = {
+                                    showDropdown = false
+                                }
+                            ) {
+                                DropdownMenuItem(
+                                    text = {
+                                        Text(text = "Edit")
+                                    },
+                                    onClick = {
+                                        // TODO: Edit
+                                        showDropdown = false
+                                    }
+                                )
+                                DropdownMenuItem(
+                                    text = {
+                                        Text(
+                                            text = if(payment.isActive) "Deactivate" else "Activate"
+                                        )
+                                    },
+                                    onClick = {
+                                        // TODO: Deactivate
+                                        showDropdown = false
+                                    }
+                                )
+                                DropdownMenuItem(
+                                    text = {
+                                        Text(text = "Delete")
+                                    },
+                                    onClick = {
+                                        // TODO: Delete
+                                        showDropdown = false
+                                    }
                                 )
                             }
                         }
@@ -369,16 +419,19 @@ fun CategoriesScreenPreview() {
                         id = "1",
                         name = "Credit Card",
                         color = "FF64B5F6",
+                        ownerUserId = "1"
                     ),
                     PaymentMethod(
                         id = "2",
                         name = "Debit Card",
                         color = "FFFFB74D",
+                        ownerUserId = "1"
                     ),
                     PaymentMethod(
                         id = "3",
                         name = "Cash",
                         color = "FF81C784",
+                        ownerUserId = "1"
                     )
                 ),
                 {}

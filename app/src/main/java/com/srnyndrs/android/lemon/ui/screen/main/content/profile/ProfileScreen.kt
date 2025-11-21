@@ -66,11 +66,6 @@ fun ProfileScreen(
         verticalArrangement = Arrangement.spacedBy(24.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text(
-            text = "Profile Screen",
-            style = MaterialTheme.typography.titleLarge
-        )
-
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -127,18 +122,6 @@ fun ProfileScreen(
                 onMainEvent(MainEvent.Logout)
             }
         }
-        // Households
-        Column(
-            modifier = Modifier.fillMaxWidth(),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            // Title
-            Text(
-                text = "Households",
-                style = MaterialTheme.typography.headlineSmall
-            )
-        }
-
         // Dialog
         if(showDialog) {
             Dialog(

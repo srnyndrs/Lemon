@@ -32,10 +32,12 @@ SELECT
   pm.color,
   pm.type,
   pm.owner_user_id,
-  u.username as owner_username
+  u.username as owner_username,
+  pm.is_active
 FROM public.household_payment_methods hpm
 JOIN public.payment_methods pm ON hpm.payment_method_id = pm.id
-JOIN public.users u ON pm.owner_user_id = u.id;
+JOIN public.users u ON pm.owner_user_id = u.id
+WHERE pm.is_active = true;
 
 -- ==============================
 -- View: household_categories_view  
@@ -114,7 +116,8 @@ SELECT
     ELSE false
   END as is_overdue,
   -- Days until/since due date
-  rp.next_due_date - CURRENT_DATE as days_until_due
+  rp.next_due_date - CURRENT_DATE as days_until_due,
+  pm.is_active as payment_method_is_active
 FROM public.recurring_payments rp
 JOIN public.users u ON rp.user_id = u.id
 JOIN public.payment_methods pm ON rp.payment_method_id = pm.id
@@ -225,3 +228,30 @@ GRANT SELECT ON household_recurring_payments_view TO authenticated;
 GRANT SELECT ON household_members_view TO authenticated;
 GRANT SELECT ON household_monthly_expenses_view TO authenticated;
 GRANT SELECT ON household_summary_view TO authenticated;
+
+-- ==============================
+-- View: household_details_view
+-- Household details with members aggregated
+-- ==============================
+CREATE OR REPLACE VIEW household_details_view AS
+SELECT
+    h.id AS household_id,
+    h.name AS household_name,
+    json_agg(
+        json_build_object(
+            'user_id', u.id,
+            'username', u.username,
+            'email', u.email,
+            'role', hm.role
+        )
+    ) AS members
+FROM
+    public.households h
+JOIN
+    public.household_members hm ON h.id = hm.household_id
+JOIN
+    public.users u ON hm.user_id = u.id
+GROUP BY
+    h.id, h.name;
+
+GRANT SELECT ON household_details_view TO authenticated;

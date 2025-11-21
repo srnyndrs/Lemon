@@ -508,7 +508,7 @@ fun TransactionForm(
                                 amount = transactionAmount.text.toDouble(),
                                 type = if(selectedIndex == 1) TransactionType.EXPENSE else TransactionType.INCOME,
                                 date = datePickerState.selectedDateMillis?.let { convertMillisToDate(it) },
-                                paymentMethodId = payments[selectedPaymentIndex].id!!,
+                                paymentMethodId = payments[selectedPaymentIndex].id!!, // TODO
                                 categoryId = if(selectedIndex == 1) categories.getOrNull(selectedCategoryIndex)?.id else null,
                                 description = transactionDetails.text.ifBlank { null },
                             )
@@ -565,16 +565,19 @@ fun TransactionFormPreview() {
                         id = "1",
                         name = "Cash",
                         color = "#FFCDD2",
+                        ownerUserId = "1"
                     ),
                     PaymentMethod(
                         id = "2",
                         name = "Card",
                         color = "#C8E6C9",
+                        ownerUserId = "1"
                     ),
                     PaymentMethod(
                         id = "3",
                         name = "Wallet",
                         color = "#BBDEFB",
+                        ownerUserId = "1"
                     ),
                 ),
             ) {}

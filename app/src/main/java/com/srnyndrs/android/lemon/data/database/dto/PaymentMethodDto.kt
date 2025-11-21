@@ -5,14 +5,14 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class PaymentMethodDto(
-    @SerialName("household_id")
-    val householdId: String,
     @SerialName("payment_method_id")
-    val paymentMethodId: String? = null,
+    val id: String,
     val name: String,
-    val icon: String? = null,
-    val color: String? = null,
-    val type: String? = null,
+    val icon: String?,
+    val color: String?,
+    val type: String?,
     @SerialName("owner_user_id")
-    val ownerUserId: String
+    val ownerUserId: String,
+    @SerialName("is_active")
+    val isActive: Boolean
 )

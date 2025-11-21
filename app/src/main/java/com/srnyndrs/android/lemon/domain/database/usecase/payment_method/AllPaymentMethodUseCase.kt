@@ -4,5 +4,8 @@ import javax.inject.Inject
 
 class AllPaymentMethodUseCase @Inject constructor(
     val addPaymentMethodUseCase: AddPaymentMethodUseCase,
-    val getPaymentMethodsUseCase: GetPaymentMethodsUseCase
+    val getPaymentMethodsUseCase: GetPaymentMethodsUseCase,
+    val deactivatePaymentMethodUseCase: DeactivatePaymentMethodUseCase,
+    val deletePaymentMethodUseCase: DeletePaymentMethodUseCase,
+    val updatePaymentMethodUseCase: UpdatePaymentMethodUseCase
 )

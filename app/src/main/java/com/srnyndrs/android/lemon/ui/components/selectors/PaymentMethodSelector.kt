@@ -50,7 +50,7 @@ fun PaymentMethodSelector(
                     .border(2.dp, if (selectedItem == index) MaterialTheme.colorScheme.onSurface else Color.Transparent, CardDefaults.shape),
                     //.border(1.dp, MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f), CardDefaults.shape),
                 colors = CardDefaults.cardColors(
-                    containerColor = Color.fromHex(paymentMethod.color)
+                    containerColor = Color.fromHex(paymentMethod.color ?: "#BBDEFB")
                 ),
                 onClick = {
                     onSelect(index)
@@ -84,9 +84,9 @@ private fun PaymentMethodSelectorPreview() {
                 modifier = Modifier.fillMaxWidth().padding(6.dp),
                 selectedItem = selectedIndex,
                 paymentMethods = listOf(
-                    PaymentMethod(id = "1", name = "Cash", color = "#FFCDD2" ),
-                    PaymentMethod(id = "2", name = "Card", color = "#C8E6C9" ),
-                    PaymentMethod(id = "3", name = "Wallet", color = "#BBDEFB" ),
+                    PaymentMethod(id = "1", name = "Cash", color = "#FFCDD2", ownerUserId = "1"),
+                    PaymentMethod(id = "2", name = "Card", color = "#C8E6C9", ownerUserId = "1" ),
+                    PaymentMethod(id = "3", name = "Wallet", color = "#BBDEFB", ownerUserId = "1" ),
                 )
             ) { selectedIndex = it }
         }

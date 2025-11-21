@@ -1,12 +1,12 @@
 -- USERS
-CREATE TABLE public.users (
+CREATE TABLE IF NOT EXISTS public.users (
   id uuid PRIMARY KEY,
   username text,
   email text UNIQUE NOT NULL
 );
 
 -- HOUSEHOLDS
-CREATE TABLE public.households (
+CREATE TABLE IF NOT EXISTS public.households (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   name text NOT NULL
 );
@@ -19,7 +19,7 @@ EXCEPTION
 END $$;
 
 -- HOUSEHOLD MEMBERS
-CREATE TABLE public.household_members (
+CREATE TABLE IF NOT EXISTS public.household_members (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   household_id uuid NOT NULL REFERENCES public.households(id) ON DELETE CASCADE,
   user_id uuid NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
@@ -35,7 +35,7 @@ EXCEPTION
 END $$;
 
 -- PAYMENT METHODS
-CREATE TABLE public.payment_methods (
+CREATE TABLE IF NOT EXISTS public.payment_methods (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   owner_user_id uuid NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
   name text NOT NULL,
@@ -44,8 +44,12 @@ CREATE TABLE public.payment_methods (
   type payment_method_type NOT NULL DEFAULT 'other'
 );
 
+ALTER TABLE public.payment_methods
+ADD COLUMN IF NOT EXISTS is_active boolean NOT NULL DEFAULT true;
+
+
 -- CATEGORIES
-CREATE TABLE public.categories (
+CREATE TABLE IF NOT EXISTS public.categories (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   household_id uuid NOT NULL REFERENCES public.households(id) ON DELETE CASCADE,
   name text NOT NULL,
@@ -69,7 +73,7 @@ EXCEPTION
 END $$;
 
 -- RECURRING PAYMENTS
-CREATE TABLE public.recurring_payments (
+CREATE TABLE IF NOT EXISTS public.recurring_payments (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   household_id uuid NOT NULL REFERENCES public.households(id) ON DELETE CASCADE,
   user_id uuid NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
@@ -97,7 +101,7 @@ CREATE TABLE public.recurring_payments (
 );
 
 -- TRANSACTIONS
-CREATE TABLE public.transactions (
+CREATE TABLE IF NOT EXISTS public.transactions (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   household_id uuid NOT NULL REFERENCES public.households(id) ON DELETE CASCADE,
   user_id uuid NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
@@ -112,7 +116,7 @@ CREATE TABLE public.transactions (
 );
 
 -- HOUSEHOLD PAYMENT METHODS
-CREATE TABLE public.household_payment_methods (
+CREATE TABLE IF NOT EXISTS public.household_payment_methods (
   household_id uuid REFERENCES public.households(id) ON DELETE CASCADE,
   payment_method_id uuid REFERENCES public.payment_methods(id) ON DELETE CASCADE,
   PRIMARY KEY (household_id, payment_method_id)

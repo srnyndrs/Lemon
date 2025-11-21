@@ -444,3 +444,373 @@ $$ LANGUAGE plpgsql;
 -- Grant execute permission
 GRANT EXECUTE ON FUNCTION public.delete_transaction(uuid) TO authenticated;
 
+-- ==============================
+-- Function: is_household_owner
+-- Security definer function to check if a user is a household owner
+-- ==============================
+CREATE OR REPLACE FUNCTION public.is_household_owner(
+  p_household_id uuid,
+  p_user_id uuid DEFAULT auth.uid()
+)
+RETURNS boolean
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+  RETURN EXISTS (
+    SELECT 1
+    FROM household_members hm
+    WHERE hm.household_id = p_household_id
+      AND hm.user_id = p_user_id
+      AND hm.role = 'owner'
+  );
+END;
+$$ LANGUAGE plpgsql;
+
+-- ==============================
+-- Function: get_household_details
+-- Returns household details with members
+-- ==============================
+CREATE OR REPLACE FUNCTION public.get_household_details(
+  p_household_id uuid
+)
+RETURNS TABLE (
+  household_id uuid,
+  household_name text,
+  members json
+)
+SECURITY INVOKER
+SET search_path = public
+AS $$
+BEGIN
+  IF NOT public.is_household_member(p_household_id, auth.uid()) THEN
+    RAISE EXCEPTION 'User is not a member of the household' USING ERRCODE = '42501';
+  END IF;
+
+  RETURN QUERY
+  SELECT
+    hdv.household_id,
+    hdv.household_name,
+    hdv.members
+  FROM household_details_view hdv
+  WHERE hdv.household_id = p_household_id;
+END;
+$$ LANGUAGE plpgsql;
+
+-- ==============================
+-- Function: update_household_name
+-- Updates the name of a household
+-- ==============================
+CREATE OR REPLACE FUNCTION public.update_household_name(
+  p_household_id uuid,
+  p_new_name text
+)
+RETURNS void
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  household_name text;
+BEGIN
+  IF NOT public.is_household_owner(p_household_id, auth.uid()) THEN
+    RAISE EXCEPTION 'Only household owners can update the household name' USING ERRCODE = '42501';
+  END IF;
+
+  SELECT name INTO household_name FROM households WHERE id = p_household_id;
+
+  IF household_name = 'Private household' THEN
+    RAISE EXCEPTION 'Private household name cannot be changed' USING ERRCODE = '42501';
+  END IF;
+
+  UPDATE households
+  SET name = p_new_name
+  WHERE id = p_household_id;
+END;
+$$ LANGUAGE plpgsql;
+
+-- ==============================
+-- Function: add_household_member
+-- Adds a new member to a household
+-- ==============================
+CREATE OR REPLACE FUNCTION public.add_household_member(
+  p_household_id uuid,
+  p_user_id uuid,
+  p_role household_member_type DEFAULT 'member'
+)
+RETURNS void
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+  IF NOT public.is_household_owner(p_household_id, auth.uid()) THEN
+    RAISE EXCEPTION 'Only household owners can add new members' USING ERRCODE = '42501';
+  END IF;
+
+  INSERT INTO household_members (household_id, user_id, role)
+  VALUES (p_household_id, p_user_id, p_role);
+END;
+$$ LANGUAGE plpgsql;
+
+-- ==============================
+-- Function: remove_household_member
+-- Removes a member from a household
+-- ==============================
+CREATE OR REPLACE FUNCTION public.remove_household_member(
+  p_household_id uuid,
+  p_user_id uuid
+)
+RETURNS void
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  household_name text;
+  member_role household_member_type;
+BEGIN
+  IF NOT public.is_household_owner(p_household_id, auth.uid()) THEN
+    RAISE EXCEPTION 'Only household owners can remove members' USING ERRCODE = '42501';
+  END IF;
+
+  SELECT name INTO household_name FROM households WHERE id = p_household_id;
+  SELECT role INTO member_role FROM household_members WHERE household_id = p_household_id AND user_id = p_user_id;
+
+  IF household_name = 'Private household' AND member_role = 'owner' THEN
+    RAISE EXCEPTION 'Owner of the private household cannot be removed' USING ERRCODE = '42501';
+  END IF;
+
+  DELETE FROM household_members
+  WHERE household_id = p_household_id AND user_id = p_user_id;
+END;
+$$ LANGUAGE plpgsql;
+
+-- ==============================
+-- Function: update_household_member_role
+-- Updates the role of a household member
+-- ==============================
+CREATE OR REPLACE FUNCTION public.update_household_member_role(
+  p_household_id uuid,
+  p_user_id uuid,
+  p_new_role household_member_type
+)
+RETURNS void
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  household_name text;
+  member_role household_member_type;
+BEGIN
+  IF NOT public.is_household_owner(p_household_id, auth.uid()) THEN
+    RAISE EXCEPTION 'Only household owners can update member roles' USING ERRCODE = '42501';
+  END IF;
+
+  SELECT name INTO household_name FROM households WHERE id = p_household_id;
+  SELECT role INTO member_role FROM household_members WHERE household_id = p_household_id AND user_id = p_user_id;
+
+  IF household_name = 'Private household' AND member_role = 'owner' AND p_new_role = 'member' THEN
+    RAISE EXCEPTION 'Owner of the private household cannot be changed to a member' USING ERRCODE = '42501';
+  END IF;
+
+  UPDATE household_members
+  SET role = p_new_role
+  WHERE household_id = p_household_id AND user_id = p_user_id;
+END;
+$$ LANGUAGE plpgsql;
+
+-- ==============================
+-- Function: delete_household
+-- Deletes a household
+-- ==============================
+CREATE OR REPLACE FUNCTION public.delete_household(
+  p_household_id uuid
+)
+RETURNS void
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  household_name text;
+BEGIN
+  IF NOT public.is_household_owner(p_household_id, auth.uid()) THEN
+    RAISE EXCEPTION 'Only household owners can delete the household' USING ERRCODE = '42501';
+  END IF;
+
+  SELECT name INTO household_name FROM households WHERE id = p_household_id;
+
+  IF household_name = 'Private household' THEN
+    RAISE EXCEPTION 'Private household cannot be deleted' USING ERRCODE = '42501';
+  END IF;
+
+  DELETE FROM households
+  WHERE id = p_household_id;
+END;
+$$ LANGUAGE plpgsql;
+
+GRANT EXECUTE ON FUNCTION public.get_household_details(uuid) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.update_household_name(uuid, text) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.add_household_member(uuid, uuid, household_member_type) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.remove_household_member(uuid, uuid) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.update_household_member_role(uuid, uuid, household_member_type) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.delete_household(uuid) TO authenticated;
+
+-- ==============================
+-- Function: deactivate_payment_method
+-- Deactivates a payment method
+-- ==============================
+CREATE OR REPLACE FUNCTION public.deactivate_payment_method(
+  p_payment_method_id uuid
+)
+RETURNS void
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_owner_user_id uuid;
+BEGIN
+  SELECT owner_user_id INTO v_owner_user_id FROM payment_methods WHERE id = p_payment_method_id;
+
+  IF v_owner_user_id != auth.uid() THEN
+    RAISE EXCEPTION 'Only the owner can deactivate the payment method' USING ERRCODE = '42501';
+  END IF;
+
+  UPDATE payment_methods
+  SET is_active = false
+  WHERE id = p_payment_method_id;
+END;
+$$ LANGUAGE plpgsql;
+
+GRANT EXECUTE ON FUNCTION public.deactivate_payment_method(uuid) TO authenticated;
+
+-- ==============================
+-- Function: delete_category
+-- Deletes a category
+-- ==============================
+CREATE OR REPLACE FUNCTION public.delete_category(
+  p_category_id uuid
+)
+RETURNS void
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_household_id uuid;
+  v_transaction_count integer;
+BEGIN
+  SELECT household_id INTO v_household_id FROM categories WHERE id = p_category_id;
+
+  IF NOT public.is_household_owner(v_household_id, auth.uid()) THEN
+    RAISE EXCEPTION 'Only household owners can delete categories' USING ERRCODE = '42501';
+  END IF;
+
+  SELECT COUNT(*) INTO v_transaction_count FROM transactions WHERE category_id = p_category_id;
+  IF v_transaction_count > 0 THEN
+    RAISE EXCEPTION 'Cannot delete category that is in use' USING ERRCODE = '23503';
+  END IF;
+
+  DELETE FROM categories WHERE id = p_category_id;
+END;
+$$ LANGUAGE plpgsql;
+
+-- ==============================
+-- Function: update_category
+-- Updates a category
+-- ==============================
+CREATE OR REPLACE FUNCTION public.update_category(
+  p_category_id uuid,
+  p_name text,
+  p_icon text,
+  p_color text
+)
+RETURNS void
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_household_id uuid;
+BEGIN
+  SELECT household_id INTO v_household_id FROM categories WHERE id = p_category_id;
+
+  IF NOT public.is_household_member(v_household_id, auth.uid()) THEN
+    RAISE EXCEPTION 'Only household members can update categories' USING ERRCODE = '42501';
+  END IF;
+
+  UPDATE categories
+  SET
+    name = p_name,
+    icon = p_icon,
+    color = p_color
+  WHERE id = p_category_id;
+END;
+$$ LANGUAGE plpgsql;
+
+GRANT EXECUTE ON FUNCTION public.delete_category(uuid) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.update_category(uuid, text, text, text) TO authenticated;
+
+-- ==============================
+-- Function: update_payment_method
+-- Updates a payment method
+-- ==============================
+CREATE OR REPLACE FUNCTION public.update_payment_method(
+  p_payment_method_id uuid,
+  p_name text,
+  p_icon text,
+  p_color text,
+  p_type payment_method_type
+)
+RETURNS void
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_owner_user_id uuid;
+BEGIN
+  SELECT owner_user_id INTO v_owner_user_id FROM payment_methods WHERE id = p_payment_method_id;
+
+  IF v_owner_user_id != auth.uid() THEN
+    RAISE EXCEPTION 'Only the owner can update the payment method' USING ERRCODE = '42501';
+  END IF;
+
+  UPDATE payment_methods
+  SET
+    name = p_name,
+    icon = p_icon,
+    color = p_color,
+    type = p_type
+  WHERE id = p_payment_method_id;
+END;
+$$ LANGUAGE plpgsql;
+
+-- ==============================
+-- Function: delete_payment_method
+-- Deletes a payment method
+-- ==============================
+CREATE OR REPLACE FUNCTION public.delete_payment_method(
+  p_payment_method_id uuid
+)
+RETURNS void
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_owner_user_id uuid;
+  v_transaction_count integer;
+BEGIN
+  SELECT owner_user_id INTO v_owner_user_id FROM payment_methods WHERE id = p_payment_method_id;
+
+  IF v_owner_user_id != auth.uid() THEN
+    RAISE EXCEPTION 'Only the owner can delete the payment method' USING ERRCODE = '42501';
+  END IF;
+
+  SELECT COUNT(*) INTO v_transaction_count FROM transactions WHERE payment_method_id = p_payment_method_id;
+  IF v_transaction_count > 0 THEN
+    RAISE EXCEPTION 'Cannot delete payment method that is in use' USING ERRCODE = '23503';
+  END IF;
+
+  DELETE FROM payment_methods WHERE id = p_payment_method_id;
+END;
+$$ LANGUAGE plpgsql;
+
+GRANT EXECUTE ON FUNCTION public.update_payment_method(uuid, text, text, text, payment_method_type) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.delete_payment_method(uuid) TO authenticated;
+
+

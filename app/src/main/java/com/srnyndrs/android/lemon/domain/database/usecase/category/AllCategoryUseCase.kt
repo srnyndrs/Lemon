@@ -4,5 +4,7 @@ import javax.inject.Inject
 
 class AllCategoryUseCase @Inject constructor(
     val addCategoryUseCase: AddCategoryUseCase,
-    val getCategoriesUseCase: GetCategoriesUseCase
+    val getCategoriesUseCase: GetCategoriesUseCase,
+    val deleteCategoryUseCase: DeleteCategoryUseCase,
+    val updateCategoryUseCase: UpdateCategoryUseCase,
 )

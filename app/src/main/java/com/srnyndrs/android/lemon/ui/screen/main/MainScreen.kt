@@ -54,14 +54,18 @@ import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.srnyndrs.android.lemon.domain.authentication.model.AuthStatus
 import com.srnyndrs.android.lemon.ui.components.forms.TransactionForm
 import com.srnyndrs.android.lemon.ui.screen.main.content.wallet.WalletScreen
 import com.srnyndrs.android.lemon.ui.screen.main.content.home.HomeScreen
 import com.srnyndrs.android.lemon.ui.screen.main.content.household.HouseholdScreen
+import com.srnyndrs.android.lemon.ui.screen.main.content.household.HouseholdViewModel
 import com.srnyndrs.android.lemon.ui.screen.main.content.insights.InsightsScreen
 import com.srnyndrs.android.lemon.ui.screen.main.content.profile.ProfileScreen
 import com.srnyndrs.android.lemon.ui.screen.main.content.transactions.TransactionsScreen
@@ -238,7 +242,7 @@ fun MainScreen(
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(top = 18.dp, bottom = paddingValues.calculateBottomPadding()),
+                        .padding(top = 32.dp, bottom = paddingValues.calculateBottomPadding()),
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
@@ -385,9 +389,21 @@ fun MainScreen(
                             )
                         }
                     ) {
-                        HouseholdScreen(
-                            modifier = Modifier.fillMaxSize()
+
+                        val householdId = mainState.selectedHouseholdId
+
+                        val householdViewModel = hiltViewModel<HouseholdViewModel, HouseholdViewModel.HouseholdViewModelFactory>(
+                            creationCallback = { factory -> factory.create(householdId) }
                         )
+
+                        val householdState by householdViewModel.uiState.collectAsStateWithLifecycle()
+
+                        HouseholdScreen(
+                            modifier = Modifier.fillMaxSize(),
+                            householdState = householdState,
+                        ) { event ->
+                            householdViewModel.onEvent(event)
+                        }
                     }
                 }
             } else {
