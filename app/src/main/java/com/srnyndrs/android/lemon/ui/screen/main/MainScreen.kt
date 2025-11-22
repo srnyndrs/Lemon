@@ -400,6 +400,7 @@ fun MainScreen(
 
                         HouseholdScreen(
                             modifier = Modifier.fillMaxSize(),
+                            mainUserId = mainState.user.userId,
                             householdState = householdState,
                         ) { event ->
                             householdViewModel.onEvent(event)

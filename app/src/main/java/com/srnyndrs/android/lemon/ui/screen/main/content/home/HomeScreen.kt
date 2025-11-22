@@ -172,7 +172,10 @@ fun HomeScreen(
                                 Column(
                                     modifier = Modifier
                                         .fillMaxSize()
-                                        .clickable {
+                                        .clickable(
+                                            // TODO: proper check
+                                            enabled = household.name != "Private household"
+                                        ) {
                                             onUiEvent(MainUiEvent.ShowHousehold)
                                         }
                                         .padding(12.dp),
@@ -265,6 +268,13 @@ fun HomeScreen(
                 icon = FeatherIcons.Camera,
                 onClick = {
                     // TODO: Open camera screen
+                }
+            )
+            ActionButton(
+                title = "Add household",
+                icon = FeatherIcons.Camera,
+                onClick = {
+                    // TODO: Open add household
                 }
             )
         }

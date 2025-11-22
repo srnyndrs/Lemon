@@ -39,7 +39,7 @@ class HouseholdViewModel @AssistedInject constructor(
 
     fun onEvent(event: HouseholdEvent) {
         when (event) {
-            is HouseholdEvent.AddMember -> addMember(event.userId, event.role)
+            is HouseholdEvent.AddMember -> addMember(event.userId, "member")
             is HouseholdEvent.RemoveMember -> {
                 // TODO: enable remove
                 //removeMember(event.userId)
