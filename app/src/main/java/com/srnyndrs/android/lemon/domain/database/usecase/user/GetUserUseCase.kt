@@ -1,4 +1,4 @@
-package com.srnyndrs.android.lemon.domain.database.usecase
+package com.srnyndrs.android.lemon.domain.database.usecase.user
 
 import com.srnyndrs.android.lemon.domain.database.UserRepository
 import javax.inject.Inject

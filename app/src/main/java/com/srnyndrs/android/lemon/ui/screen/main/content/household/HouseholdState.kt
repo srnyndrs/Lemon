@@ -5,4 +5,5 @@ import com.srnyndrs.android.lemon.ui.utils.UiState
 
 data class HouseholdState(
     val household: UiState<Household> = UiState.Empty(),
+    val users: UiState<List<Pair<String, String>>> = UiState.Empty()
 )

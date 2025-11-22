@@ -69,8 +69,7 @@ fun WalletScreen(
     var showDropdown by remember { mutableStateOf(false) }
 
     Column(
-        modifier = Modifier
-            .then(modifier)
+        modifier = Modifier.then(modifier)
             .padding(6.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {

@@ -95,8 +95,7 @@ fun HomeScreen(
     }
 
     Column(
-        modifier = Modifier
-            .then(modifier),
+        modifier = Modifier.then(modifier),
         verticalArrangement = Arrangement.spacedBy(12.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {

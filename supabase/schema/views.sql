@@ -255,3 +255,17 @@ GROUP BY
     h.id, h.name;
 
 GRANT SELECT ON household_details_view TO authenticated;
+
+-- ==============================
+-- View: users_view
+-- All users with their id and username
+-- ==============================
+CREATE OR REPLACE VIEW users_view AS
+SELECT
+    u.id,
+    u.username
+FROM
+    public.users u;
+
+GRANT SELECT ON users_view TO authenticated;
+

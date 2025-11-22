@@ -1,4 +1,4 @@
-package com.srnyndrs.android.lemon.domain.database.usecase
+package com.srnyndrs.android.lemon.domain.authentication.usecase
 
 import com.srnyndrs.android.lemon.domain.authentication.SessionManager
 import javax.inject.Inject

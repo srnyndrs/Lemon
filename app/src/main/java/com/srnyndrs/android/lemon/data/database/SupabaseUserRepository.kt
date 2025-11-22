@@ -1,5 +1,6 @@
 package com.srnyndrs.android.lemon.data.database
 
+import com.srnyndrs.android.lemon.data.database.dto.UserDto
 import com.srnyndrs.android.lemon.data.database.dto.UserWithHousehold
 import com.srnyndrs.android.lemon.data.mapper.toDomain
 import com.srnyndrs.android.lemon.domain.database.UserRepository
@@ -27,7 +28,14 @@ class SupabaseUserRepository @Inject constructor(
     }
 
     override suspend fun getUsers(): Result<List<Pair<String, String>>> {
-        // TODO
-        return Result.success(emptyList())
+        return try {
+            val response = client
+                .from(DatabaseEndpoint.USERS_VIEW.path)
+                .select()
+                .decodeList<UserDto>()
+            Result.success(response.map { it.id to it.username })
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
     }
 }

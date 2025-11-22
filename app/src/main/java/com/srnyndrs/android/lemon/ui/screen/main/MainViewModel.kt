@@ -6,8 +6,8 @@ import com.srnyndrs.android.lemon.domain.database.model.Category
 import com.srnyndrs.android.lemon.domain.database.model.PaymentMethod
 import com.srnyndrs.android.lemon.domain.database.model.TransactionItem
 import com.srnyndrs.android.lemon.domain.database.model.TransactionType
-import com.srnyndrs.android.lemon.domain.database.usecase.GetUserUseCase
-import com.srnyndrs.android.lemon.domain.database.usecase.LogoutUserUseCase
+import com.srnyndrs.android.lemon.domain.database.usecase.user.GetUserUseCase
+import com.srnyndrs.android.lemon.domain.authentication.usecase.LogoutUserUseCase
 import com.srnyndrs.android.lemon.domain.database.usecase.category.AllCategoryUseCase
 import com.srnyndrs.android.lemon.domain.database.usecase.household.AllHouseholdUseCase
 import com.srnyndrs.android.lemon.domain.database.usecase.payment_method.AllPaymentMethodUseCase

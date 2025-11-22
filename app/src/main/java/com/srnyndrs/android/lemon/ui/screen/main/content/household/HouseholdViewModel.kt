@@ -3,6 +3,8 @@ package com.srnyndrs.android.lemon.ui.screen.main.content.household
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.srnyndrs.android.lemon.domain.database.usecase.household.AllHouseholdUseCase
+import com.srnyndrs.android.lemon.domain.database.usecase.user.GetUserUseCase
+import com.srnyndrs.android.lemon.domain.database.usecase.user.GetUsersUseCase
 import com.srnyndrs.android.lemon.ui.screen.main.content.household.HouseholdEvent
 import com.srnyndrs.android.lemon.ui.screen.main.content.household.HouseholdState
 import com.srnyndrs.android.lemon.ui.utils.UiState
@@ -18,7 +20,8 @@ import kotlinx.coroutines.launch
 @HiltViewModel(assistedFactory = HouseholdViewModel.HouseholdViewModelFactory::class)
 class HouseholdViewModel @AssistedInject constructor(
     @Assisted private val householdId: String,
-    private val allHouseholdUseCase: AllHouseholdUseCase
+    private val allHouseholdUseCase: AllHouseholdUseCase,
+    private val getUsersUseCase: GetUsersUseCase,
 ) : ViewModel() {
 
     @AssistedFactory
@@ -31,6 +34,7 @@ class HouseholdViewModel @AssistedInject constructor(
 
     init {
         fetchHousehold()
+        fetchUsers()
     }
 
     fun onEvent(event: HouseholdEvent) {
@@ -59,6 +63,17 @@ class HouseholdViewModel @AssistedInject constructor(
                     }
                 }
         }
+    }
+
+    private fun fetchUsers() = viewModelScope.launch {
+        _uiState.update { it.copy(users = UiState.Loading()) }
+        getUsersUseCase()
+            .onSuccess { users ->
+                _uiState.update { it.copy(users = UiState.Success(users)) }
+            }
+            .onFailure { error ->
+                _uiState.update { it.copy(users = UiState.Error(error.message ?: "Unknown error")) }
+            }
     }
 
     private fun addMember(userId: String, role: String) {
