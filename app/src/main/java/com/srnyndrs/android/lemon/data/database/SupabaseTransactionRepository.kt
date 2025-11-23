@@ -76,6 +76,29 @@ class SupabaseTransactionRepository @Inject constructor(
         }
     }
 
+    override suspend fun getTransactionsByPaymentMethod(householdId: String, paymentMethodId: String): Result<Map<String, List<TransactionItem>>> {
+        return try {
+            val response = client.from(table = "household_transactions_view") // TODO: proper constant
+                .select {
+                    filter {
+                        TransactionsView::householdId eq householdId
+                        TransactionsView::paymentMethodId eq paymentMethodId
+                    }
+                }
+                .decodeList<TransactionsView>()
+
+            Log.d("TransactionRepository", "getTransactionsByPaymentMethod: $paymentMethodId")
+
+            Result.success(
+                response.map { it.toDomain() }
+                    .groupBy { it.date }
+            )
+        } catch (e: Exception) {
+            Log.e("TransactionRepository", "getTransactionsByPaymentMethod: ${e.message}")
+            Result.failure(e)
+        }
+    }
+
     override suspend fun addTransaction(
         householdId: String,
         userId: String,

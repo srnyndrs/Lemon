@@ -37,7 +37,6 @@ import com.srnyndrs.android.lemon.ui.components.forms.CategoryForm
 import com.srnyndrs.android.lemon.ui.components.forms.HouseholdForm
 import com.srnyndrs.android.lemon.ui.components.forms.PaymentMethodForm
 import com.srnyndrs.android.lemon.ui.screen.main.MainEvent
-import com.srnyndrs.android.lemon.ui.screen.main.content.wallet.FormType
 import com.srnyndrs.android.lemon.ui.theme.LemonTheme
 import compose.icons.FeatherIcons
 import compose.icons.feathericons.ChevronDown

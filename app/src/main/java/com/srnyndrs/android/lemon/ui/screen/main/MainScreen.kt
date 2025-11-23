@@ -23,7 +23,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.BottomSheetScaffold
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -60,15 +59,17 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import com.srnyndrs.android.lemon.domain.authentication.model.AuthStatus
 import com.srnyndrs.android.lemon.ui.components.forms.TransactionForm
-import com.srnyndrs.android.lemon.ui.screen.main.content.wallet.WalletScreen
+import com.srnyndrs.android.lemon.ui.screen.main.content.category.CategoryScreen
+import com.srnyndrs.android.lemon.ui.screen.main.content.category.CategoryViewModel
 import com.srnyndrs.android.lemon.ui.screen.main.content.home.HomeScreen
 import com.srnyndrs.android.lemon.ui.screen.main.content.household.HouseholdScreen
 import com.srnyndrs.android.lemon.ui.screen.main.content.household.HouseholdViewModel
 import com.srnyndrs.android.lemon.ui.screen.main.content.insights.InsightsScreen
 import com.srnyndrs.android.lemon.ui.screen.main.content.profile.ProfileScreen
 import com.srnyndrs.android.lemon.ui.screen.main.content.transactions.TransactionsScreen
+import com.srnyndrs.android.lemon.ui.screen.main.content.wallet.WalletScreen
+import com.srnyndrs.android.lemon.ui.screen.main.content.wallet.WalletViewModel
 import com.srnyndrs.android.lemon.ui.theme.LemonTheme
 import compose.icons.FeatherIcons
 import compose.icons.feathericons.Eye
@@ -96,7 +97,7 @@ fun MainScreen(
         Screens.Home,
         Screens.Insights,
         Screens.Wallet,
-        Screens.Profile
+        Screens.Categories,
     )
 
     val topPadding = 96.dp
@@ -159,8 +160,7 @@ fun MainScreen(
                                     .clip(CircleShape)
                                     .border(1.dp, MaterialTheme.colorScheme.onSurface, CircleShape)
                                     .clickable {
-                                        // TODO: Open profile settings
-
+                                        navController.navigate(Screens.Profile.route)
                                     },
                                 contentAlignment = Alignment.Center
                             ) {
@@ -332,16 +332,43 @@ fun MainScreen(
                     composable(
                         route = Screens.Wallet.route
                     ) {
+
+                        val walletViewModel = hiltViewModel<WalletViewModel, WalletViewModel.WalletViewModelFactory>(
+                            creationCallback = { factory ->
+                                factory.create(
+                                    mainState.selectedHouseholdId,
+                                    mainState.user.userId
+                                )
+                            }
+                        )
+
+                        val walletState by walletViewModel.walletState.collectAsStateWithLifecycle()
+
                         WalletScreen(
                             modifier = Modifier.fillMaxSize(),
-                            categories = mainState.categories,
-                            payments = mainState.paymentMethods,
-                            onAddPaymentMethod = { paymentMethod ->
-                                onMainEvent(MainEvent.AddPaymentMethod(paymentMethod))
+                            state = walletState,
+                            onEvent = { event ->
+                                walletViewModel.onEvent(event)
                             }
-                        ) { category ->
-                            onMainEvent(MainEvent.AddCategory(category))
-                        }
+                        )
+                    }
+                    composable(
+                        route = Screens.Categories.route
+                    ) {
+
+                        val categoryViewModel = hiltViewModel<CategoryViewModel, CategoryViewModel.CategoryViewModelFactory>(
+                            creationCallback = { factory -> factory.create(mainState.selectedHouseholdId) }
+                        )
+
+                        val categoriesState by categoryViewModel.categoryState.collectAsStateWithLifecycle()
+
+                        CategoryScreen(
+                            modifier = Modifier.fillMaxSize(),
+                            categoriesState = categoriesState,
+                            onEvent = { categoryEvent ->
+                                categoryViewModel.onEvent(categoryEvent)
+                            }
+                        )
                     }
                     composable(
                         route = Screens.Transactions.route,

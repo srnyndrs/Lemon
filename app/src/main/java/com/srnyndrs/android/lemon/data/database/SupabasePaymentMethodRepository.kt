@@ -50,20 +50,6 @@ class SupabasePaymentMethodRepository @Inject constructor(
         }
     }
 
-    override suspend fun deactivatePaymentMethod(paymentMethodId: String): Result<Unit> {
-        return try {
-            client.postgrest.rpc(
-                function = DatabaseEndpoint.DEACTIVATE_PAYMENT_METHOD_FUNCTION.path,
-                parameters = buildJsonObject {
-                    put("p_payment_method_id", paymentMethodId)
-                }
-            )
-            Result.success(Unit)
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
-    }
-
     override suspend fun updatePaymentMethod(paymentMethod: PaymentMethod): Result<Unit> {
         return try {
             client.postgrest.rpc(
@@ -74,6 +60,7 @@ class SupabasePaymentMethodRepository @Inject constructor(
                     put("p_icon", paymentMethod.icon)
                     put("p_color", paymentMethod.color)
                     put("p_type", paymentMethod.type)
+                    put("p_is_active", paymentMethod.isActive)
                 }
             )
             Result.success(Unit)

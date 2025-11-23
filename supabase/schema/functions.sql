@@ -657,29 +657,9 @@ GRANT EXECUTE ON FUNCTION public.delete_household(uuid) TO authenticated;
 -- Function: deactivate_payment_method
 -- Deactivates a payment method
 -- ==============================
-CREATE OR REPLACE FUNCTION public.deactivate_payment_method(
-  p_payment_method_id uuid
-)
-RETURNS void
-SECURITY DEFINER
-SET search_path = public
-AS $$
-DECLARE
-  v_owner_user_id uuid;
-BEGIN
-  SELECT owner_user_id INTO v_owner_user_id FROM payment_methods WHERE id = p_payment_method_id;
-
-  IF v_owner_user_id != auth.uid() THEN
-    RAISE EXCEPTION 'Only the owner can deactivate the payment method' USING ERRCODE = '42501';
-  END IF;
-
-  UPDATE payment_methods
-  SET is_active = false
-  WHERE id = p_payment_method_id;
-END;
-$$ LANGUAGE plpgsql;
-
-GRANT EXECUTE ON FUNCTION public.deactivate_payment_method(uuid) TO authenticated;
+-- Function `deactivate_payment_method` removed.
+-- If you need to drop the function from an existing database, run:
+DROP FUNCTION IF EXISTS public.deactivate_payment_method(uuid);
 
 -- ==============================
 -- Function: delete_category
@@ -755,7 +735,8 @@ CREATE OR REPLACE FUNCTION public.update_payment_method(
   p_name text,
   p_icon text,
   p_color text,
-  p_type payment_method_type
+  p_type payment_method_type,
+  p_is_active boolean DEFAULT NULL
 )
 RETURNS void
 SECURITY DEFINER
@@ -775,7 +756,8 @@ BEGIN
     name = p_name,
     icon = p_icon,
     color = p_color,
-    type = p_type
+    type = p_type,
+    is_active = COALESCE(p_is_active, is_active)
   WHERE id = p_payment_method_id;
 END;
 $$ LANGUAGE plpgsql;
@@ -810,7 +792,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-GRANT EXECUTE ON FUNCTION public.update_payment_method(uuid, text, text, text, payment_method_type) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.update_payment_method(uuid, text, text, text, payment_method_type, boolean) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.delete_payment_method(uuid) TO authenticated;
 
 

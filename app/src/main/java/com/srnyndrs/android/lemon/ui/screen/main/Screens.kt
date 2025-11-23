@@ -12,6 +12,7 @@ sealed class Screens(val route: String, val title: String, val icon: ImageVector
     object Home : Screens("home", "Home", FeatherIcons.Home)
     object Insights: Screens("insights", "Insights", FeatherIcons.PieChart)
     object Wallet: Screens("wallet", "Wallet", FeatherIcons.Pocket)
+    object Categories: Screens("categories", "Categories", FeatherIcons.Aperture)
     object Profile: Screens("profile", "Profile", FeatherIcons.User)
     object Transactions: Screens("transactions", "Transactions")
     object Household: Screens("household", "Household")

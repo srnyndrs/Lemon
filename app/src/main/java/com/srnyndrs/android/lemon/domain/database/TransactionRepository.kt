@@ -18,11 +18,17 @@ interface TransactionRepository {
     ): Result<List<StatisticGroupItem>>
 
     suspend fun getStatistics(householdId: String): Result<List<Pair<Int, Double>>>
+
     suspend fun addTransaction(
         householdId: String,
         userId: String,
         transactionDetailsDto: TransactionDetailsDto
     ): Result<Transaction>
+
+    suspend fun getTransactionsByPaymentMethod(
+        householdId: String,
+        paymentMethodId: String
+    ): Result<Map<String, List<TransactionItem>>>
 
     suspend fun deleteTransaction(transactionId: String): Result<Unit>
 

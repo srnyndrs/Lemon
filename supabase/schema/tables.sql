@@ -41,12 +41,9 @@ CREATE TABLE IF NOT EXISTS public.payment_methods (
   name text NOT NULL,
   icon text,
   color text,
+  is_active boolean NOT NULL DEFAULT true,
   type payment_method_type NOT NULL DEFAULT 'other'
 );
-
-ALTER TABLE public.payment_methods
-ADD COLUMN IF NOT EXISTS is_active boolean NOT NULL DEFAULT true;
-
 
 -- CATEGORIES
 CREATE TABLE IF NOT EXISTS public.categories (

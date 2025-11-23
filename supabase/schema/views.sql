@@ -76,12 +76,15 @@ SELECT
   c.name as category_name,
   c.icon as category_icon,
   c.color as category_color,
+  pm.id as payment_method_id,
+  pm.is_active as payment_method_is_active,
   t.title,
   t.type,
   t.amount,
   t.transaction_date
 FROM public.transactions t
 LEFT JOIN public.categories c ON t.category_id = c.id
+LEFT JOIN public.payment_methods pm ON t.payment_method_id = pm.id
 ORDER BY t.transaction_date DESC;
 
 -- ==============================
