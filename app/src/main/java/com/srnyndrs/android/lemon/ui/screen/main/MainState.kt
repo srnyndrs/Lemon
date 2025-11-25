@@ -16,7 +16,5 @@ data class MainState(
     val categories: List<Category> = emptyList(),
     val transactions: Map<String, List<TransactionItem>> = emptyMap(),
     val expenses: Map<TransactionType, Double> = emptyMap(),
-    val statistics: List<StatisticGroupItem> = emptyList(),
-    val allExpenses: List<Pair<Int, Double>> = emptyList(),
     val paymentMethods: List<PaymentMethod> = emptyList(),
 )

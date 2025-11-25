@@ -114,7 +114,6 @@ class MainViewModel @AssistedInject constructor(
                     ).fold(
                         onSuccess = {
                             fetchTransactions(currentHouseholdId)
-                            fetchStatistics(currentHouseholdId)
                         },
                         onFailure = {
                             // TODO
@@ -130,7 +129,6 @@ class MainViewModel @AssistedInject constructor(
                 ).fold(
                     onSuccess = {
                         fetchTransactions(currentHouseholdId)
-                        fetchStatistics(currentHouseholdId)
                     },
                     onFailure = {
                         // TODO
@@ -204,40 +202,6 @@ class MainViewModel @AssistedInject constructor(
         }
     }
 
-    private suspend fun fetchStatistics(householdId: String) {
-        allTransactionUseCase.getMonthlyStatsUseCase(householdId).let { response ->
-            response.fold(
-                onSuccess = { statistics ->
-                    _mainState.value = _mainState.value.copy(
-                        statistics = statistics
-                    )
-                },
-                onFailure = { exception ->
-                    _mainState.value = _mainState.value.copy(
-                        error = "An error occurred: ${exception.message}"
-                    )
-                }
-            )
-        }
-    }
-
-    private suspend fun fetchAllExpenses(householdId: String) {
-        allTransactionUseCase.getStatisticsUseCase(householdId).let { response ->
-            response.fold(
-                onSuccess = { allExpenses ->
-                    _mainState.value = _mainState.value.copy(
-                        allExpenses = allExpenses
-                    )
-                },
-                onFailure = { exception ->
-                    _mainState.value = _mainState.value.copy(
-                        error = "An error occurred: ${exception.message}"
-                    )
-                }
-            )
-        }
-    }
-
     private suspend fun fetchData(householdId: String) {
         allCategoryUseCase.getCategoriesUseCase(householdId).let { response ->
             response.fold(
@@ -268,8 +232,6 @@ class MainViewModel @AssistedInject constructor(
             )
         }
         fetchTransactions(householdId)
-        fetchStatistics(householdId)
-        fetchAllExpenses(householdId)
     }
 
 }

@@ -63,9 +63,11 @@ import com.srnyndrs.android.lemon.ui.components.forms.TransactionForm
 import com.srnyndrs.android.lemon.ui.screen.main.content.category.CategoryScreen
 import com.srnyndrs.android.lemon.ui.screen.main.content.category.CategoryViewModel
 import com.srnyndrs.android.lemon.ui.screen.main.content.home.HomeScreen
+import com.srnyndrs.android.lemon.ui.screen.main.content.home.HomeViewModel
 import com.srnyndrs.android.lemon.ui.screen.main.content.household.HouseholdScreen
 import com.srnyndrs.android.lemon.ui.screen.main.content.household.HouseholdViewModel
 import com.srnyndrs.android.lemon.ui.screen.main.content.insights.InsightsScreen
+import com.srnyndrs.android.lemon.ui.screen.main.content.insights.InsightsViewModel
 import com.srnyndrs.android.lemon.ui.screen.main.content.profile.ProfileScreen
 import com.srnyndrs.android.lemon.ui.screen.main.content.transactions.TransactionsScreen
 import com.srnyndrs.android.lemon.ui.screen.main.content.wallet.WalletScreen
@@ -293,8 +295,18 @@ fun MainScreen(
                     composable(
                         route = Screens.Home.route
                     ) {
+
+                        val homeViewModel = hiltViewModel<HomeViewModel, HomeViewModel.HomeViewModelFactory>(
+                            creationCallback = { factory ->
+                                factory.create(mainState.selectedHouseholdId)
+                            }
+                        )
+
+                        val homeState by homeViewModel.homeState.collectAsStateWithLifecycle()
+
                         HomeScreen(
                             modifier = Modifier.fillMaxSize(),
+                            homeState = homeState,
                             households = mainState.user.households,
                             selectedHouseholdId = mainState.selectedHouseholdId,
                             transactions = mainState.transactions,
@@ -323,10 +335,18 @@ fun MainScreen(
                     composable(
                         route = Screens.Insights.route
                     ) {
+
+                        val insightsViewModel = hiltViewModel<InsightsViewModel, InsightsViewModel.InsightsViewModelFactory>(
+                            creationCallback = { factory ->
+                                factory.create(mainState.selectedHouseholdId)
+                            }
+                        )
+
+                        val insightsState by insightsViewModel.insightsState.collectAsStateWithLifecycle()
+
                         InsightsScreen(
                             modifier = Modifier.fillMaxSize(),
-                            statistics = mainState.statistics,
-                            allExpenses = mainState.allExpenses
+                            insightsState = insightsState
                         )
                     }
                     composable(

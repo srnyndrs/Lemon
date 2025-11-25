@@ -39,9 +39,11 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.srnyndrs.android.lemon.domain.database.model.StatisticGroupItem
+import com.srnyndrs.android.lemon.ui.components.UiStateContainer
 import com.srnyndrs.android.lemon.ui.screen.main.components.ColumnChartDiagram
 import com.srnyndrs.android.lemon.ui.screen.main.components.PieChartDiagram
 import com.srnyndrs.android.lemon.ui.theme.LemonTheme
+import com.srnyndrs.android.lemon.ui.utils.UiState
 import com.srnyndrs.android.lemon.ui.utils.formatAsCurrency
 import com.srnyndrs.android.lemon.ui.utils.fromHex
 import compose.icons.FeatherIcons
@@ -52,8 +54,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun InsightsScreen(
     modifier: Modifier = Modifier,
-    statistics: List<StatisticGroupItem>,
-    allExpenses: List<Pair<Int, Double>>,
+    insightsState: InsightsState
 ) {
 
     val months = listOf(
@@ -70,19 +71,6 @@ fun InsightsScreen(
         "November" to 0.0,
         "December" to 0.0
     )
-
-    // Create list of pairs: month (String) -> total expenses (Double)
-    /* val monthlyExpenses: List<Pair<String, Double>> = allExpenses
-        .map { (month, totalAmount) ->
-            val monthString = month.let { months[it - 1] }
-            val totalExpenses = totalAmount
-            Pair(monthString, totalExpenses)
-        }*/
-
-    val monthlyExpenses = months.mapIndexed { index, (monthName, _) ->
-        val totalAmount = allExpenses.find { (month, _) -> month == index + 1 }?.second ?: 0.0
-        Pair(monthName, totalAmount)
-    }
 
     val pages = listOf(
         "Category Statistics",
@@ -152,124 +140,140 @@ fun InsightsScreen(
             ) {
                 when (page) {
                     0 -> {
-                        PieChartDiagram(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = 12.dp)
-                                .requiredHeight(200.dp),
-                            chartData = statistics,
-                            selectedIndex = selectedCategoryIndex,
-                        ) { categoryIndex ->
-                            selectedCategoryIndex = categoryIndex
-                        }
-                        HorizontalDivider()
-                        Text(
-                            modifier = Modifier.fillMaxWidth(),
-                            text = "Categories",
-                            style = MaterialTheme.typography.headlineSmall,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
-                        )
-                        LazyColumn(
+                        UiStateContainer(
                             modifier = Modifier.fillMaxSize(),
-                            verticalArrangement = Arrangement.spacedBy(6.dp)
-                        ) {
-                            if(statistics.isEmpty()) {
-                                item {
-                                    Text(
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .padding(12.dp),
-                                        text = "No statistics available.",
-                                        style = MaterialTheme.typography.bodyLarge
-                                    )
-                                }
+                            state = insightsState.statistics
+                        ) { statistics ->
+                            PieChartDiagram(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 12.dp)
+                                    .requiredHeight(200.dp),
+                                chartData = statistics,
+                                selectedIndex = selectedCategoryIndex,
+                            ) { categoryIndex ->
+                                selectedCategoryIndex = categoryIndex
                             }
-                            itemsIndexed(statistics) { index, item ->
-                                val isSelected = selectedCategoryIndex == index
-                                Row(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .clickable {
-                                            selectedCategoryIndex = if(isSelected) {
-                                                null
-                                            } else {
-                                                index
-                                            }
-                                        }
-                                        .let {
-                                            if (isSelected) {
-                                                it.background(
-                                                    MaterialTheme.colorScheme.primary.copy(0.1f),
-                                                    RoundedCornerShape(8.dp)
-                                                )
-                                            } else {
-                                                it
-                                            }
-                                        }
-                                        .border(1.dp, MaterialTheme.colorScheme.onSurface.copy(0.05f), RectangleShape)
-                                        .padding(horizontal = 6.dp, vertical = 12.dp),
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.SpaceBetween
-                                ) {
-                                    Row(
-                                        verticalAlignment = Alignment.CenterVertically,
-                                        horizontalArrangement = Arrangement.spacedBy(12.dp)
-                                    ) {
-                                        Box(
-                                            modifier = Modifier
-                                                .size(24.dp)
-                                                .clip(RoundedCornerShape(5.dp))
-                                                .background(Color.fromHex(item.color ?: "#000000"))
-                                        )
+                            HorizontalDivider()
+                            Text(
+                                modifier = Modifier.fillMaxWidth(),
+                                text = "Categories",
+                                style = MaterialTheme.typography.headlineSmall,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                            LazyColumn(
+                                modifier = Modifier.fillMaxSize(),
+                                verticalArrangement = Arrangement.spacedBy(6.dp)
+                            ) {
+                                if(statistics.isEmpty()) {
+                                    item {
                                         Text(
-                                            text = item.categoryName,
-                                            style = MaterialTheme.typography.titleMedium
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .padding(12.dp),
+                                            text = "No statistics available.",
+                                            style = MaterialTheme.typography.bodyLarge
                                         )
                                     }
-                                    Text(
-                                        text = item.totalAmount.formatAsCurrency().plus(" Ft"),
-                                        style = MaterialTheme.typography.bodyLarge
-                                    )
+                                }
+                                itemsIndexed(statistics) { index, item ->
+                                    val isSelected = selectedCategoryIndex == index
+                                    Row(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .clickable {
+                                                selectedCategoryIndex = if(isSelected) {
+                                                    null
+                                                } else {
+                                                    index
+                                                }
+                                            }
+                                            .let {
+                                                if (isSelected) {
+                                                    it.background(
+                                                        MaterialTheme.colorScheme.primary.copy(0.1f),
+                                                        RoundedCornerShape(8.dp)
+                                                    )
+                                                } else {
+                                                    it
+                                                }
+                                            }
+                                            .border(1.dp, MaterialTheme.colorScheme.onSurface.copy(0.05f), RectangleShape)
+                                            .padding(horizontal = 6.dp, vertical = 12.dp),
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.SpaceBetween
+                                    ) {
+                                        Row(
+                                            verticalAlignment = Alignment.CenterVertically,
+                                            horizontalArrangement = Arrangement.spacedBy(12.dp)
+                                        ) {
+                                            Box(
+                                                modifier = Modifier
+                                                    .size(24.dp)
+                                                    .clip(RoundedCornerShape(5.dp))
+                                                    .background(Color.fromHex(item.color ?: "#000000"))
+                                            )
+                                            Text(
+                                                text = item.categoryName,
+                                                style = MaterialTheme.typography.titleMedium
+                                            )
+                                        }
+                                        Text(
+                                            text = item.totalAmount.formatAsCurrency().plus(" Ft"),
+                                            style = MaterialTheme.typography.bodyLarge
+                                        )
+                                    }
                                 }
                             }
                         }
                     }
                     1 -> {
-                        ColumnChartDiagram(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .requiredHeight(256.dp),
-                            data = monthlyExpenses
-                        )
-                        HorizontalDivider()
-                        Text(
-                            modifier = Modifier.fillMaxWidth(),
-                            text = "Months",
-                            style = MaterialTheme.typography.headlineSmall,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
-                        )
-                        LazyColumn(
+                        UiStateContainer(
                             modifier = Modifier.fillMaxSize(),
-                            verticalArrangement = Arrangement.spacedBy(6.dp)
-                        ) {
-                            items(monthlyExpenses.reversed().filter { it.second != 0.0 }) { (month, totalAmount) ->
-                                Row(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(6.dp),
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.SpaceBetween
-                                ) {
-                                    Text(
-                                        text = month,
-                                        style = MaterialTheme.typography.bodyLarge
-                                    )
-                                    Text(
-                                        text = totalAmount.formatAsCurrency().plus(" Ft"),
-                                        style = MaterialTheme.typography.bodyLarge
-                                    )
+                            state = insightsState.allExpenses
+                        ) { allExpenses ->
+
+                            val monthlyExpenses = months.mapIndexed { index, (monthName, _) ->
+                                val totalAmount = allExpenses.find { (month, _) -> month == index + 1 }?.second ?: 0.0
+                                Pair(monthName, totalAmount)
+                            }
+
+                            ColumnChartDiagram(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .requiredHeight(256.dp),
+                                data = monthlyExpenses
+                            )
+                            HorizontalDivider()
+                            Text(
+                                modifier = Modifier.fillMaxWidth(),
+                                text = "Months",
+                                style = MaterialTheme.typography.headlineSmall,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                            LazyColumn(
+                                modifier = Modifier.fillMaxSize(),
+                                verticalArrangement = Arrangement.spacedBy(6.dp)
+                            ) {
+                                items(monthlyExpenses.reversed().filter { it.second != 0.0 }) { (month, totalAmount) ->
+                                    Row(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(6.dp),
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.SpaceBetween
+                                    ) {
+                                        Text(
+                                            text = month,
+                                            style = MaterialTheme.typography.bodyLarge
+                                        )
+                                        Text(
+                                            text = totalAmount.formatAsCurrency().plus(" Ft"),
+                                            style = MaterialTheme.typography.bodyLarge
+                                        )
+                                    }
                                 }
                             }
                         }
@@ -287,21 +291,26 @@ private fun InsightsScreenPreview() {
         Surface {
             InsightsScreen(
                 modifier = Modifier.fillMaxSize(),
-                statistics = listOf(
-                    StatisticGroupItem( "Food", "Expenses on food", "#FFB74D", 200.0),
-                    StatisticGroupItem( "Transport", "Expenses on transport", "#4DB6AC", 450.0),
-                    StatisticGroupItem( "Entertainment", "Expenses on entertainment", "#BA68C8", 300.0),
-                    StatisticGroupItem( "Shopping", "Expenses on shopping", "#E57373", 600.0),
-                    StatisticGroupItem( "Health", "Expenses on health", "#81C784", 150.0),
-                    StatisticGroupItem( "Bills", "Expenses on bills", "#64B5F6", 500.0),
-                ),
-                allExpenses = listOf(
-                    Pair(1, 200.0),
-                    Pair(2, 450.0),
-                    Pair(3, 300.0),
-                    Pair(4, 600.0),
-                    Pair(5, 150.0),
-                    Pair(6, 500.0),
+                insightsState = InsightsState(
+                    statistics = UiState.Success(
+                        listOf(
+                        StatisticGroupItem( "Food", "Expenses on food", "#FFB74D", 200.0),
+                        StatisticGroupItem( "Transport", "Expenses on transport", "#4DB6AC", 450.0),
+                        StatisticGroupItem( "Entertainment", "Expenses on entertainment", "#BA68C8", 300.0),
+                        StatisticGroupItem( "Shopping", "Expenses on shopping", "#E57373", 600.0),
+                        StatisticGroupItem( "Health", "Expenses on health", "#81C784", 150.0),
+                        StatisticGroupItem( "Bills", "Expenses on bills", "#64B5F6", 500.0),
+                    )),
+                    allExpenses = UiState.Success(
+                        listOf(
+                        Pair(1, 200.0),
+                        Pair(2, 450.0),
+                        Pair(3, 300.0),
+                        Pair(4, 600.0),
+                        Pair(5, 150.0),
+                        Pair(6, 500.0),
+                    )
+                    )
                 )
             )
         }

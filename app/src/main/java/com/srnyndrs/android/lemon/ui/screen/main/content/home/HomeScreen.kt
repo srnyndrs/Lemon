@@ -45,6 +45,7 @@ import com.srnyndrs.android.lemon.domain.database.model.Household
 import com.srnyndrs.android.lemon.domain.database.model.TransactionItem
 import com.srnyndrs.android.lemon.domain.database.model.TransactionType
 import com.srnyndrs.android.lemon.ui.components.ActionButton
+import com.srnyndrs.android.lemon.ui.components.UiStateContainer
 import com.srnyndrs.android.lemon.ui.components.transaction.TransactionList
 import com.srnyndrs.android.lemon.ui.screen.main.MainEvent
 import com.srnyndrs.android.lemon.ui.screen.main.MainUiEvent
@@ -60,6 +61,7 @@ import kotlin.compareTo
 @Composable
 fun HomeScreen(
     modifier: Modifier = Modifier,
+    homeState: HomeState,
     households: List<Household>,
     selectedHouseholdId: String,
     transactions: Map<String, List<TransactionItem>>,
@@ -311,14 +313,19 @@ fun HomeScreen(
                     .padding(bottom = 12.dp, start = 6.dp, end = 6.dp),
                 verticalArrangement = Arrangement.spacedBy(6.dp)
             ) {
-                TransactionList(
-                    modifier = Modifier.fillMaxWidth(),
-                    isLoading = isLoading,
-                    transactions = transactions,
-                    onDelete = {
-                        onEvent(MainEvent.DeleteTransaction(it))
-                    }
-                )
+                UiStateContainer(
+                    modifier = Modifier.fillMaxSize(),
+                    state = homeState.transactions
+                ) { transactions
+                    TransactionList(
+                        modifier = Modifier.fillMaxWidth(),
+                        isLoading = isLoading,
+                        transactions = transactions,
+                        onDelete = {
+                            onEvent(MainEvent.DeleteTransaction(it))
+                        }
+                    )
+                }
             }
         }
     }
@@ -331,6 +338,7 @@ fun HomeScreenPreview() {
         Surface {
             HomeScreen(
                 modifier = Modifier.fillMaxSize(),
+                homeState = HomeState(),
                 households = listOf(
                     Household(
                         id = "1",
