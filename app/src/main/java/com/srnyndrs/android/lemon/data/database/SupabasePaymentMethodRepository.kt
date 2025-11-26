@@ -21,6 +21,7 @@ class SupabasePaymentMethodRepository @Inject constructor(
                 .select {
                     filter {
                         eq("household_id", householdId)
+                        // TODO: add or with userID
                     }
                 }
                 .decodeList<PaymentMethodDto>()

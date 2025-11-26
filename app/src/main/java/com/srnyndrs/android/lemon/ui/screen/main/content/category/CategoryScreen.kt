@@ -2,6 +2,7 @@ package com.srnyndrs.android.lemon.ui.screen.main.content.category
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -18,6 +19,8 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -37,6 +40,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.Popup
 import com.srnyndrs.android.lemon.domain.database.model.Category
 import com.srnyndrs.android.lemon.ui.components.UiStateContainer
 import com.srnyndrs.android.lemon.ui.components.forms.CategoryForm
@@ -122,10 +126,19 @@ fun CategoryScreen(
                 } else {
                     categories?.let {
                         itemsIndexed(categories) { index, category ->
+
+                            var showPopup by remember { mutableStateOf(false) }
+
                             Card(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .requiredHeight(72.dp),
+                                    .requiredHeight(72.dp)
+                                    .combinedClickable(
+                                        onClick = {},
+                                        onLongClick = {
+                                            showPopup = true
+                                        }
+                                    ),
                                 shape = RoundedCornerShape(8.dp),
                                 colors = CardDefaults.cardColors(
                                     containerColor = Color.Companion.fromHex(category.color),
@@ -133,10 +146,7 @@ fun CategoryScreen(
                                 ),
                                 elevation = CardDefaults.cardElevation(
                                     defaultElevation = 4.dp
-                                ),
-                                onClick = {
-                                    // TODO: Handle category click
-                                },
+                                )
                             ) {
                                 Row (
                                     modifier = Modifier
@@ -162,6 +172,24 @@ fun CategoryScreen(
                                         style = MaterialTheme.typography.bodyLarge,
                                         maxLines = 1,
                                         overflow = TextOverflow.Ellipsis,
+                                    )
+                                }
+                                DropdownMenu(
+                                    modifier = Modifier.align(Alignment.End),
+                                    expanded = showPopup,
+                                    onDismissRequest = {
+                                        showPopup = false
+                                    }
+                                ) {
+                                    DropdownMenuItem(
+                                        text = {
+                                            Text(text = "Delete")
+                                        },
+                                        onClick = {
+                                            // TODO
+                                            onEvent(CategoryEvent.DeleteCategory(category.id!!))
+                                            showPopup = false
+                                        }
                                     )
                                 }
                             }
@@ -200,6 +228,11 @@ fun CategoryScreen(
             }
         }
     }
+}
+
+enum class CategoryUiEvent {
+    ADD_CATEGORY,
+    DELETE_CATEGORY,
 }
 
 @Preview
