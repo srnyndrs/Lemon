@@ -312,6 +312,9 @@ fun MainScreen(
                             transactions = mainState.transactions,
                             expenses = mainState.expenses,
                             isLoading = mainState.isLoading,
+                            onHomeEvent = { event ->
+                                homeViewModel.onEvent(event)
+                            },
                             onUiEvent = { event ->
                                 when(event) {
                                     is MainUiEvent.ShowBottomSheet -> {

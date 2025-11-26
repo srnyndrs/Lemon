@@ -31,7 +31,7 @@ import com.srnyndrs.android.lemon.ui.utils.shimmer
 fun TransactionList(
     modifier: Modifier = Modifier,
     isLoading: Boolean,
-    transactions: Map<String, List<TransactionItem>> = emptyMap(),
+    transactions: Map<String, List<TransactionItem>>? = null,
     onDelete: (String) -> Unit
 ) {
 
@@ -67,7 +67,7 @@ fun TransactionList(
                 }
             }
         } else {
-            transactions.forEach { (date, transactionList) ->
+            transactions?.forEach { (date, transactionList) ->
                 item {
                     Row(
                         modifier = Modifier.fillMaxWidth(),

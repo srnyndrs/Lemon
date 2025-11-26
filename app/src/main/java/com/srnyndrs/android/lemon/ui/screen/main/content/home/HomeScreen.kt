@@ -68,6 +68,7 @@ fun HomeScreen(
     expenses: Map<TransactionType, Double>,
     isLoading: Boolean,
     onUiEvent: (MainUiEvent) -> Unit,
+    onHomeEvent: (HomeEvent) -> Unit,
     onEvent: (MainEvent<*>) -> Unit
 ) {
 
@@ -316,13 +317,14 @@ fun HomeScreen(
                 UiStateContainer(
                     modifier = Modifier.fillMaxSize(),
                     state = homeState.transactions
-                ) { transactions
+                ) { isLoading, transactions ->
                     TransactionList(
                         modifier = Modifier.fillMaxWidth(),
                         isLoading = isLoading,
                         transactions = transactions,
                         onDelete = {
-                            onEvent(MainEvent.DeleteTransaction(it))
+                            onHomeEvent(HomeEvent.DeleteTransaction(it))
+                            //onEvent(MainEvent.DeleteTransaction(it))
                         }
                     )
                 }
@@ -382,6 +384,7 @@ fun HomeScreenPreview() {
                     TransactionType.INCOME  to 10000.0
                 ),
                 isLoading = true,
+                onHomeEvent = {},
                 onUiEvent = {}
             ) {}
         }

@@ -12,6 +12,14 @@ import androidx.compose.ui.composed
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.graphics.Brush
 
+fun Modifier.shimmerEffect(isLoading: Boolean): Modifier {
+    return if (isLoading) {
+        this.shimmer()
+    } else {
+        this
+    }
+}
+
 fun Modifier.shimmer(
     shimmerColors: List<Color> = listOf(
         Color.LightGray.copy(alpha = 0.6f),

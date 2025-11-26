@@ -1,8 +1,12 @@
 package com.srnyndrs.android.lemon.ui.components
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.requiredHeight
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -14,10 +18,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.srnyndrs.android.lemon.ui.theme.LemonTheme
 import com.srnyndrs.android.lemon.ui.utils.UiState
+import com.srnyndrs.android.lemon.ui.utils.shimmer
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -25,7 +31,7 @@ import kotlinx.coroutines.launch
 fun <T> UiStateContainer(
     modifier: Modifier = Modifier,
     state: UiState<T>,
-    content: @Composable (value: T) -> Unit
+    content: @Composable (loading: Boolean, data: T?) -> Unit
 ) {
 
     Column(
@@ -33,11 +39,10 @@ fun <T> UiStateContainer(
     ) {
         when(state) {
             is UiState.Loading -> {
-                // TODO: Show loading state
-                LinearProgressIndicator()
+                content(true, null)
             }
             is UiState.Success -> {
-                content(state.data)
+                content(false, state.data)
             }
             is UiState.Error -> {
                 // TODO: Show error state
@@ -60,7 +65,8 @@ private fun UiStateContainerPreview() {
 
             LaunchedEffect(Unit) {
                 scope.launch {
-                    delay(10000)
+                    state = UiState.Loading()
+                    delay(5000)
                     state = UiState.Success("Success")
                 }
             }
@@ -68,10 +74,24 @@ private fun UiStateContainerPreview() {
             UiStateContainer(
                 modifier = Modifier.fillMaxSize().padding(6.dp),
                 state = state
-            ) { data ->
-                Text(
-                  text = data
-                )
+            ) { isLoading, data ->
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .requiredHeight(56.dp)
+                        .background(Color.Red)
+                        .let {
+                            if(isLoading) {
+                                it.shimmer()
+                            } else it
+                        }
+                ) {
+                    data?.let {
+                        Text(
+                            text = it
+                        )
+                    }
+                }
             }
         }
     }

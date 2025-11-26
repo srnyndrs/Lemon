@@ -46,6 +46,8 @@ import com.srnyndrs.android.lemon.ui.theme.LemonTheme
 import com.srnyndrs.android.lemon.ui.utils.UiState
 import com.srnyndrs.android.lemon.ui.utils.formatAsCurrency
 import com.srnyndrs.android.lemon.ui.utils.fromHex
+import com.srnyndrs.android.lemon.ui.utils.shimmer
+import com.srnyndrs.android.lemon.ui.utils.shimmerEffect
 import compose.icons.FeatherIcons
 import compose.icons.feathericons.ChevronLeft
 import compose.icons.feathericons.ChevronRight
@@ -143,13 +145,16 @@ fun InsightsScreen(
                         UiStateContainer(
                             modifier = Modifier.fillMaxSize(),
                             state = insightsState.statistics
-                        ) { statistics ->
+                        ) { isLoading, statisticsResult ->
                             PieChartDiagram(
                                 modifier = Modifier
                                     .fillMaxWidth()
+                                    .requiredHeight(200.dp)
                                     .padding(vertical = 12.dp)
-                                    .requiredHeight(200.dp),
-                                chartData = statistics,
+                                    .let {
+                                        if(isLoading) { it.shimmer() } else it
+                                    },
+                                chartData = statisticsResult ?: emptyList(),
                                 selectedIndex = selectedCategoryIndex,
                             ) { categoryIndex ->
                                 selectedCategoryIndex = categoryIndex
@@ -166,63 +171,71 @@ fun InsightsScreen(
                                 modifier = Modifier.fillMaxSize(),
                                 verticalArrangement = Arrangement.spacedBy(6.dp)
                             ) {
-                                if(statistics.isEmpty()) {
-                                    item {
-                                        Text(
-                                            modifier = Modifier
-                                                .fillMaxWidth()
-                                                .padding(12.dp),
-                                            text = "No statistics available.",
-                                            style = MaterialTheme.typography.bodyLarge
-                                        )
+                                if(isLoading) {
+                                    items(3) {
+
                                     }
-                                }
-                                itemsIndexed(statistics) { index, item ->
-                                    val isSelected = selectedCategoryIndex == index
-                                    Row(
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .clickable {
-                                                selectedCategoryIndex = if(isSelected) {
-                                                    null
-                                                } else {
-                                                    index
-                                                }
+                                } else {
+                                    statisticsResult?.let { statistics ->
+                                        if(statistics.isEmpty()) {
+                                            item {
+                                                Text(
+                                                    modifier = Modifier
+                                                        .fillMaxWidth()
+                                                        .padding(12.dp),
+                                                    text = "No statistics available.",
+                                                    style = MaterialTheme.typography.bodyLarge
+                                                )
                                             }
-                                            .let {
-                                                if (isSelected) {
-                                                    it.background(
-                                                        MaterialTheme.colorScheme.primary.copy(0.1f),
-                                                        RoundedCornerShape(8.dp)
-                                                    )
-                                                } else {
-                                                    it
-                                                }
-                                            }
-                                            .border(1.dp, MaterialTheme.colorScheme.onSurface.copy(0.05f), RectangleShape)
-                                            .padding(horizontal = 6.dp, vertical = 12.dp),
-                                        verticalAlignment = Alignment.CenterVertically,
-                                        horizontalArrangement = Arrangement.SpaceBetween
-                                    ) {
-                                        Row(
-                                            verticalAlignment = Alignment.CenterVertically,
-                                            horizontalArrangement = Arrangement.spacedBy(12.dp)
-                                        ) {
-                                            Box(
-                                                modifier = Modifier
-                                                    .size(24.dp)
-                                                    .clip(RoundedCornerShape(5.dp))
-                                                    .background(Color.fromHex(item.color ?: "#000000"))
-                                            )
-                                            Text(
-                                                text = item.categoryName,
-                                                style = MaterialTheme.typography.titleMedium
-                                            )
                                         }
-                                        Text(
-                                            text = item.totalAmount.formatAsCurrency().plus(" Ft"),
-                                            style = MaterialTheme.typography.bodyLarge
-                                        )
+                                        itemsIndexed(statistics) { index, item ->
+                                            val isSelected = selectedCategoryIndex == index
+                                            Row(
+                                                modifier = Modifier
+                                                    .fillMaxWidth()
+                                                    .clickable {
+                                                        selectedCategoryIndex = if(isSelected) {
+                                                            null
+                                                        } else {
+                                                            index
+                                                        }
+                                                    }
+                                                    .let {
+                                                        if (isSelected) {
+                                                            it.background(
+                                                                MaterialTheme.colorScheme.primary.copy(0.1f),
+                                                                RoundedCornerShape(8.dp)
+                                                            )
+                                                        } else {
+                                                            it
+                                                        }
+                                                    }
+                                                    .border(1.dp, MaterialTheme.colorScheme.onSurface.copy(0.05f), RectangleShape)
+                                                    .padding(horizontal = 6.dp, vertical = 12.dp),
+                                                verticalAlignment = Alignment.CenterVertically,
+                                                horizontalArrangement = Arrangement.SpaceBetween
+                                            ) {
+                                                Row(
+                                                    verticalAlignment = Alignment.CenterVertically,
+                                                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                                                ) {
+                                                    Box(
+                                                        modifier = Modifier
+                                                            .size(24.dp)
+                                                            .clip(RoundedCornerShape(5.dp))
+                                                            .background(Color.fromHex(item.color ?: "#000000"))
+                                                    )
+                                                    Text(
+                                                        text = item.categoryName,
+                                                        style = MaterialTheme.typography.titleMedium
+                                                    )
+                                                }
+                                                Text(
+                                                    text = item.totalAmount.formatAsCurrency().plus(" Ft"),
+                                                    style = MaterialTheme.typography.bodyLarge
+                                                )
+                                            }
+                                        }
                                     }
                                 }
                             }
@@ -232,17 +245,18 @@ fun InsightsScreen(
                         UiStateContainer(
                             modifier = Modifier.fillMaxSize(),
                             state = insightsState.allExpenses
-                        ) { allExpenses ->
+                        ) { isLoading, allExpenses ->
 
                             val monthlyExpenses = months.mapIndexed { index, (monthName, _) ->
-                                val totalAmount = allExpenses.find { (month, _) -> month == index + 1 }?.second ?: 0.0
+                                val totalAmount = allExpenses?.find { (month, _) -> month == index + 1 }?.second ?: 0.0
                                 Pair(monthName, totalAmount)
                             }
 
                             ColumnChartDiagram(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .requiredHeight(256.dp),
+                                    .requiredHeight(256.dp)
+                                    .shimmerEffect(isLoading),
                                 data = monthlyExpenses
                             )
                             HorizontalDivider()

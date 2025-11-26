@@ -13,6 +13,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
@@ -33,15 +34,33 @@ class HomeViewModel @AssistedInject constructor(
             initialValue = HomeState()
         )
 
+
     @AssistedFactory
     interface HomeViewModelFactory {
         fun create(householdId: String): HomeViewModel
     }
 
     fun onEvent(event: HomeEvent) = viewModelScope.launch {
+        _homeState.update {
+            _homeState.value.copy(
+                eventStatus = UiState.Loading()
+            )
+        }
         when(event) {
             is HomeEvent.DeleteTransaction -> {
                 val transactionId = event.transactionId
+                allTransactionUseCase.deleteTransactionUseCase(transactionId).fold(
+                    onSuccess = {
+                        fetchTransactions()
+                    },
+                    onFailure = { exception ->
+                        _homeState.update {
+                            _homeState.value.copy(
+                                eventStatus = UiState.Error(exception.message ?: "Unknown error")
+                            )
+                        }
+                    }
+                )
             }
         }
     }

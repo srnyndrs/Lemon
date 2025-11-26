@@ -96,10 +96,10 @@ fun HouseholdScreen(
         UiStateContainer(
             modifier = Modifier.fillMaxSize(),
             state = householdState.household
-        ) { household ->
+        ) { isLoading, household ->
 
             var householdName by remember {
-                mutableStateOf(TextFieldValue(household.name))
+                mutableStateOf(TextFieldValue(household?.name ?: ""))
             }
 
             var isEditMode by remember { mutableStateOf(false) }
@@ -186,80 +186,100 @@ fun HouseholdScreen(
                             }
                         }
                     }
-                    items(household.members) { member ->
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.SpaceBetween
-                        ) {
+                    // TODO: loading status
+                    if(!isLoading) {
+                        // TODO: null check
+                        items(household?.members!!) { member ->
                             Row(
-                                horizontalArrangement = Arrangement.spacedBy(6.dp),
-                                verticalAlignment = Alignment.CenterVertically
+                                modifier = Modifier.fillMaxWidth(),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.SpaceBetween
                             ) {
-                                Box(
-                                    modifier = Modifier
-                                        .size(32.dp)
-                                        .clip(CircleShape)
-                                        .background(MaterialTheme.colorScheme.onSurface.copy(0.4f))
-                                        .border(
-                                            1.dp,
-                                            MaterialTheme.colorScheme.onSurface,
-                                            CircleShape
-                                        ),
-                                    contentAlignment = Alignment.Center
+                                Row(
+                                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                                    verticalAlignment = Alignment.CenterVertically
                                 ) {
-                                    Icon(
-                                        modifier = Modifier.size(14.dp),
-                                        imageVector = FeatherIcons.UserCheck,
-                                        contentDescription = null
+                                    Box(
+                                        modifier = Modifier
+                                            .size(32.dp)
+                                            .clip(CircleShape)
+                                            .background(
+                                                MaterialTheme.colorScheme.onSurface.copy(
+                                                    0.4f
+                                                )
+                                            )
+                                            .border(
+                                                1.dp,
+                                                MaterialTheme.colorScheme.onSurface,
+                                                CircleShape
+                                            ),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Icon(
+                                            modifier = Modifier.size(14.dp),
+                                            imageVector = FeatherIcons.UserCheck,
+                                            contentDescription = null
+                                        )
+                                    }
+                                    Text(
+                                        text = member.name,
+                                        style = MaterialTheme.typography.bodyMedium
                                     )
                                 }
-                                Text(
-                                    text = member.name,
-                                    style = MaterialTheme.typography.bodyMedium
-                                )
-                            }
-                            // User actions
-                            Row(
-                                horizontalArrangement = Arrangement.spacedBy(3.dp),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                for (action in getAvailableActions(member.id, member.role)) {
-                                    when(action) {
-                                        MemberAction.REMOVE -> {
-                                            IconButton(
-                                                onClick = {
-                                                    onEvent(HouseholdEvent.RemoveMember(member.id))
+                                // User actions
+                                Row(
+                                    horizontalArrangement = Arrangement.spacedBy(3.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    for (action in getAvailableActions(member.id, member.role)) {
+                                        when (action) {
+                                            MemberAction.REMOVE -> {
+                                                IconButton(
+                                                    onClick = {
+                                                        onEvent(HouseholdEvent.RemoveMember(member.id))
+                                                    }
+                                                ) {
+                                                    Icon(
+                                                        imageVector = FeatherIcons.UserX,
+                                                        contentDescription = null
+                                                    )
                                                 }
-                                            ) {
-                                                Icon(
-                                                    imageVector = FeatherIcons.UserX,
-                                                    contentDescription = null
-                                                )
                                             }
-                                        }
-                                        MemberAction.DEMOTE -> {
-                                            IconButton(
-                                                onClick = {
-                                                    onEvent(HouseholdEvent.UpdateMemberRole(member.id, "member"))
+
+                                            MemberAction.DEMOTE -> {
+                                                IconButton(
+                                                    onClick = {
+                                                        onEvent(
+                                                            HouseholdEvent.UpdateMemberRole(
+                                                                member.id,
+                                                                "member"
+                                                            )
+                                                        )
+                                                    }
+                                                ) {
+                                                    Icon(
+                                                        imageVector = FeatherIcons.ArrowDown,
+                                                        contentDescription = null
+                                                    )
                                                 }
-                                            ) {
-                                                Icon(
-                                                    imageVector = FeatherIcons.ArrowDown,
-                                                    contentDescription = null
-                                                )
                                             }
-                                        }
-                                        MemberAction.PROMOTE -> {
-                                            IconButton(
-                                                onClick = {
-                                                    onEvent(HouseholdEvent.UpdateMemberRole(member.id, "owner"))
+
+                                            MemberAction.PROMOTE -> {
+                                                IconButton(
+                                                    onClick = {
+                                                        onEvent(
+                                                            HouseholdEvent.UpdateMemberRole(
+                                                                member.id,
+                                                                "owner"
+                                                            )
+                                                        )
+                                                    }
+                                                ) {
+                                                    Icon(
+                                                        imageVector = FeatherIcons.ArrowUp,
+                                                        contentDescription = null
+                                                    )
                                                 }
-                                            ) {
-                                                Icon(
-                                                    imageVector = FeatherIcons.ArrowUp,
-                                                    contentDescription = null
-                                                )
                                             }
                                         }
                                     }
@@ -335,74 +355,82 @@ fun HouseholdScreen(
                     UiStateContainer(
                         modifier = Modifier.fillMaxWidth(),
                         state = householdState.users
-                    ) { users ->
-                        Column {
-                            LazyColumn(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .requiredHeight(256.dp),
-                                verticalArrangement = Arrangement.spacedBy(12.dp)
-                            ) {
-                                itemsIndexed(users) { index, (id, name) ->
-                                    Row(
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .clickable {
-                                                selectedUserIndex = index
-                                            }
-                                            .background(
-                                                if(selectedUserIndex == index)
-                                                    MaterialTheme.colorScheme.onSurface.copy(0.15f)
-                                                else Color.Transparent
+                    ) { isLoading, users ->
+                        // TODO: Loading status
+                        if(!isLoading) {
+                            Column {
+                                LazyColumn(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .requiredHeight(256.dp),
+                                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                                ) {
+                                    // TODO: null check
+                                    itemsIndexed(users!!) { index, (id, name) ->
+                                        Row(
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .clickable {
+                                                    selectedUserIndex = index
+                                                }
+                                                .background(
+                                                    if (selectedUserIndex == index)
+                                                        MaterialTheme.colorScheme.onSurface.copy(
+                                                            0.15f
+                                                        )
+                                                    else Color.Transparent
+                                                )
+                                                .padding(3.dp),
+                                            verticalAlignment = Alignment.CenterVertically,
+                                            horizontalArrangement = Arrangement.SpaceBetween
+                                        ) {
+                                            Text(
+                                                text = name
                                             )
-                                            .padding(3.dp),
-                                        verticalAlignment = Alignment.CenterVertically,
-                                        horizontalArrangement = Arrangement.SpaceBetween
+                                        }
+                                    }
+                                }
+                                // Actions
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .requiredHeight(42.dp)
+                                        .clip(RoundedCornerShape(5.dp))
+                                        .background(MaterialTheme.colorScheme.onSurface.copy(0.1f)),
+                                ) {
+                                    TextButton(
+                                        modifier = Modifier.weight(0.5f),
+                                        colors = ButtonDefaults.textButtonColors(
+                                            contentColor = MaterialTheme.colorScheme.error
+                                        ),
+                                        onClick = {
+                                            showDialog = false
+                                        }
                                     ) {
                                         Text(
-                                            text = name
+                                            text = "Cancel"
                                         )
                                     }
-                                }
-                            }
-                            // Actions
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .requiredHeight(42.dp)
-                                    .clip(RoundedCornerShape(5.dp))
-                                    .background(MaterialTheme.colorScheme.onSurface.copy(0.1f)),
-                            ) {
-                                TextButton(
-                                    modifier = Modifier.weight(0.5f),
-                                    colors = ButtonDefaults.textButtonColors(
-                                        contentColor = MaterialTheme.colorScheme.error
-                                    ),
-                                    onClick = {
-                                        showDialog = false
-                                    }
-                                ) {
-                                    Text(
-                                        text = "Cancel"
+                                    VerticalDivider(
+                                        color = MaterialTheme.colorScheme.surface,
+                                        thickness = 1.dp
                                     )
-                                }
-                                VerticalDivider(
-                                    color = MaterialTheme.colorScheme.surface,
-                                    thickness = 1.dp
-                                )
-                                TextButton(
-                                    modifier = Modifier.weight(0.5f),
-                                    colors = ButtonDefaults.textButtonColors(
-                                        contentColor = MaterialTheme.colorScheme.primary
-                                    ),
-                                    onClick = {
-                                        onEvent(HouseholdEvent.AddMember(users[selectedUserIndex].first))
-                                        showDialog = false
+                                    TextButton(
+                                        modifier = Modifier.weight(0.5f),
+                                        colors = ButtonDefaults.textButtonColors(
+                                            contentColor = MaterialTheme.colorScheme.primary
+                                        ),
+                                        onClick = {
+                                            users?.get(selectedUserIndex)?.let {
+                                                onEvent(HouseholdEvent.AddMember(it.first))
+                                                showDialog = false
+                                            }
+                                        }
+                                    ) {
+                                        Text(
+                                            text = "Done"
+                                        )
                                     }
-                                ) {
-                                    Text(
-                                        text = "Done"
-                                    )
                                 }
                             }
                         }

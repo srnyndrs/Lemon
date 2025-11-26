@@ -70,207 +70,211 @@ fun WalletScreen(
         UiStateContainer(
             modifier = Modifier.fillMaxWidth(),
             state = state.paymentMethods
-        ) { payments ->
+        ) { isLoading, payments ->
 
-            val pagerState = rememberPagerState(initialPage = 1) { payments.size + 1 }
+            if(!isLoading) {
+                val pagerState = rememberPagerState(initialPage = 1) { (payments?.size?.plus(1)) ?: 2 }
 
-            var showDropdown by remember { mutableStateOf(false) }
+                var showDropdown by remember { mutableStateOf(false) }
 
-            LaunchedEffect(pagerState.currentPage) {
-                if(pagerState.currentPage != 0) {
-                    payments[pagerState.currentPage - 1].id?.let {
-                        onEvent(WalletEvent.ChangePaymentMethod(it))
+                LaunchedEffect(pagerState.currentPage) {
+                    if(pagerState.currentPage != 0) {
+                        payments?.get(pagerState.currentPage - 1)?.id?.let {
+                            onEvent(WalletEvent.ChangePaymentMethod(it))
+                        }
                     }
                 }
-            }
 
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(6.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Text(
-                    modifier = Modifier.fillMaxWidth(),
-                    text = "Payment Methods",
-                    style = MaterialTheme.typography.titleLarge
-                )
-                // TODO: List all payment methods but disable which not part of the household yet
-                // Pager
-                HorizontalPager(
+                Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .requiredHeight(256.dp)
-                        .padding(6.dp)
-                        .clip(RoundedCornerShape(8.dp)),
-                    state = pagerState,
-                    pageSpacing = 12.dp,
-                ) { pageIndex ->
-                    val payment = payments.getOrNull(pageIndex - 1) ?: PaymentMethod(
-                        id = "123",
-                        name = "placeholder",
-                        color = "FF64B5F6",
-                        ownerUserId = "123"
+                        .padding(6.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(
+                        modifier = Modifier.fillMaxWidth(),
+                        text = "Payment Methods",
+                        style = MaterialTheme.typography.titleLarge
                     )
-                    val color = Color.Companion.fromHex(payment.color ?: "#cccccc")
-                    // First Index
-                    Box(
+                    // TODO: List all payment methods but disable which not part of the household yet
+                    // Pager
+                    HorizontalPager(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .requiredHeight(180.dp)
-                            //.shadow(1.dp, RoundedCornerShape(8.dp), ambientColor = MaterialTheme.colorScheme.onSurface)
-                            .padding(1.dp)
-                            .clip(RoundedCornerShape(8.dp))
-                            .border(1.dp, Color.Black, RoundedCornerShape(8.dp))
-                            .background(
-                                Brush.linearGradient(
-                                    listOf(
-                                        color,
-                                        color.copy(0.7f),
-                                        color.copy(0.3f),
+                            .requiredHeight(256.dp)
+                            .padding(6.dp)
+                            .clip(RoundedCornerShape(8.dp)),
+                        state = pagerState,
+                        pageSpacing = 12.dp,
+                    ) { pageIndex ->
+                        val payment = payments?.getOrNull(pageIndex - 1) ?: PaymentMethod(
+                            id = "123",
+                            name = "placeholder",
+                            color = "FF64B5F6",
+                            ownerUserId = "123"
+                        )
+                        val color = Color.Companion.fromHex(payment.color ?: "#cccccc")
+                        // First Index
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .requiredHeight(180.dp)
+                                //.shadow(1.dp, RoundedCornerShape(8.dp), ambientColor = MaterialTheme.colorScheme.onSurface)
+                                .padding(1.dp)
+                                .clip(RoundedCornerShape(8.dp))
+                                .border(1.dp, Color.Black, RoundedCornerShape(8.dp))
+                                .background(
+                                    Brush.linearGradient(
+                                        listOf(
+                                            color,
+                                            color.copy(0.7f),
+                                            color.copy(0.3f),
+                                        )
                                     )
-                                )
-                            ),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        if (pageIndex == 0) {
-                            TextButton(
-                                onClick = {
-                                    showDialog = true
-                                }
-                            ) {
-                                Text(
-                                    text = "Add Payment Method",
-                                    style = MaterialTheme.typography.bodyLarge
-                                )
-                            }
-                        } else {
-                            Column(
-                                modifier = Modifier
-                                    .fillMaxSize()
-                                    .background(Color.Transparent)
-                                    .padding(top = 24.dp),
-                                horizontalAlignment = Alignment.End
-                            ) {
-                                Row(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .requiredHeight(24.dp)
-                                        .background(Color.Black)
-                                ) {
-                                    Spacer(modifier = Modifier.fillMaxWidth())
-                                }
-                                Row(
-                                    modifier = Modifier
-                                        .fillMaxSize()
-                                        .weight(0.5f)
-                                        .padding(start = 6.dp, end = 6.dp),
-                                    horizontalArrangement = Arrangement.Start,
-                                    verticalAlignment = Alignment.CenterVertically
+                                ),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            if (pageIndex == 0) {
+                                TextButton(
+                                    onClick = {
+                                        showDialog = true
+                                    }
                                 ) {
                                     Text(
-                                        text = payment.name,
-                                        style = MaterialTheme.typography.headlineMedium
+                                        text = "Add Payment Method",
+                                        style = MaterialTheme.typography.bodyLarge
                                     )
                                 }
-                                Row(
+                            } else {
+                                Column(
                                     modifier = Modifier
                                         .fillMaxSize()
-                                        .weight(0.5f)
-                                        .padding(horizontal = 22.dp),
-                                    horizontalArrangement = Arrangement.End,
-                                    verticalAlignment = Alignment.CenterVertically
+                                        .background(Color.Transparent)
+                                        .padding(top = 24.dp),
+                                    horizontalAlignment = Alignment.End
                                 ) {
-                                    IconButton(
-                                        modifier = Modifier.size(32.dp),
-                                        onClick = {
-                                            showDropdown = true
+                                    Row(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .requiredHeight(24.dp)
+                                            .background(Color.Black)
+                                    ) {
+                                        Spacer(modifier = Modifier.fillMaxWidth())
+                                    }
+                                    Row(
+                                        modifier = Modifier
+                                            .fillMaxSize()
+                                            .weight(0.5f)
+                                            .padding(start = 6.dp, end = 6.dp),
+                                        horizontalArrangement = Arrangement.Start,
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Text(
+                                            text = payment.name,
+                                            style = MaterialTheme.typography.headlineMedium
+                                        )
+                                    }
+                                    Row(
+                                        modifier = Modifier
+                                            .fillMaxSize()
+                                            .weight(0.5f)
+                                            .padding(horizontal = 22.dp),
+                                        horizontalArrangement = Arrangement.End,
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        IconButton(
+                                            modifier = Modifier.size(32.dp),
+                                            onClick = {
+                                                showDropdown = true
+                                            }
+                                        ) {
+                                            Icon(
+                                                imageVector = FeatherIcons.Menu,
+                                                contentDescription = null,
+                                            )
+                                        }
+                                    }
+                                    DropdownMenu(
+                                        modifier = Modifier.align(Alignment.End),
+                                        expanded = showDropdown,
+                                        onDismissRequest = {
+                                            showDropdown = false
                                         }
                                     ) {
-                                        Icon(
-                                            imageVector = FeatherIcons.Menu,
-                                            contentDescription = null,
+                                        DropdownMenuItem(
+                                            text = {
+                                                Text(text = "Edit")
+                                            },
+                                            onClick = {
+                                                // TODO: Edit
+                                                showDropdown = false
+                                            }
+                                        )
+                                        DropdownMenuItem(
+                                            text = {
+                                                Text(
+                                                    text = if (payment.isActive) "Deactivate" else "Activate"
+                                                )
+                                            },
+                                            onClick = {
+                                                onEvent(WalletEvent.UpdatePaymentMethod(payment.copy(isActive = !payment.isActive)))
+                                                showDropdown = false
+                                            }
+                                        )
+                                        DropdownMenuItem(
+                                            text = {
+                                                Text(text = "Delete")
+                                            },
+                                            onClick = {
+                                                // TODO: Delete
+                                                showDropdown = false
+                                            }
                                         )
                                     }
                                 }
-                                DropdownMenu(
-                                    modifier = Modifier.align(Alignment.End),
-                                    expanded = showDropdown,
-                                    onDismissRequest = {
-                                        showDropdown = false
+                            }
+                        }
+                    }
+                    // Page indicator
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(3.dp)
+                    ) {
+                        repeat(pagerState.pageCount) { index ->
+                            val color =
+                                if (index == pagerState.currentPage) MaterialTheme.colorScheme.onSurface else Color.Gray
+                            val first = index == 0
+                            Box(
+                                modifier = Modifier
+                                    .size(16.dp)
+                                    .clip(CircleShape)
+                                    .let {
+                                        if (!first) it.border(
+                                            1.dp,
+                                            MaterialTheme.colorScheme.onSurface,
+                                            CircleShape
+                                        ) else it.border(
+                                            1.dp,
+                                            color,
+                                            CircleShape
+                                        )
                                     }
-                                ) {
-                                    DropdownMenuItem(
-                                        text = {
-                                            Text(text = "Edit")
-                                        },
-                                        onClick = {
-                                            // TODO: Edit
-                                            showDropdown = false
-                                        }
-                                    )
-                                    DropdownMenuItem(
-                                        text = {
-                                            Text(
-                                                text = if (payment.isActive) "Deactivate" else "Activate"
-                                            )
-                                        },
-                                        onClick = {
-                                            onEvent(WalletEvent.UpdatePaymentMethod(payment.copy(isActive = !payment.isActive)))
-                                            showDropdown = false
-                                        }
-                                    )
-                                    DropdownMenuItem(
-                                        text = {
-                                            Text(text = "Delete")
-                                        },
-                                        onClick = {
-                                            // TODO: Delete
-                                            showDropdown = false
-                                        }
+                                    .background(color),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                if (first) {
+                                    Icon(
+                                        modifier = Modifier.fillMaxSize(),
+                                        imageVector = FeatherIcons.Plus,
+                                        contentDescription = null,
+                                        tint = Color.White,
                                     )
                                 }
                             }
                         }
                     }
                 }
-                // Page indicator
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(3.dp)
-                ) {
-                    repeat(pagerState.pageCount) { index ->
-                        val color =
-                            if (index == pagerState.currentPage) MaterialTheme.colorScheme.onSurface else Color.Gray
-                        val first = index == 0
-                        Box(
-                            modifier = Modifier
-                                .size(16.dp)
-                                .clip(CircleShape)
-                                .let {
-                                    if (!first) it.border(
-                                        1.dp,
-                                        MaterialTheme.colorScheme.onSurface,
-                                        CircleShape
-                                    ) else it.border(
-                                        1.dp,
-                                        color,
-                                        CircleShape
-                                    )
-                                }
-                                .background(color),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            if (first) {
-                                Icon(
-                                    modifier = Modifier.fillMaxSize(),
-                                    imageVector = FeatherIcons.Plus,
-                                    contentDescription = null,
-                                    tint = Color.White,
-                                )
-                            }
-                        }
-                    }
-                }
+            } else {
+
             }
         }
         // Transactions
@@ -287,11 +291,11 @@ fun WalletScreen(
             UiStateContainer(
                 modifier = Modifier.fillMaxWidth(),
                 state = state.transactions
-            ) { transactions ->
+            ) { isLoading, transactions ->
                 TransactionList(
                     modifier = Modifier.fillMaxWidth(),
                     transactions = transactions,
-                    isLoading = false // TODO
+                    isLoading = isLoading
                 ) {
                     // TODO
                 }

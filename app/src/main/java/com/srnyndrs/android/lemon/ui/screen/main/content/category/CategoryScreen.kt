@@ -43,6 +43,7 @@ import com.srnyndrs.android.lemon.ui.components.forms.CategoryForm
 import com.srnyndrs.android.lemon.ui.theme.LemonTheme
 import com.srnyndrs.android.lemon.ui.utils.UiState
 import com.srnyndrs.android.lemon.ui.utils.fromHex
+import com.srnyndrs.android.lemon.ui.utils.shimmer
 import compose.icons.FeatherIcons
 import compose.icons.feathericons.Bold
 import compose.icons.feathericons.Plus
@@ -92,56 +93,78 @@ fun CategoryScreen(
         UiStateContainer(
             modifier = Modifier.fillMaxSize(),
             state = categoriesState.categories
-        ) { categories ->
+        ) { isLoading, categories ->
             LazyVerticalGrid(
                 modifier = Modifier.fillMaxSize(),
                 columns = GridCells.Fixed(2),
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
-                itemsIndexed(categories) { index, category ->
-                    Card(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .requiredHeight(72.dp),
-                        shape = RoundedCornerShape(8.dp),
-                        colors = CardDefaults.cardColors(
-                            containerColor = Color.Companion.fromHex(category.color),
-                            contentColor = Color.Black
-                        ),
-                        elevation = CardDefaults.cardElevation(
-                            defaultElevation = 4.dp
-                        ),
-                        onClick = {
-                            // TODO: Handle category click
-
-                        },
-                    ) {
-                        Row (
+                if(isLoading) {
+                    items(4) {
+                        Card(
                             modifier = Modifier
-                                .fillMaxSize()
-                                .padding(6.dp),
-                            horizontalArrangement = Arrangement.spacedBy(8.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            Box(
+                                .fillMaxWidth()
+                                .requiredHeight(72.dp)
+                                .let {
+                                    if(isLoading) it.shimmer() else it
+                                },
+                            shape = RoundedCornerShape(8.dp),
+                            colors = CardDefaults.cardColors(
+                                containerColor = Color.LightGray,
+                                contentColor = Color.Black
+                            ),
+                            elevation = CardDefaults.cardElevation(
+                                defaultElevation = 4.dp
+                            ),
+                        ) {}
+                    }
+                } else {
+                    categories?.let {
+                        itemsIndexed(categories) { index, category ->
+                            Card(
                                 modifier = Modifier
-                                    .size(32.dp)
-                                    .clip(CircleShape)
-                                    .border(1.dp, Color.Black, CircleShape),
-                                contentAlignment = Alignment.Center
+                                    .fillMaxWidth()
+                                    .requiredHeight(72.dp),
+                                shape = RoundedCornerShape(8.dp),
+                                colors = CardDefaults.cardColors(
+                                    containerColor = Color.Companion.fromHex(category.color),
+                                    contentColor = Color.Black
+                                ),
+                                elevation = CardDefaults.cardElevation(
+                                    defaultElevation = 4.dp
+                                ),
+                                onClick = {
+                                    // TODO: Handle category click
+                                },
                             ) {
-                                Icon(
-                                    imageVector = FeatherIcons.Bold,
-                                    contentDescription = null,
-                                )
+                                Row (
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .padding(6.dp),
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                ) {
+                                    Box(
+                                        modifier = Modifier
+                                            .size(32.dp)
+                                            .clip(CircleShape)
+                                            .border(1.dp, Color.Black, CircleShape),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Icon(
+                                            imageVector = FeatherIcons.Bold,
+                                            contentDescription = null,
+                                        )
+                                    }
+                                    Text(
+                                        text = category.name,
+                                        style = MaterialTheme.typography.bodyLarge,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis,
+                                    )
+                                }
                             }
-                            Text(
-                                text = category.name,
-                                style = MaterialTheme.typography.bodyLarge,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis,
-                            )
                         }
                     }
                 }
@@ -214,6 +237,21 @@ fun CategoryScreenPreview() {
                     )
                 )
             ) {}
+        }
+    }
+}
+
+@Preview
+@Composable
+fun CategoryScreenLoadingPreview(modifier: Modifier = Modifier) {
+    LemonTheme {
+        Surface {
+            CategoryScreen(
+                modifier = Modifier.fillMaxWidth(),
+                categoriesState = CategoryState(
+                    categories = UiState.Loading()
+                )
+            ) { }
         }
     }
 }
