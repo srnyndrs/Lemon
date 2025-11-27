@@ -660,7 +660,7 @@ DROP FUNCTION IF EXISTS public.deactivate_payment_method(uuid);
 
 -- ==============================
 -- Function: delete_category
--- Deletes a category
+-- Deletes a category and sets the category_id of associated transactions to NULL.
 -- ==============================
 CREATE OR REPLACE FUNCTION public.delete_category(
   p_category_id uuid
@@ -671,7 +671,6 @@ SET search_path = public
 AS $$
 DECLARE
   v_household_id uuid;
-  v_transaction_count integer;
 BEGIN
   SELECT household_id INTO v_household_id FROM categories WHERE id = p_category_id;
 
@@ -679,11 +678,10 @@ BEGIN
     RAISE EXCEPTION 'Only household owners can delete categories' USING ERRCODE = '42501';
   END IF;
 
-  SELECT COUNT(*) INTO v_transaction_count FROM transactions WHERE category_id = p_category_id;
-  IF v_transaction_count > 0 THEN
-    RAISE EXCEPTION 'Cannot delete category that is in use' USING ERRCODE = '23503';
-  END IF;
+  -- Set category_id to NULL for all transactions using this category
+  UPDATE transactions SET category_id = NULL WHERE category_id = p_category_id;
 
+  -- Delete the category
   DELETE FROM categories WHERE id = p_category_id;
 END;
 $$ LANGUAGE plpgsql;

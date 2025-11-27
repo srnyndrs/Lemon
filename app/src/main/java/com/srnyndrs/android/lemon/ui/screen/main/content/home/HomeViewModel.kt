@@ -1,5 +1,6 @@
 package com.srnyndrs.android.lemon.ui.screen.main.content.home
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.srnyndrs.android.lemon.domain.database.model.TransactionItem
@@ -51,7 +52,7 @@ class HomeViewModel @AssistedInject constructor(
                 val transactionId = event.transactionId
                 allTransactionUseCase.deleteTransactionUseCase(transactionId).fold(
                     onSuccess = {
-                        fetchTransactions()
+                        fetchTransactions(householdId)
                     },
                     onFailure = { exception ->
                         _homeState.update {
@@ -62,17 +63,21 @@ class HomeViewModel @AssistedInject constructor(
                     }
                 )
             }
+            is HomeEvent.SwitchHousehold -> {
+                fetchTransactions(event.householdId)
+            }
         }
     }
 
     private fun init() {
-        fetchTransactions()
+        fetchTransactions(householdId)
     }
 
-    private fun fetchTransactions() = viewModelScope.launch {
+    private fun fetchTransactions(householdId: String) = viewModelScope.launch {
         _homeState.update {
             _homeState.value.copy(transactions = UiState.Loading())
         }
+        Log.d("SupabaseTransactionRepo", "Fetching transactions for householdId: $householdId")
         allTransactionUseCase.getMonthlyTransactionsUseCase(householdId).let { response ->
             response.fold(
                 onSuccess = { transactions ->

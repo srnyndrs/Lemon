@@ -28,7 +28,7 @@ class SupabaseCategoryRepository @Inject constructor(
                     filter { CategoryDto::householdId eq householdId }
                 }
                 .decodeList<CategoryDto>()
-            val categories = response.map { it.toDomain() }
+            val categories = response.map { it.toDomain() }.sortedBy { it.name }
             Log.d(_tag, "getCategories() returned: $categories")
             Result.success(categories)
         } catch (e: Exception) {
@@ -56,7 +56,7 @@ class SupabaseCategoryRepository @Inject constructor(
         }
     }
 
-    override suspend fun deleteCategory(categoryId: String): Result<Unit> {
+    override suspend fun deleteCategory(categoryId: String): Result<String> {
         Log.d(_tag, "deleteCategory() called with: categoryId = $categoryId")
         return try {
             client.postgrest.rpc(
@@ -66,14 +66,14 @@ class SupabaseCategoryRepository @Inject constructor(
                 }
             )
             Log.d(_tag, "deleteCategory() returned: Unit")
-            Result.success(Unit)
+            Result.success(categoryId)
         } catch (e: Exception) {
             Log.e(_tag, "deleteCategory() failed", e)
             Result.failure(e)
         }
     }
 
-    override suspend fun updateCategory(category: Category): Result<Unit> {
+    override suspend fun updateCategory(category: Category): Result<String> {
         Log.d(_tag, "updateCategory() called with: category = $category")
         return try {
             client.postgrest.rpc(
@@ -86,7 +86,7 @@ class SupabaseCategoryRepository @Inject constructor(
                 }
             )
             Log.d(_tag, "updateCategory() returned: Unit")
-            Result.success(Unit)
+            Result.success(category.id!!)
         } catch (e: Exception) {
             Log.e(_tag, "updateCategory() failed", e)
             Result.failure(e)

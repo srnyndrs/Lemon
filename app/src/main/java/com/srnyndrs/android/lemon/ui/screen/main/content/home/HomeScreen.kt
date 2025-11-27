@@ -1,6 +1,5 @@
 package com.srnyndrs.android.lemon.ui.screen.main.content.home
 
-import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -37,12 +36,10 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.srnyndrs.android.lemon.domain.database.model.Household
-import com.srnyndrs.android.lemon.domain.database.model.TransactionItem
 import com.srnyndrs.android.lemon.domain.database.model.TransactionType
 import com.srnyndrs.android.lemon.ui.components.ActionButton
 import com.srnyndrs.android.lemon.ui.components.UiStateContainer
@@ -52,11 +49,11 @@ import com.srnyndrs.android.lemon.ui.screen.main.MainUiEvent
 import com.srnyndrs.android.lemon.ui.theme.LemonTheme
 import com.srnyndrs.android.lemon.ui.utils.formatAsCurrency
 import com.srnyndrs.android.lemon.ui.utils.shimmer
+import com.srnyndrs.android.lemon.ui.utils.shimmerEffect
 import compose.icons.FeatherIcons
 import compose.icons.feathericons.Camera
 import compose.icons.feathericons.Home
 import compose.icons.feathericons.Plus
-import kotlin.compareTo
 
 @Composable
 fun HomeScreen(
@@ -64,7 +61,6 @@ fun HomeScreen(
     homeState: HomeState,
     households: List<Household>,
     selectedHouseholdId: String,
-    transactions: Map<String, List<TransactionItem>>,
     expenses: Map<TransactionType, Double>,
     isLoading: Boolean,
     onUiEvent: (MainUiEvent) -> Unit,
@@ -81,6 +77,8 @@ fun HomeScreen(
         households.size.takeIf { it > 0 } ?: 1
     }
 
+    //val expenses = homeState.expenses
+
     val expense = expenses[TransactionType.EXPENSE] ?: 0.0
     val income = expenses[TransactionType.INCOME] ?: 0.0
     val total = expense + income
@@ -91,6 +89,7 @@ fun HomeScreen(
             val selectedHousehold = households.getOrNull(pagerState.currentPage)
             selectedHousehold?.let {
                 onEvent(MainEvent.SwitchHousehold(it.id))
+                onHomeEvent(HomeEvent.SwitchHousehold(it.id))
             }
         } else if (!isLoading){
             isInitialized = true
@@ -159,13 +158,7 @@ fun HomeScreen(
                     Row (
                         modifier = Modifier
                             .fillMaxSize()
-                            .let {
-                                if (isLoading) {
-                                    it.shimmer()
-                                } else {
-                                    it
-                                }
-                            }
+                            .shimmerEffect(isLoading)
                             .padding(6.dp),
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.SpaceBetween
@@ -352,33 +345,6 @@ fun HomeScreenPreview() {
                     )
                 ),
                 selectedHouseholdId = "1",
-                transactions = mapOf(
-                    "June 20, 2024" to listOf(
-                        TransactionItem(
-                            id = "1",
-                            title = "Grocery Store",
-                            amount = 54000.0,
-                            type = TransactionType.EXPENSE,
-                            date = "June 19, 2024"
-                        ),
-                        TransactionItem(
-                            id = "2",
-                            title = "Salary",
-                            amount = 150000.0,
-                            type = TransactionType.INCOME,
-                            date = "June 19, 2024"
-                        )
-                    ),
-                    "June 19, 2024" to listOf(
-                        TransactionItem(
-                            id = "3",
-                            title = "Electricity Bill",
-                            amount = 7500.0,
-                            type = TransactionType.EXPENSE,
-                            date = "June 19, 2024"
-                        )
-                    )
-                ),
                 expenses = mapOf(
                     TransactionType.EXPENSE to 5000.0,
                     TransactionType.INCOME  to 10000.0

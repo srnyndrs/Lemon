@@ -5,5 +5,5 @@ import com.srnyndrs.android.lemon.ui.utils.UiState
 
 data class CategoryState(
     val categories: UiState<List<Category>> = UiState.Empty(),
-    val actionProgress: Boolean = false
+    val actionStatus: UiState<Unit> = UiState.Empty()
 )

@@ -7,7 +7,7 @@ import javax.inject.Inject
 class UpdateCategoryUseCase @Inject constructor(
     private val categoryRepository: CategoryRepository
 ) {
-    suspend operator fun invoke(category: Category): Result<Unit> {
+    suspend operator fun invoke(category: Category): Result<String> {
         return categoryRepository.updateCategory(category)
     }
 }

@@ -17,15 +17,19 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -36,6 +40,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -48,6 +53,7 @@ import com.srnyndrs.android.lemon.ui.theme.LemonTheme
 import com.srnyndrs.android.lemon.ui.utils.UiState
 import com.srnyndrs.android.lemon.ui.utils.fromHex
 import com.srnyndrs.android.lemon.ui.utils.shimmer
+import com.srnyndrs.android.lemon.ui.utils.shimmerEffect
 import compose.icons.FeatherIcons
 import compose.icons.feathericons.Bold
 import compose.icons.feathericons.Plus
@@ -61,7 +67,8 @@ fun CategoryScreen(
 ) {
 
     val scope = rememberCoroutineScope()
-    var showDialog by remember { mutableStateOf(false) }
+    var showDialog by remember { mutableStateOf<CategoryUiEvent?>(null) }
+    var selectedCategory by remember { mutableStateOf<Category?>(null) }
 
     Column(
         modifier = modifier
@@ -85,12 +92,25 @@ fun CategoryScreen(
                 modifier = Modifier
                     .border(1.dp, MaterialTheme.colorScheme.onSurface, CircleShape),
                 onClick = {
-                    showDialog = true
+                    showDialog = CategoryUiEvent.ADD
                 }
             ) {
                 Icon(
                     imageVector = FeatherIcons.Plus,
                     contentDescription = "Add Category"
+                )
+            }
+        }
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .requiredHeight(12.dp),
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            if(categoriesState.actionStatus is UiState.Loading) {
+                LinearProgressIndicator(
+                    modifier = Modifier.fillMaxWidth(0.8f)
                 )
             }
         }
@@ -102,17 +122,15 @@ fun CategoryScreen(
                 modifier = Modifier.fillMaxSize(),
                 columns = GridCells.Fixed(2),
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp),
+                //verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
                 if(isLoading) {
-                    items(4) {
+                    items(6) {
                         Card(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .requiredHeight(72.dp)
-                                .let {
-                                    if(isLoading) it.shimmer() else it
-                                },
+                                .shimmerEffect(isLoading),
                             shape = RoundedCornerShape(8.dp),
                             colors = CardDefaults.cardColors(
                                 containerColor = Color.LightGray,
@@ -131,6 +149,7 @@ fun CategoryScreen(
 
                             Card(
                                 modifier = Modifier
+                                    .padding(vertical = 6.dp)
                                     .fillMaxWidth()
                                     .requiredHeight(72.dp)
                                     .combinedClickable(
@@ -183,12 +202,22 @@ fun CategoryScreen(
                                 ) {
                                     DropdownMenuItem(
                                         text = {
+                                            Text(text = "Edit")
+                                        },
+                                        onClick = {
+                                            showPopup = false
+                                            selectedCategory = category
+                                            showDialog = CategoryUiEvent.UPDATE
+                                        }
+                                    )
+                                    DropdownMenuItem(
+                                        text = {
                                             Text(text = "Delete")
                                         },
                                         onClick = {
-                                            // TODO
-                                            onEvent(CategoryEvent.DeleteCategory(category.id!!))
                                             showPopup = false
+                                            selectedCategory = category
+                                            showDialog = CategoryUiEvent.DELETE
                                         }
                                     )
                                 }
@@ -199,10 +228,10 @@ fun CategoryScreen(
             }
         }
 
-        if (showDialog) {
+        showDialog?.let { uiEvent ->
             Dialog(
                 onDismissRequest = {
-                    showDialog = false
+                    showDialog = null
                 }
             ) {
                 Column(
@@ -212,17 +241,86 @@ fun CategoryScreen(
                         .background(MaterialTheme.colorScheme.surface, RoundedCornerShape(6.dp))
                         .border(1.dp, MaterialTheme.colorScheme.onSurface, RoundedCornerShape(6.dp))
                 ) {
-                    CategoryForm(
-                        modifier = Modifier.fillMaxWidth(),
-                        onConfirm = { category ->
-                            onEvent(CategoryEvent.AddCategory(category))
-                            scope.launch {
-                                if(!categoriesState.actionProgress)
-                                    showDialog = false
+                    when(uiEvent) {
+                        CategoryUiEvent.ADD -> {
+                            CategoryForm(
+                                modifier = Modifier.fillMaxWidth(),
+                                onConfirm = { category ->
+                                    onEvent(CategoryEvent.AddCategory(category))
+                                }
+                            ) {
+                                showDialog = null
                             }
                         }
-                    ) {
-                        showDialog = false
+                        CategoryUiEvent.UPDATE -> {
+                            CategoryForm(
+                                modifier = Modifier.fillMaxWidth(),
+                                category = selectedCategory,
+                                onConfirm = { category ->
+                                    onEvent(CategoryEvent.UpdateCategory(category))
+                                }
+                            ) {
+                                showDialog = null
+                                selectedCategory = null
+                            }
+                        }
+                        CategoryUiEvent.DELETE -> {
+                            Column(
+                                modifier = Modifier.fillMaxWidth(),
+                                verticalArrangement = Arrangement.spacedBy(12.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
+                                Text(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(12.dp),
+                                    text = "Are you sure you want to delete this category?",
+                                    style = MaterialTheme.typography.bodyLarge,
+                                    textAlign = TextAlign.Center
+                                )
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .requiredHeight(42.dp)
+                                        .clip(RoundedCornerShape(5.dp))
+                                        .background(MaterialTheme.colorScheme.onSurface.copy(0.1f)),
+                                ) {
+                                    TextButton(
+                                        modifier = Modifier.weight(0.5f),
+                                        colors = ButtonDefaults.textButtonColors(
+                                            contentColor = MaterialTheme.colorScheme.error
+                                        ),
+                                        onClick = {
+                                            showDialog = null
+                                            selectedCategory = null
+                                        }
+                                    ) {
+                                        Text(
+                                            text = "No"
+                                        )
+                                    }
+                                    VerticalDivider(
+                                        color = MaterialTheme.colorScheme.surface,
+                                        thickness = 1.dp
+                                    )
+                                    TextButton(
+                                        modifier = Modifier.weight(0.5f),
+                                        colors = ButtonDefaults.textButtonColors(
+                                            contentColor = MaterialTheme.colorScheme.primary
+                                        ),
+                                        onClick = {
+                                            onEvent(CategoryEvent.DeleteCategory(selectedCategory?.id!!))
+                                            showDialog = null
+                                            selectedCategory = null
+                                        }
+                                    ) {
+                                        Text(
+                                            text = "Yes"
+                                        )
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -231,8 +329,9 @@ fun CategoryScreen(
 }
 
 enum class CategoryUiEvent {
-    ADD_CATEGORY,
-    DELETE_CATEGORY,
+    ADD,
+    UPDATE,
+    DELETE,
 }
 
 @Preview

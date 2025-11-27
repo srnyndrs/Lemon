@@ -309,7 +309,6 @@ fun MainScreen(
                             homeState = homeState,
                             households = mainState.user.households,
                             selectedHouseholdId = mainState.selectedHouseholdId,
-                            transactions = mainState.transactions,
                             expenses = mainState.expenses,
                             isLoading = mainState.isLoading,
                             onHomeEvent = { event ->

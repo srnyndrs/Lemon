@@ -39,14 +39,31 @@ import compose.icons.feathericons.DollarSign
 @Composable
 fun CategoryForm(
     modifier: Modifier = Modifier,
+    category: Category? = null,
     onConfirm: (Category) -> Unit,
     onDismissRequest: () -> Unit
 ) {
 
-    var categoryName by remember { mutableStateOf(TextFieldValue()) }
+    var categoryName by remember {
+        mutableStateOf(
+            TextFieldValue(
+                text = category?.name ?: "",
+            )
+        )
+    }
 
-    var selectedColor by remember { mutableStateOf("#BBDEFB") }
-    var selectedIcon by remember { mutableStateOf(FeatherIcons.DollarSign) }
+    var selectedColor by remember {
+        mutableStateOf(
+            category?.color ?: "#BBDEFB"
+        )
+    }
+
+    var selectedIcon by remember {
+        mutableStateOf(
+            // TODO: get icon from category
+            FeatherIcons.DollarSign
+        )
+    }
 
     Column(
         modifier = Modifier.then(modifier),
@@ -61,7 +78,7 @@ fun CategoryForm(
             horizontalArrangement = Arrangement.Center
         ) {
             Text(
-                text = "Add Category",
+                text = "Category Editor",
                 style = MaterialTheme.typography.headlineSmall
             )
         }
@@ -164,6 +181,7 @@ fun CategoryForm(
                     // validation
                     if(categoryName.text.isNotBlank()) {
                         val category = Category(
+                            id = category?.id,
                             name = categoryName.text.trim(),
                             icon = selectedIcon.name,
                             color = selectedColor,

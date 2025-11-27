@@ -9,6 +9,7 @@ import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
@@ -43,22 +44,73 @@ class CategoryViewModel @AssistedInject constructor(
     fun onEvent(event: CategoryEvent) = viewModelScope.launch {
         when(event) {
             is CategoryEvent.AddCategory -> {
-                _categoryState.update { it.copy(actionProgress = true) }
+                _categoryState.update { it.copy(actionStatus = UiState.Loading()) }
                 allCategoryUseCase.addCategoryUseCase(event.category, householdId).fold(
-                    onSuccess = {
-                        fetchCategories()
+                    onSuccess = { category ->
+                        val categories = if(_categoryState.value.categories is UiState.Success) (_categoryState.value.categories as UiState.Success<List<Category>>).data else emptyList()
+                        _categoryState.update {
+                            it.copy(
+                                actionStatus = UiState.Success(Unit),
+                                categories = UiState.Success(
+                                    categories.plus(category).sortedBy { it.name }
+                                )
+                            )
+                        }
                     },
-                    onFailure = {
-                        // TODO: Handle states
+                    onFailure = { exception ->
+                        _categoryState.update { it.copy(actionStatus = UiState.Error(exception.message ?: "Unknown error")) }
                     }
                 )
-                _categoryState.update { it.copy(actionProgress = false) }
             }
             is CategoryEvent.DeleteCategory -> {
-                allCategoryUseCase.deleteCategoryUseCase(event.categoryId)
-                // TODO: Handle states
+                _categoryState.update { it.copy(actionStatus = UiState.Loading()) }
+                allCategoryUseCase.deleteCategoryUseCase(event.categoryId).fold(
+                    onSuccess = { categoryId ->
+                        val categories = if(_categoryState.value.categories is UiState.Success) (_categoryState.value.categories as UiState.Success<List<Category>>).data else emptyList()
+                        val deletedCategory = categories.find {it.id == categoryId}
+                        _categoryState.update {
+                            it.copy(
+                                actionStatus = UiState.Success(Unit),
+                                categories = UiState.Success(
+                                    deletedCategory?.let { category ->
+                                        categories.minus(category).sortedBy { it.name }
+                                    } ?: categories
+                                )
+                            )
+                        }
+                        _categoryState.update { it.copy(actionStatus = UiState.Success(Unit)) }
+                    },
+                    onFailure = { exception ->
+                        _categoryState.update { it.copy(actionStatus = UiState.Error(exception.message ?: "Unknown error")) }
+                    }
+                )
+            }
+            is CategoryEvent.UpdateCategory -> {
+                _categoryState.update { it.copy(actionStatus = UiState.Loading()) }
+                allCategoryUseCase.updateCategoryUseCase(event.category).fold(
+                    onSuccess = { categoryId ->
+                        val categories = if(_categoryState.value.categories is UiState.Success) (_categoryState.value.categories as UiState.Success<List<Category>>).data else emptyList()
+                        val updatedCategory = categories.find { it.id == categoryId }
+                        _categoryState.update {
+                            it.copy(
+                                actionStatus = UiState.Success(Unit),
+                                categories = UiState.Success(
+                                    updatedCategory?.let { category ->
+                                        categories.minus(category).plus(event.category).sortedBy { it.name }
+                                    } ?: categories
+                                )
+                            )
+                        }
+                        _categoryState.update { it.copy(actionStatus = UiState.Success(Unit)) }
+                    },
+                    onFailure = { exception ->
+                        _categoryState.update { it.copy(actionStatus = UiState.Error(exception.message ?: "Unknown error")) }
+                    }
+                )
             }
         }
+        delay(5000L)
+        _categoryState.update { it.copy(actionStatus = UiState.Empty()) }
     }
 
     private fun fetchCategories() = viewModelScope.launch {
