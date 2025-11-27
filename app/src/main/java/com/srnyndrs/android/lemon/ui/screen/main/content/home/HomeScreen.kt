@@ -86,10 +86,6 @@ fun HomeScreen(
     val total = expense + income
     val expenseRatio = if (total > 0.0) (expense / total).toFloat() else 0f
 
-    LaunchedEffect(Unit) {
-        onEvent(MainEvent.SwitchHousehold(selectedHouseholdId))
-    }
-
     LaunchedEffect(pagerState.currentPage) {
         if (isInitialized) {
             val selectedHousehold = households.getOrNull(pagerState.currentPage)

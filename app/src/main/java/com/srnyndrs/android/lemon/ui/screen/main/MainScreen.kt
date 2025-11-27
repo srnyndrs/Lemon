@@ -296,7 +296,11 @@ fun MainScreen(
                         route = Screens.Home.route
                     ) {
 
-                        val homeViewModel = hiltViewModel<HomeViewModel>()
+                        val homeViewModel = hiltViewModel<HomeViewModel, HomeViewModel.HomeViewModelFactory>(
+                            creationCallback = { factory ->
+                                factory.create(mainState.selectedHouseholdId)
+                            }
+                        )
 
                         val homeState by homeViewModel.homeState.collectAsStateWithLifecycle()
 
@@ -309,13 +313,7 @@ fun MainScreen(
                             expenses = mainState.expenses,
                             isLoading = mainState.isLoading,
                             onHomeEvent = { event ->
-                                homeViewModel.onEvent(
-                                    event,
-                                    EventContext(
-                                        householdId = mainState.selectedHouseholdId,
-                                        userId = mainState.user.userId
-                                    )
-                                )
+                                homeViewModel.onEvent(event)
                             },
                             onUiEvent = { event ->
                                 when(event) {

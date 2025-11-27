@@ -5,7 +5,6 @@ import androidx.lifecycle.viewModelScope
 import com.srnyndrs.android.lemon.domain.database.model.TransactionItem
 import com.srnyndrs.android.lemon.domain.database.model.TransactionType
 import com.srnyndrs.android.lemon.domain.database.usecase.transaction.AllTransactionUseCase
-import com.srnyndrs.android.lemon.ui.screen.main.EventContext
 import com.srnyndrs.android.lemon.ui.utils.UiState
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
@@ -19,22 +18,29 @@ import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 
-@HiltViewModel
-class HomeViewModel @Inject constructor(
+@HiltViewModel(assistedFactory = HomeViewModel.HomeViewModelFactory::class)
+class HomeViewModel @AssistedInject constructor(
+    @Assisted private val householdId: String,
     private val allTransactionUseCase: AllTransactionUseCase
 ) : ViewModel() {
 
     private val _homeState = MutableStateFlow(HomeState())
     val homeState = _homeState.asStateFlow()
+        .onStart { init() }
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),
             initialValue = HomeState()
         )
 
-    fun onEvent(event: HomeEvent, context: EventContext) = viewModelScope.launch {
+
+    @AssistedFactory
+    interface HomeViewModelFactory {
+        fun create(householdId: String): HomeViewModel
+    }
+
+    fun onEvent(event: HomeEvent) = viewModelScope.launch {
         _homeState.update {
             _homeState.value.copy(
                 eventStatus = UiState.Loading()
@@ -45,7 +51,7 @@ class HomeViewModel @Inject constructor(
                 val transactionId = event.transactionId
                 allTransactionUseCase.deleteTransactionUseCase(transactionId).fold(
                     onSuccess = {
-                        fetchTransactions(context.householdId)
+                        fetchTransactions()
                     },
                     onFailure = { exception ->
                         _homeState.update {
@@ -59,7 +65,11 @@ class HomeViewModel @Inject constructor(
         }
     }
 
-    private fun fetchTransactions(householdId: String) = viewModelScope.launch {
+    private fun init() {
+        fetchTransactions()
+    }
+
+    private fun fetchTransactions() = viewModelScope.launch {
         _homeState.update {
             _homeState.value.copy(transactions = UiState.Loading())
         }
