@@ -1,5 +1,6 @@
 package com.srnyndrs.android.lemon.data.authentication
 
+import android.util.Log
 import com.srnyndrs.android.lemon.domain.authentication.AuthenticationService
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.auth.auth
@@ -11,20 +12,26 @@ import javax.inject.Inject
 class SupabaseAuthenticationService @Inject constructor(
     private val client: SupabaseClient
 ): AuthenticationService {
+
+    private val _tag = "SupabaseAuthService"
+
     override suspend fun loginWithEmail(email: String, password: String): Result<Unit> {
+        Log.d(_tag, "loginWithEmail() called with: email = $email")
         return try {
             client.auth.signInWith(Email) {
                 this.email = email
                 this.password = password
             }
-
+            Log.d(_tag, "loginWithEmail() returned: Unit")
             Result.success(Unit)
         } catch (e: Exception) {
+            Log.e(_tag, "loginWithEmail() failed", e)
             Result.failure(e)
         }
     }
 
     override suspend fun registerWithEmail(email: String, password: String): Result<Unit> {
+        Log.d(_tag, "registerWithEmail() called with: email = $email")
         return try {
             client.auth.signUpWith(Email) {
                 this.email = email
@@ -34,9 +41,10 @@ class SupabaseAuthenticationService @Inject constructor(
                     put("display_name", "([^@]+)".toRegex().find(email)?.groups?.get(1)?.value)
                 }
             }
-
+            Log.d(_tag, "registerWithEmail() returned: Unit")
             Result.success(Unit)
         } catch (e: Exception) {
+            Log.e(_tag, "registerWithEmail() failed", e)
             Result.failure(e)
         }
     }

@@ -1,5 +1,6 @@
 package com.srnyndrs.android.lemon.data.database
 
+import android.util.Log
 import com.srnyndrs.android.lemon.data.database.dto.CategoryDto
 import com.srnyndrs.android.lemon.data.mapper.toDomain
 import com.srnyndrs.android.lemon.data.mapper.toDto
@@ -15,7 +16,11 @@ import javax.inject.Inject
 class SupabaseCategoryRepository @Inject constructor(
     private val client: SupabaseClient
 ): CategoryRepository {
+
+    private val _tag = "SupabaseCategoryRepo"
+
     override suspend fun getCategories(householdId: String): Result<List<Category>> {
+        Log.d(_tag, "getCategories() called with: householdId = $householdId")
         return try {
             val response = client
                 .from(table = DatabaseEndpoint.CATEGORIES_TABLE.path)
@@ -23,14 +28,17 @@ class SupabaseCategoryRepository @Inject constructor(
                     filter { CategoryDto::householdId eq householdId }
                 }
                 .decodeList<CategoryDto>()
-
-            Result.success(response.map { it.toDomain() })
+            val categories = response.map { it.toDomain() }
+            Log.d(_tag, "getCategories() returned: $categories")
+            Result.success(categories)
         } catch (e: Exception) {
+            Log.e(_tag, "getCategories() failed", e)
             Result.failure(e)
         }
     }
 
     override suspend fun addCategory(category: Category, householdId: String): Result<Category> {
+        Log.d(_tag, "addCategory() called with: category = $category, householdId = $householdId")
         return try {
             val response = client
                 .from(table = DatabaseEndpoint.CATEGORIES_TABLE.path)
@@ -39,14 +47,17 @@ class SupabaseCategoryRepository @Inject constructor(
                 ) {
                     select()
                 }.decodeSingle<CategoryDto>()
-
-            Result.success(response.toDomain())
+            val newCategory = response.toDomain()
+            Log.d(_tag, "addCategory() returned: $newCategory")
+            Result.success(newCategory)
         } catch (e: Exception) {
+            Log.e(_tag, "addCategory() failed", e)
             Result.failure(e)
         }
     }
 
     override suspend fun deleteCategory(categoryId: String): Result<Unit> {
+        Log.d(_tag, "deleteCategory() called with: categoryId = $categoryId")
         return try {
             client.postgrest.rpc(
                 function = "delete_category",
@@ -54,13 +65,16 @@ class SupabaseCategoryRepository @Inject constructor(
                     put("p_category_id", categoryId)
                 }
             )
+            Log.d(_tag, "deleteCategory() returned: Unit")
             Result.success(Unit)
         } catch (e: Exception) {
+            Log.e(_tag, "deleteCategory() failed", e)
             Result.failure(e)
         }
     }
 
     override suspend fun updateCategory(category: Category): Result<Unit> {
+        Log.d(_tag, "updateCategory() called with: category = $category")
         return try {
             client.postgrest.rpc(
                 function = "update_category",
@@ -71,8 +85,10 @@ class SupabaseCategoryRepository @Inject constructor(
                     put("p_color", category.color)
                 }
             )
+            Log.d(_tag, "updateCategory() returned: Unit")
             Result.success(Unit)
         } catch (e: Exception) {
+            Log.e(_tag, "updateCategory() failed", e)
             Result.failure(e)
         }
     }

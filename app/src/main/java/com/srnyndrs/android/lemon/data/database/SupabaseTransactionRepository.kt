@@ -21,7 +21,11 @@ import javax.inject.Inject
 class SupabaseTransactionRepository @Inject constructor(
     private val client: SupabaseClient
 ): TransactionRepository {
+
+    private val _tag = "SupabaseTransactionRepo"
+
     override suspend fun getTransactions(householdId: String, year: Int?, month: Int?): Result<Map<String, List<TransactionItem>>> {
+        Log.d(_tag, "getTransactions() called with: householdId = $householdId, year = $year, month = $month")
         return try {
             val response = client.from(table = "household_transactions_view") // TODO: proper constant
                 .select {
@@ -32,17 +36,17 @@ class SupabaseTransactionRepository @Inject constructor(
                     }
                 }
                 .decodeList<TransactionsView>()
-
-            Result.success(
-                response.map { it.toDomain() }
-                    .groupBy { it.date }
-            )
+            val transactions = response.map { it.toDomain() }.groupBy { it.date }
+            Log.d(_tag, "getTransactions() returned: $transactions")
+            Result.success(transactions)
         } catch (e: Exception) {
+            Log.e(_tag, "getTransactions() failed", e)
             Result.failure(e)
         }
     }
 
     override suspend fun getMonthlyStats(householdId: String, year: Int?, month: Int?): Result<List<StatisticGroupItem>> {
+        Log.d(_tag, "getMonthlyStats() called with: householdId = $householdId, year = $year, month = $month")
         return try {
             val response = client.from(table = "household_summary_view") // TODO: proper constant
                 .select {
@@ -53,14 +57,17 @@ class SupabaseTransactionRepository @Inject constructor(
                     }
                 }
                 .decodeList<TransactionStatsDto>()
-
-            Result.success(response.map { it.toDomain() })
+            val stats = response.map { it.toDomain() }
+            Log.d(_tag, "getMonthlyStats() returned: $stats")
+            Result.success(stats)
         } catch (e: Exception) {
+            Log.e(_tag, "getMonthlyStats() failed", e)
             Result.failure(e)
         }
     }
 
     override suspend fun getStatistics(householdId: String): Result<List<Pair<Int, Double>>> {
+        Log.d(_tag, "getStatistics() called with: householdId = $householdId")
         return try {
             val response = client.from(table = "household_monthly_expenses_view")
                 .select {
@@ -69,14 +76,17 @@ class SupabaseTransactionRepository @Inject constructor(
                     }
                 }
                 .decodeList<MonthlyExpenses>()
-
-            Result.success(response.map { it.month to it.totalExpenses })
+            val statistics = response.map { it.month to it.totalExpenses }
+            Log.d(_tag, "getStatistics() returned: $statistics")
+            Result.success(statistics)
         } catch (e: Exception) {
+            Log.e(_tag, "getStatistics() failed", e)
             Result.failure(e)
         }
     }
 
     override suspend fun getTransactionsByPaymentMethod(householdId: String, paymentMethodId: String): Result<Map<String, List<TransactionItem>>> {
+        Log.d(_tag, "getTransactionsByPaymentMethod() called with: householdId = $householdId, paymentMethodId = $paymentMethodId")
         return try {
             val response = client.from(table = "household_transactions_view") // TODO: proper constant
                 .select {
@@ -86,15 +96,11 @@ class SupabaseTransactionRepository @Inject constructor(
                     }
                 }
                 .decodeList<TransactionsView>()
-
-            Log.d("TransactionRepository", "getTransactionsByPaymentMethod: $paymentMethodId")
-
-            Result.success(
-                response.map { it.toDomain() }
-                    .groupBy { it.date }
-            )
+            val transactions = response.map { it.toDomain() }.groupBy { it.date }
+            Log.d(_tag, "getTransactionsByPaymentMethod() returned: $transactions")
+            Result.success(transactions)
         } catch (e: Exception) {
-            Log.e("TransactionRepository", "getTransactionsByPaymentMethod: ${e.message}")
+            Log.e(_tag, "getTransactionsByPaymentMethod() failed", e)
             Result.failure(e)
         }
     }
@@ -104,6 +110,7 @@ class SupabaseTransactionRepository @Inject constructor(
         userId: String,
         transactionDetailsDto: TransactionDetailsDto
     ): Result<Transaction> {
+        Log.d(_tag, "addTransaction() called with: householdId = $householdId, userId = $userId, transactionDetailsDto = $transactionDetailsDto")
         return try {
             val response = client.from(table = "transactions")
                 .insert(
@@ -111,22 +118,26 @@ class SupabaseTransactionRepository @Inject constructor(
                 ) {
                     select()
                 }.decodeSingle<TransactionDto>()
-
-            Result.success(response.toDomain())
+            val transaction = response.toDomain()
+            Log.d(_tag, "addTransaction() returned: $transaction")
+            Result.success(transaction)
         } catch (e: Exception) {
+            Log.e(_tag, "addTransaction() failed", e)
             Result.failure(e)
         }
     }
 
     override suspend fun deleteTransaction(transactionId: String): Result<Unit> {
+        Log.d(_tag, "deleteTransaction() called with: transactionId = $transactionId")
         return try {
             client.postgrest.rpc(
                 function = "delete_transaction",
                 parameters = mapOf("p_transaction_id" to transactionId)
             )
-
+            Log.d(_tag, "deleteTransaction() returned: Unit")
             Result.success(Unit)
         } catch (e: Exception) {
+            Log.e(_tag, "deleteTransaction() failed", e)
             Result.failure(e)
         }
     }
