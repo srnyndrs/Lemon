@@ -67,12 +67,22 @@ class WalletViewModel @AssistedInject constructor(
                         }
                     )
             }
+
+            is WalletEvent.AddPaymentMethodToHousehold -> {
+                // TODO
+            }
+
+            WalletEvent.ClearTransactions -> {
+                _walletState.update {
+                    it.copy(transactions = UiState.Success(emptyMap()))
+                }
+            }
         }
     }
 
     private fun fetchPaymentMethods() = viewModelScope.launch {
         _walletState.update { it.copy(paymentMethods = UiState.Loading()) }
-        allPaymentMethodUseCase.getPaymentMethodsUseCase(householdId).fold(
+        allPaymentMethodUseCase.getPaymentMethodsUseCase(householdId, userId).fold(
             onSuccess = { paymentMethods ->
                 _walletState.update { it.copy(paymentMethods = UiState.Success(paymentMethods)) }
                 paymentMethods.firstOrNull()?.id?.let {

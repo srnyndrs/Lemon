@@ -3,7 +3,10 @@ package com.srnyndrs.android.lemon.data.mapper
 import com.srnyndrs.android.lemon.data.database.dto.PaymentMethodDto
 import com.srnyndrs.android.lemon.domain.database.model.PaymentMethod
 
-fun PaymentMethodDto.toDomain(): PaymentMethod {
+fun PaymentMethodDto.toDomain(
+    householdId: String,
+    userId: String? = null
+): PaymentMethod {
     return PaymentMethod(
         id = id,
         name = name,
@@ -11,6 +14,8 @@ fun PaymentMethodDto.toDomain(): PaymentMethod {
         color = color,
         type = type,
         ownerUserId = ownerUserId,
-        isActive = isActive
+        isActive = isActive,
+        inHousehold = this.householdId == householdId,
+        editable = ownerUserId == userId
     )
 }

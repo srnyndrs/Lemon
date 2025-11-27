@@ -42,7 +42,7 @@ $$;
 -- ==============================
 -- Function: create_household_for_user
 -- Creates a new household for a given user and sets them as the owner.
--- Also adds default categories and payment methods to the new household.
+-- Also adds default categories to the new household.
 -- This is a core function intended to be called by other functions.
 -- ==============================
 CREATE OR REPLACE FUNCTION public.create_household_for_user(
@@ -66,9 +66,6 @@ BEGIN
 
   -- Create default categories
   PERFORM public.create_default_categories(new_household_id);
-
-  -- Create default payment methods
-  PERFORM public.create_default_payment_methods(p_user_id, new_household_id);
 
   RETURN new_household_id;
 END;

@@ -14,18 +14,23 @@ import javax.inject.Inject
 class SupabasePaymentMethodRepository @Inject constructor(
     private val client: SupabaseClient
 ): PaymentMethodRepository {
-    override suspend fun getPaymentMethods(householdId: String): Result<List<PaymentMethod>> {
+    override suspend fun getPaymentMethods(householdId: String, userId: String?): Result<List<PaymentMethod>> {
         return try {
             val response = client
                 .from(table = DatabaseEndpoint.PAYMENT_METHODS_VIEW.path)
                 .select {
                     filter {
-                        eq("household_id", householdId)
+                        or {
+                            PaymentMethodDto::householdId eq householdId
+                            userId?.let {
+                                PaymentMethodDto::ownerUserId eq it
+                            }
+                        }
                     }
                 }
                 .decodeList<PaymentMethodDto>()
 
-            Result.success(response.map { it.toDomain() })
+            Result.success(response.map { it.toDomain(householdId, userId) }.sortedByDescending { it.inHousehold })
         } catch (e: Exception) {
             Result.failure(e)
         }

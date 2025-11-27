@@ -7,5 +7,7 @@ data class PaymentMethod(
     val color: String? = null,
     val type: String? = null,
     val ownerUserId: String? = null,
-    val isActive: Boolean = true
+    val isActive: Boolean = true,
+    val inHousehold: Boolean = true,
+    val editable: Boolean = false
 )

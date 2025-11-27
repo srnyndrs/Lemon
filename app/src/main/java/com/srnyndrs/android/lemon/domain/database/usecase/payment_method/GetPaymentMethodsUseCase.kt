@@ -6,6 +6,6 @@ import javax.inject.Inject
 class GetPaymentMethodsUseCase @Inject constructor(
     private val paymentMethodRepository: PaymentMethodRepository
 ) {
-    suspend operator fun invoke(householdId: String) =
-        paymentMethodRepository.getPaymentMethods(householdId)
+    suspend operator fun invoke(householdId: String, userId: String? = null) =
+        paymentMethodRepository.getPaymentMethods(householdId, userId)
 }

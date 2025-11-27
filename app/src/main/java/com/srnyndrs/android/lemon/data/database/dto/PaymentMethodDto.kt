@@ -5,6 +5,8 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class PaymentMethodDto(
+    @SerialName("household_id")
+    val householdId: String,
     @SerialName("payment_method_id")
     val id: String,
     val name: String,

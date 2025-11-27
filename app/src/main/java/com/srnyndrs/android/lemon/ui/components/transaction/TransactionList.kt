@@ -46,7 +46,7 @@ fun TransactionList(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = "January 1, 2024",
+                        text = "2025-01-01",
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurface.copy(0.7f)
                     )

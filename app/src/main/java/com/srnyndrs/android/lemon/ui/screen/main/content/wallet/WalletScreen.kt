@@ -8,11 +8,15 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.defaultMinSize
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredHeight
+import androidx.compose.foundation.layout.requiredWidth
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
@@ -50,6 +54,8 @@ import com.srnyndrs.android.lemon.ui.theme.LemonTheme
 import com.srnyndrs.android.lemon.ui.utils.UiState
 import com.srnyndrs.android.lemon.ui.utils.fromHex
 import compose.icons.FeatherIcons
+import compose.icons.feathericons.Eye
+import compose.icons.feathericons.EyeOff
 import compose.icons.feathericons.Menu
 import compose.icons.feathericons.Plus
 
@@ -82,6 +88,8 @@ fun WalletScreen(
                         payments?.get(pagerState.currentPage - 1)?.id?.let {
                             onEvent(WalletEvent.ChangePaymentMethod(it))
                         }
+                    } else {
+                        onEvent(WalletEvent.ClearTransactions)
                     }
                 }
 
@@ -96,7 +104,6 @@ fun WalletScreen(
                         text = "Payment Methods",
                         style = MaterialTheme.typography.titleLarge
                     )
-                    // TODO: List all payment methods but disable which not part of the household yet
                     // Pager
                     HorizontalPager(
                         modifier = Modifier
@@ -113,7 +120,7 @@ fun WalletScreen(
                             color = "FF64B5F6",
                             ownerUserId = "123"
                         )
-                        val color = Color.Companion.fromHex(payment.color ?: "#cccccc")
+                        val color = if(payment.inHousehold) Color.Companion.fromHex(payment.color ?: "#cccccc") else Color.Gray
                         // First Index
                         Box(
                             modifier = Modifier
@@ -178,12 +185,39 @@ fun WalletScreen(
                                         modifier = Modifier
                                             .fillMaxSize()
                                             .weight(0.5f)
-                                            .padding(horizontal = 22.dp),
-                                        horizontalArrangement = Arrangement.End,
+                                            .padding(horizontal = 8.dp),
+                                        horizontalArrangement = Arrangement.SpaceBetween,
                                         verticalAlignment = Alignment.CenterVertically
                                     ) {
+                                        Box(
+                                            modifier = Modifier.defaultMinSize(minWidth = 56.dp)
+                                        ) {
+                                            if(!payment.editable) {
+                                                Row(
+                                                    modifier = Modifier
+                                                        .wrapContentWidth()
+                                                        .clip(RoundedCornerShape(8.dp))
+                                                        .background(Color.LightGray)
+                                                        .padding(4.dp),
+                                                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                                                    verticalAlignment = Alignment.CenterVertically,
+                                                ) {
+                                                    Icon(
+                                                        modifier = Modifier.size(18.dp),
+                                                        imageVector = FeatherIcons.Eye,
+                                                        contentDescription = null,
+                                                    )
+                                                    Text(
+                                                        text = "READ ONLY",
+                                                        color = Color.DarkGray,
+                                                        style = MaterialTheme.typography.bodyMedium
+                                                    )
+                                                }
+                                            }
+                                        }
                                         IconButton(
                                             modifier = Modifier.size(32.dp),
+                                            enabled = payment.editable,
                                             onClick = {
                                                 showDropdown = true
                                             }
@@ -201,35 +235,47 @@ fun WalletScreen(
                                             showDropdown = false
                                         }
                                     ) {
-                                        DropdownMenuItem(
-                                            text = {
-                                                Text(text = "Edit")
-                                            },
-                                            onClick = {
-                                                // TODO: Edit
-                                                showDropdown = false
-                                            }
-                                        )
-                                        DropdownMenuItem(
-                                            text = {
-                                                Text(
-                                                    text = if (payment.isActive) "Deactivate" else "Activate"
-                                                )
-                                            },
-                                            onClick = {
-                                                onEvent(WalletEvent.UpdatePaymentMethod(payment.copy(isActive = !payment.isActive)))
-                                                showDropdown = false
-                                            }
-                                        )
-                                        DropdownMenuItem(
-                                            text = {
-                                                Text(text = "Delete")
-                                            },
-                                            onClick = {
-                                                // TODO: Delete
-                                                showDropdown = false
-                                            }
-                                        )
+                                        if(payment.inHousehold) {
+                                            DropdownMenuItem(
+                                                text = {
+                                                    Text(text = "Edit")
+                                                },
+                                                onClick = {
+                                                    // TODO: Edit
+                                                    showDropdown = false
+                                                }
+                                            )
+                                            DropdownMenuItem(
+                                                text = {
+                                                    Text(
+                                                        text = if (payment.isActive) "Deactivate" else "Activate"
+                                                    )
+                                                },
+                                                onClick = {
+                                                    onEvent(WalletEvent.UpdatePaymentMethod(payment.copy(isActive = !payment.isActive)))
+                                                    showDropdown = false
+                                                }
+                                            )
+                                            DropdownMenuItem(
+                                                text = {
+                                                    Text(text = "Remove from Household")
+                                                },
+                                                onClick = {
+                                                    // TODO: Remove from household
+                                                    showDropdown = false
+                                                }
+                                            )
+                                        } else {
+                                            DropdownMenuItem(
+                                                text = {
+                                                    Text(text = "Add to Household")
+                                                },
+                                                onClick = {
+                                                    onEvent(WalletEvent.AddPaymentMethodToHousehold(payment.id!!))
+                                                    showDropdown = false
+                                                }
+                                            )
+                                        }
                                     }
                                 }
                             }
@@ -345,7 +391,8 @@ fun WalletScreenPreview() {
                                 id = "1",
                                 name = "Credit Card",
                                 color = "FF64B5F6",
-                                ownerUserId = "1"
+                                ownerUserId = "1",
+                                editable = false
                             ),
                             PaymentMethod(
                                 id = "2",
