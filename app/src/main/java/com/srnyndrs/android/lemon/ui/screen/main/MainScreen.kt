@@ -126,11 +126,15 @@ fun MainScreen(
         modifier = Modifier.then(modifier)
             .background(MaterialTheme.colorScheme.tertiary),
         topBar = {
+
+            val visible = (bottomSheetState.bottomSheetState.targetValue != SheetValue.Expanded)
+                    && screens.map { it.route }.contains(navBackStackEntry?.destination?.route)
+
             AnimatedVisibility(
                 modifier = Modifier
                     .fillMaxWidth()
                     .zIndex(1f),
-                visible = bottomSheetState.bottomSheetState.targetValue != SheetValue.Expanded,
+                visible = visible,
                 enter = fadeIn() + slideInVertically { -it },
                 exit = fadeOut() + slideOutVertically { -it },
             ) {
@@ -236,7 +240,7 @@ fun MainScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .background(if(!mainState.isLoading) MaterialTheme.colorScheme.tertiary else Color.Transparent)
-                .padding(bottom = paddingValues.calculateBottomPadding(), top = topPadding),
+                .padding(bottom = paddingValues.calculateBottomPadding()),
             scaffoldState = bottomSheetState,
             sheetDragHandle = {},
             sheetShape = RectangleShape,
@@ -305,7 +309,7 @@ fun MainScreen(
                         val homeState by homeViewModel.homeState.collectAsStateWithLifecycle()
 
                         HomeScreen(
-                            modifier = Modifier.fillMaxSize(),
+                            modifier = Modifier.fillMaxSize().padding(top = topPadding),
                             homeState = homeState,
                             households = mainState.user.households,
                             selectedHouseholdId = mainState.selectedHouseholdId,
@@ -347,7 +351,7 @@ fun MainScreen(
                         val insightsState by insightsViewModel.insightsState.collectAsStateWithLifecycle()
 
                         InsightsScreen(
-                            modifier = Modifier.fillMaxSize(),
+                            modifier = Modifier.fillMaxSize().padding(top = topPadding),
                             insightsState = insightsState
                         )
                     }
@@ -367,7 +371,7 @@ fun MainScreen(
                         val walletState by walletViewModel.walletState.collectAsStateWithLifecycle()
 
                         WalletScreen(
-                            modifier = Modifier.fillMaxSize(),
+                            modifier = Modifier.fillMaxSize().padding(top = topPadding),
                             state = walletState,
                             onEvent = { event ->
                                 walletViewModel.onEvent(event)
@@ -385,7 +389,7 @@ fun MainScreen(
                         val categoriesState by categoryViewModel.categoryState.collectAsStateWithLifecycle()
 
                         CategoryScreen(
-                            modifier = Modifier.fillMaxSize(),
+                            modifier = Modifier.fillMaxSize().padding(top = topPadding),
                             categoriesState = categoriesState,
                             onEvent = { categoryEvent ->
                                 categoryViewModel.onEvent(categoryEvent)
@@ -408,14 +412,26 @@ fun MainScreen(
                         }
                     ) {
                         TransactionsScreen(
-                            modifier = Modifier.fillMaxSize()
+                            modifier = Modifier.fillMaxSize().padding(top = 32.dp)
                         )
                     }
                     composable(
-                        route = Screens.Profile.route
+                        route = Screens.Profile.route,
+                        enterTransition = {
+                            slideInVertically(
+                                initialOffsetY = { it },
+                                animationSpec = tween(400)
+                            )
+                        },
+                        exitTransition = {
+                            slideOutVertically(
+                                targetOffsetY = { it },
+                                animationSpec = tween(400)
+                            )
+                        }
                     ) {
                         ProfileScreen(
-                            modifier = Modifier.fillMaxSize(),
+                            modifier = Modifier.fillMaxSize().padding(top = 32.dp),
                             username = mainState.user.username,
                             email = mainState.user.email,
                             onMainEvent = {
@@ -448,7 +464,7 @@ fun MainScreen(
                         val householdState by householdViewModel.uiState.collectAsStateWithLifecycle()
 
                         HouseholdScreen(
-                            modifier = Modifier.fillMaxSize(),
+                            modifier = Modifier.fillMaxSize().padding(top = 32.dp),
                             mainUserId = mainState.user.userId,
                             householdState = householdState,
                         ) { event ->
