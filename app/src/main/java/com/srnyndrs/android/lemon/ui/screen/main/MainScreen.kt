@@ -495,7 +495,10 @@ fun MainScreen(
                         val householdId = mainState.selectedHouseholdId
 
                         val householdViewModel = hiltViewModel<HouseholdViewModel, HouseholdViewModel.HouseholdViewModelFactory>(
-                            creationCallback = { factory -> factory.create(householdId) }
+                            creationCallback = { factory -> factory.create(
+                                householdId = householdId,
+                                userId = mainState.user.userId
+                            )}
                         )
 
                         val householdState by householdViewModel.uiState.collectAsStateWithLifecycle()

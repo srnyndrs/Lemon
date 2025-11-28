@@ -34,14 +34,14 @@ class SupabaseUserRepository @Inject constructor(
         }
     }
 
-    override suspend fun getUsers(): Result<List<Pair<String, String>>> {
+    override suspend fun getUsers(currentUserId: String): Result<List<Pair<String, String>>> {
         Log.d(_tag, "getUsers() called")
         return try {
             val response = client
                 .from(DatabaseEndpoint.USERS_VIEW.path)
                 .select()
                 .decodeList<UserDto>()
-            val users = response.map { it.id to it.username }
+            val users = response.map { it.id to it.username }.filter { it.first != currentUserId }
             Log.d(_tag, "getUsers() returned: $users")
             Result.success(users)
         } catch (e: Exception) {

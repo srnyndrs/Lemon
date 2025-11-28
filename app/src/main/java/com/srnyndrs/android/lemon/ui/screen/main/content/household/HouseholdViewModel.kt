@@ -19,14 +19,18 @@ import kotlinx.coroutines.launch
 
 @HiltViewModel(assistedFactory = HouseholdViewModel.HouseholdViewModelFactory::class)
 class HouseholdViewModel @AssistedInject constructor(
-    @Assisted private val householdId: String,
+    @Assisted("householdId") private val householdId: String,
+    @Assisted("userId") private val userId: String,
     private val allHouseholdUseCase: AllHouseholdUseCase,
     private val getUsersUseCase: GetUsersUseCase,
 ) : ViewModel() {
 
     @AssistedFactory
     interface HouseholdViewModelFactory {
-        fun create(householdId: String): HouseholdViewModel
+        fun create(
+            @Assisted("householdId") householdId: String,
+            @Assisted("userId") userId: String
+        ): HouseholdViewModel
     }
 
     private val _uiState = MutableStateFlow(HouseholdState())
@@ -74,7 +78,7 @@ class HouseholdViewModel @AssistedInject constructor(
 
     private fun fetchUsers() = viewModelScope.launch {
         _uiState.update { it.copy(users = UiState.Loading()) }
-        getUsersUseCase()
+        getUsersUseCase(userId)
             .onSuccess { users ->
                 _uiState.update { it.copy(users = UiState.Success(users)) }
             }
