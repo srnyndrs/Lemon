@@ -1,6 +1,5 @@
 package com.srnyndrs.android.lemon.ui.screen.main.content.wallet
 
-import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -9,12 +8,10 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.defaultMinSize
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredHeight
-import androidx.compose.foundation.layout.requiredWidth
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.pager.HorizontalPager
@@ -40,7 +37,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
@@ -55,7 +51,6 @@ import com.srnyndrs.android.lemon.ui.utils.UiState
 import com.srnyndrs.android.lemon.ui.utils.fromHex
 import compose.icons.FeatherIcons
 import compose.icons.feathericons.Eye
-import compose.icons.feathericons.EyeOff
 import compose.icons.feathericons.Menu
 import compose.icons.feathericons.Plus
 
@@ -66,7 +61,8 @@ fun WalletScreen(
     onEvent: (WalletEvent) -> Unit
 ) {
 
-    var showDialog by remember { mutableStateOf(false) }
+    var showDialog by remember { mutableStateOf<PaymentUiEvent?>(null) }
+    var selectedPaymentMethod by remember { mutableStateOf<PaymentMethod?>(null) }
 
     Column(
         modifier = Modifier.then(modifier),
@@ -78,13 +74,14 @@ fun WalletScreen(
             state = state.paymentMethods
         ) { isLoading, payments ->
 
-            if(!isLoading) {
-                val pagerState = rememberPagerState(initialPage = 1) { (payments?.size?.plus(1)) ?: 2 }
+            if (!isLoading) {
+                val pagerState =
+                    rememberPagerState(initialPage = 1) { (payments?.size?.plus(1)) ?: 2 }
 
                 var showDropdown by remember { mutableStateOf(false) }
 
                 LaunchedEffect(pagerState.currentPage) {
-                    if(pagerState.currentPage != 0) {
+                    if (pagerState.currentPage != 0) {
                         payments?.get(pagerState.currentPage - 1)?.id?.let {
                             onEvent(WalletEvent.ChangePaymentMethod(it))
                         }
@@ -120,7 +117,9 @@ fun WalletScreen(
                             color = "FF64B5F6",
                             ownerUserId = "123"
                         )
-                        val color = if(payment.inHousehold) Color.Companion.fromHex(payment.color ?: "#cccccc") else Color.Gray
+                        val color = if (payment.inHousehold) Color.Companion.fromHex(
+                            payment.color ?: "#cccccc"
+                        ) else Color.Gray
                         // First Index
                         Box(
                             modifier = Modifier
@@ -144,7 +143,8 @@ fun WalletScreen(
                             if (pageIndex == 0) {
                                 TextButton(
                                     onClick = {
-                                        showDialog = true
+                                        selectedPaymentMethod = null
+                                        showDialog = PaymentUiEvent.ADD
                                     }
                                 ) {
                                     Text(
@@ -192,7 +192,7 @@ fun WalletScreen(
                                         Box(
                                             modifier = Modifier.defaultMinSize(minWidth = 56.dp)
                                         ) {
-                                            if(!payment.editable) {
+                                            if (!payment.editable) {
                                                 Row(
                                                     modifier = Modifier
                                                         .wrapContentWidth()
@@ -235,24 +235,30 @@ fun WalletScreen(
                                             showDropdown = false
                                         }
                                     ) {
-                                        if(payment.inHousehold) {
+                                        if (payment.inHousehold) {
                                             DropdownMenuItem(
                                                 text = {
                                                     Text(text = "Edit")
                                                 },
                                                 onClick = {
-                                                    // TODO: Edit
+                                                    // open edit dialog with selected payment
+                                                    selectedPaymentMethod = payment
+                                                    showDialog = PaymentUiEvent.UPDATE
                                                     showDropdown = false
                                                 }
                                             )
                                             DropdownMenuItem(
                                                 text = {
                                                     Text(
-                                                        text = if (payment.isActive) "Deactivate" else "Activate"
+                                                        text = "Delete"
                                                     )
                                                 },
                                                 onClick = {
-                                                    onEvent(WalletEvent.UpdatePaymentMethod(payment.copy(isActive = !payment.isActive)))
+                                                    onEvent(
+                                                        WalletEvent.DeletePaymentMethod(
+                                                            payment.id!!
+                                                        )
+                                                    )
                                                     showDropdown = false
                                                 }
                                             )
@@ -261,8 +267,11 @@ fun WalletScreen(
                                                     Text(text = "Remove from Household")
                                                 },
                                                 onClick = {
-                                                    // TODO: Remove from household
-                                                    onEvent(WalletEvent.RemovePaymentMethodFromHousehold(payment.id!!))
+                                                    onEvent(
+                                                        WalletEvent.RemovePaymentMethodFromHousehold(
+                                                            payment.id!!
+                                                        )
+                                                    )
                                                     showDropdown = false
                                                 }
                                             )
@@ -272,7 +281,11 @@ fun WalletScreen(
                                                     Text(text = "Add to Household")
                                                 },
                                                 onClick = {
-                                                    onEvent(WalletEvent.AddPaymentMethodToHousehold(payment.id!!))
+                                                    onEvent(
+                                                        WalletEvent.AddPaymentMethodToHousehold(
+                                                            payment.id!!
+                                                        )
+                                                    )
                                                     showDropdown = false
                                                 }
                                             )
@@ -320,8 +333,6 @@ fun WalletScreen(
                         }
                     }
                 }
-            } else {
-
             }
         }
         // Transactions
@@ -349,11 +360,12 @@ fun WalletScreen(
                 }
             }
         }
-        // Dialog
-        if(showDialog) {
+        // Dialog (Add / Edit)
+        showDialog?.let { uiEvent ->
             Dialog(
                 onDismissRequest = {
-                    showDialog = false
+                    showDialog = null
+                    selectedPaymentMethod = null
                 }
             ) {
                 Column(
@@ -363,20 +375,44 @@ fun WalletScreen(
                         .background(MaterialTheme.colorScheme.surface, RoundedCornerShape(6.dp))
                         .border(1.dp, MaterialTheme.colorScheme.onSurface, RoundedCornerShape(6.dp))
                 ) {
-                    PaymentMethodForm(
-                        modifier = Modifier.fillMaxWidth(),
-                        onConfirm = { paymentMethod ->
-                            onEvent(WalletEvent.AddPaymentMethod(paymentMethod))
-                            // TODO: loading state
-                            showDialog = false
+                    when(uiEvent) {
+                        PaymentUiEvent.ADD -> {
+                            PaymentMethodForm(
+                                modifier = Modifier.fillMaxWidth(),
+                                paymentMethod = null,
+                                onConfirm = { paymentMethod ->
+                                    onEvent(WalletEvent.AddPaymentMethod(paymentMethod))
+                                    showDialog = null
+                                    selectedPaymentMethod = null
+                                }
+                            ) {
+                                showDialog = null
+                            }
                         }
-                    ) {
-                        showDialog = false
+                        PaymentUiEvent.UPDATE -> {
+                            PaymentMethodForm(
+                                modifier = Modifier.fillMaxWidth(),
+                                paymentMethod = selectedPaymentMethod,
+                                onConfirm = { paymentMethod ->
+                                    onEvent(WalletEvent.UpdatePaymentMethod(paymentMethod))
+                                    showDialog = null
+                                    selectedPaymentMethod = null
+                                }
+                            ) {
+                                showDialog = null
+                                selectedPaymentMethod = null
+                            }
+                        }
                     }
                 }
             }
         }
     }
+}
+
+enum class PaymentUiEvent {
+    ADD,
+    UPDATE
 }
 
 @Preview

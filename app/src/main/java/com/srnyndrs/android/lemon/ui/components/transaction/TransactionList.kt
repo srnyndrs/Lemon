@@ -68,6 +68,22 @@ fun TransactionList(
                 }
             }
         } else {
+
+            if(transactions.isNullOrEmpty()) {
+                item {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "No transactions available.",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurface.copy(0.7f)
+                        )
+                    }
+                }
+            }
+
             transactions?.forEach { (date, transactionList) ->
                 item {
                     Row(

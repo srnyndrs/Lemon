@@ -83,25 +83,11 @@ class MainViewModel @AssistedInject constructor(
                 )
             }
             is MainEvent.SwitchHousehold -> {
-                // Save current state to cache
-                val currentHouseholdId = _mainState.value.selectedHouseholdId
-                if (currentHouseholdId.isNotBlank()) {
-                    stateCache[currentHouseholdId] = _mainState.value
-                }
-                // Get the household ID
                 val householdId = event.data as String
                 // Update selected household ID
                 _mainState.value = _mainState.value.copy(
                     selectedHouseholdId = householdId
                 )
-                // Restore state from cache if exists
-                val cachedState = stateCache[householdId]
-                if (cachedState != null) {
-                    _mainState.value = cachedState
-                    return@launch
-                }
-                // Reload data
-                fetchData(householdId)
             }
             is MainEvent.AddTransaction -> {
                 val transactionDetailsDto = event.data

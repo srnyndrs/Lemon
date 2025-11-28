@@ -36,13 +36,14 @@ import compose.icons.feathericons.DollarSign
 @Composable
 fun PaymentMethodForm(
     modifier: Modifier = Modifier,
+    paymentMethod: PaymentMethod? = null,
     onConfirm: (PaymentMethod) -> Unit,
     onDismissRequest: () -> Unit,
 ) {
 
-    var paymentMethodName by remember { mutableStateOf(TextFieldValue()) }
+    var paymentMethodName by remember { mutableStateOf(TextFieldValue(text = paymentMethod?.name ?: "")) }
 
-    var selectedColor by remember { mutableStateOf("#BBDEFB") }
+    var selectedColor by remember { mutableStateOf(paymentMethod?.color ?: "#BBDEFB") }
     var selectedIcon by remember { mutableStateOf(FeatherIcons.DollarSign) }
 
     Column(
@@ -58,7 +59,7 @@ fun PaymentMethodForm(
             horizontalArrangement = Arrangement.Center
         ) {
             Text(
-                text = "Add Payment",
+                text = if (paymentMethod == null) "Add Payment" else "Edit Payment",
                 style = MaterialTheme.typography.headlineSmall
             )
         }
@@ -147,11 +148,18 @@ fun PaymentMethodForm(
                 onClick = {
                     // validation
                     if(paymentMethodName.text.isNotBlank()) {
-                        val paymentMethod = PaymentMethod(
+                        val pm = PaymentMethod(
+                            id = paymentMethod?.id,
                             name = paymentMethodName.text.trim(),
+                            icon = paymentMethod?.icon ?: selectedIcon.name,
                             color = selectedColor,
+                            type = paymentMethod?.type ?: "other",
+                            ownerUserId = paymentMethod?.ownerUserId,
+                            isActive = paymentMethod?.isActive ?: true,
+                            inHousehold = paymentMethod?.inHousehold ?: true,
+                            editable = paymentMethod?.editable ?: false
                         )
-                        onConfirm(paymentMethod)
+                        onConfirm(pm)
                     }
                     onDismissRequest()
                 }

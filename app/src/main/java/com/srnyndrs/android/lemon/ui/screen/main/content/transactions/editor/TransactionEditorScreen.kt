@@ -8,13 +8,15 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.srnyndrs.android.lemon.ui.components.forms.TransactionForm
+import com.srnyndrs.android.lemon.ui.screen.main.MainUiEvent
 import com.srnyndrs.android.lemon.ui.utils.UiState
 
 @Composable
 fun TransactionEditorScreen(
     modifier: Modifier = Modifier,
     state: TransactionEditorState,
-    onEvent: (TransactionEditorEvent) -> Unit
+    onBack: () -> Unit,
+    onEvent: (TransactionEditorEvent) -> Unit,
 ) {
 
     Column(
@@ -34,6 +36,7 @@ fun TransactionEditorScreen(
                         transaction = it
                     )
                 )
+                onBack()
             }
         } else {
             CircularProgressIndicator()

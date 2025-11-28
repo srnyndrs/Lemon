@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.srnyndrs.android.lemon.domain.database.usecase.payment_method.AllPaymentMethodUseCase
 import com.srnyndrs.android.lemon.domain.database.usecase.transaction.GetTransactionsByPaymentUseCase
 import com.srnyndrs.android.lemon.ui.utils.UiState
+import com.srnyndrs.android.lemon.ui.utils.UiState.*
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
@@ -55,6 +56,13 @@ class WalletViewModel @AssistedInject constructor(
                     event.paymentMethod,
                     householdId,
                     userId
+                ).fold(
+                    onSuccess = {
+                        fetchPaymentMethods()
+                    },
+                    onFailure = {
+                        // TODO
+                    }
                 )
             }
             is WalletEvent.UpdatePaymentMethod -> {
@@ -96,8 +104,19 @@ class WalletViewModel @AssistedInject constructor(
             }
             WalletEvent.ClearTransactions -> {
                 _walletState.update {
-                    it.copy(transactions = UiState.Success(emptyMap()))
+                    it.copy(transactions = Success(emptyMap()))
                 }
+            }
+            is WalletEvent.DeletePaymentMethod -> {
+                allPaymentMethodUseCase.deletePaymentMethodUseCase(event.paymentMethodId)
+                    .fold(
+                        onSuccess = {
+                            fetchPaymentMethods()
+                        },
+                        onFailure = {
+                            // TODO
+                        }
+                    )
             }
         }
     }

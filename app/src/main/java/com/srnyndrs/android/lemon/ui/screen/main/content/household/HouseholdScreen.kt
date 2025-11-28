@@ -155,6 +155,44 @@ fun HouseholdScreen(
                         }
                     }
                 }
+                // Actions
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    // Edit
+                    TextButton(
+                        colors = ButtonDefaults.textButtonColors(
+                            containerColor = MaterialTheme.colorScheme.primary.copy(0.8f)
+                        ),
+                        shape = RoundedCornerShape(8.dp),
+                        onClick = {
+                            isEditMode = true
+                        },
+                    ) {
+                        Text(
+                            text = "Edit Household",
+                            color = MaterialTheme.colorScheme.onPrimary
+                        )
+                    }
+                    // Delete
+                    TextButton(
+                        colors = ButtonDefaults.textButtonColors(
+                            containerColor = MaterialTheme.colorScheme.error.copy(0.8f)
+                        ),
+                        shape = RoundedCornerShape(8.dp),
+                        onClick = {
+                            // Delete household
+                            onEvent(HouseholdEvent.DeleteHousehold)
+                        }
+                    ) {
+                        Text(
+                            text = "Delete Household",
+                            color = MaterialTheme.colorScheme.onError
+                        )
+                    }
+                }
                 // Members
                 LazyColumn(
                     modifier = Modifier
@@ -288,44 +326,6 @@ fun HouseholdScreen(
                         }
                     }
                 }
-                // Actions
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    // Edit
-                    TextButton(
-                        colors = ButtonDefaults.textButtonColors(
-                            containerColor = MaterialTheme.colorScheme.primary.copy(0.8f)
-                        ),
-                        shape = RoundedCornerShape(8.dp),
-                        onClick = {
-                            isEditMode = true
-                        },
-                    ) {
-                        Text(
-                            text = "Edit Household",
-                            color = MaterialTheme.colorScheme.onPrimary
-                        )
-                    }
-                    // Delete
-                    TextButton(
-                        colors = ButtonDefaults.textButtonColors(
-                            containerColor = MaterialTheme.colorScheme.error.copy(0.8f)
-                        ),
-                        shape = RoundedCornerShape(8.dp),
-                        onClick = {
-                            // Delete household
-                            onEvent(HouseholdEvent.DeleteHousehold)
-                        }
-                    ) {
-                        Text(
-                            text = "Delete Household",
-                            color = MaterialTheme.colorScheme.onError
-                        )
-                    }
-                }
             }
         }
         if(showDialog) {
@@ -365,28 +365,42 @@ fun HouseholdScreen(
                                         .requiredHeight(256.dp),
                                     verticalArrangement = Arrangement.spacedBy(12.dp)
                                 ) {
-                                    // TODO: null check
-                                    itemsIndexed(users!!) { index, (id, name) ->
-                                        Row(
-                                            modifier = Modifier
-                                                .fillMaxWidth()
-                                                .clickable {
-                                                    selectedUserIndex = index
-                                                }
-                                                .background(
-                                                    if (selectedUserIndex == index)
-                                                        MaterialTheme.colorScheme.onSurface.copy(
-                                                            0.15f
-                                                        )
-                                                    else Color.Transparent
+                                    if(users.isNullOrEmpty()) {
+                                        item {
+                                            Row(
+                                                modifier = Modifier.fillMaxWidth(),
+                                                verticalAlignment = Alignment.CenterVertically
+                                            ) {
+                                                Text(
+                                                    text = "No users available to add.",
+                                                    style = MaterialTheme.typography.bodyMedium,
+                                                    color = MaterialTheme.colorScheme.onSurface.copy(0.7f)
                                                 )
-                                                .padding(3.dp),
-                                            verticalAlignment = Alignment.CenterVertically,
-                                            horizontalArrangement = Arrangement.SpaceBetween
-                                        ) {
-                                            Text(
-                                                text = name
-                                            )
+                                            }
+                                        }
+                                    } else {
+                                        itemsIndexed(users) { index, (id, name) ->
+                                            Row(
+                                                modifier = Modifier
+                                                    .fillMaxWidth()
+                                                    .clickable {
+                                                        selectedUserIndex = index
+                                                    }
+                                                    .background(
+                                                        if (selectedUserIndex == index)
+                                                            MaterialTheme.colorScheme.onSurface.copy(
+                                                                0.15f
+                                                            )
+                                                        else Color.Transparent
+                                                    )
+                                                    .padding(3.dp),
+                                                verticalAlignment = Alignment.CenterVertically,
+                                                horizontalArrangement = Arrangement.SpaceBetween
+                                            ) {
+                                                Text(
+                                                    text = name
+                                                )
+                                            }
                                         }
                                     }
                                 }

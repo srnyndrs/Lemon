@@ -134,7 +134,7 @@ class TransactionEditorViewModel @AssistedInject constructor(
     }
 
     private fun fetchPaymentMethods() = viewModelScope.launch {
-        allPaymentMethodUseCase.getPaymentMethodsUseCase(householdId, userId).fold(
+        allPaymentMethodUseCase.getPaymentMethodsUseCase(householdId).fold(
             onSuccess = { paymentMethods ->
                 _uiState.update {
                     it.copy(

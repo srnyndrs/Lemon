@@ -67,7 +67,7 @@ CREATE TABLE IF NOT EXISTS public.transactions (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   household_id uuid NOT NULL REFERENCES public.households(id) ON DELETE CASCADE,
   user_id uuid NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
-  payment_method_id uuid NOT NULL REFERENCES public.payment_methods(id) ON DELETE CASCADE,
+  payment_method_id uuid REFERENCES public.payment_methods(id) ON DELETE SET NULL,
   category_id uuid REFERENCES public.categories(id) ON DELETE SET NULL,
   type transaction_type NOT NULL,
   title text NOT NULL,

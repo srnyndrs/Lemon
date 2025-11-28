@@ -550,7 +550,10 @@ fun MainScreen(
 
                         TransactionEditorScreen(
                             modifier = Modifier.fillMaxSize().padding(top = 32.dp),
-                            state = transactionEditorState
+                            state = transactionEditorState,
+                            onBack = {
+                                navController.popBackStack()
+                            }
                         ) { event ->
                             transactionEditorViewModel.onEvent(event)
                         }

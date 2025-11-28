@@ -764,19 +764,22 @@ SET search_path = public
 AS $$
 DECLARE
   v_owner_user_id uuid;
-  v_transaction_count integer;
 BEGIN
   SELECT owner_user_id INTO v_owner_user_id FROM payment_methods WHERE id = p_payment_method_id;
 
   IF v_owner_user_id != auth.uid() THEN
     RAISE EXCEPTION 'Only the owner can delete the payment method' USING ERRCODE = '42501';
   END IF;
+  -- Preserve historical transactions: set their payment_method_id to NULL
+  UPDATE transactions
+  SET payment_method_id = NULL
+  WHERE payment_method_id = p_payment_method_id;
 
-  SELECT COUNT(*) INTO v_transaction_count FROM transactions WHERE payment_method_id = p_payment_method_id;
-  IF v_transaction_count > 0 THEN
-    RAISE EXCEPTION 'Cannot delete payment method that is in use' USING ERRCODE = '23503';
-  END IF;
+  -- Remove any household links to this payment method
+  DELETE FROM household_payment_methods
+  WHERE payment_method_id = p_payment_method_id;
 
+  -- Finally delete the payment method record
   DELETE FROM payment_methods WHERE id = p_payment_method_id;
 END;
 $$ LANGUAGE plpgsql;
