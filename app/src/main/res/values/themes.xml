@@ -4,7 +4,7 @@
     <style name="Theme.App.Starting" parent="Theme.SplashScreen">
         <!-- Set the splash screen background, animated icon, and animation
         duration. -->
-        <item name="windowSplashScreenBackground">@color/purple_500</item>
+        <item name="windowSplashScreenBackground">@color/lemon</item>
 
         <!-- Use windowSplashScreenAnimatedIcon to add a drawable or an animated
              drawable. One of these is required. -->
