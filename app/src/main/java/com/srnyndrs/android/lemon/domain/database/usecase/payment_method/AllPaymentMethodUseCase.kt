@@ -6,5 +6,7 @@ class AllPaymentMethodUseCase @Inject constructor(
     val addPaymentMethodUseCase: AddPaymentMethodUseCase,
     val getPaymentMethodsUseCase: GetPaymentMethodsUseCase,
     val deletePaymentMethodUseCase: DeletePaymentMethodUseCase,
-    val updatePaymentMethodUseCase: UpdatePaymentMethodUseCase
+    val updatePaymentMethodUseCase: UpdatePaymentMethodUseCase,
+    val linkPaymentMethodToHouseholdUseCase: LinkPaymentMethodToHouseholdUseCase,
+    val unlinkPaymentMethodFromHouseholdUseCase: UnlinkPaymentMethodFromHouseholdUseCase
 )

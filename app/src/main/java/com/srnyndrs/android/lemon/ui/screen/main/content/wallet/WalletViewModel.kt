@@ -10,6 +10,7 @@ import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
@@ -40,7 +41,7 @@ class WalletViewModel @AssistedInject constructor(
         }
         .stateIn(
             scope = viewModelScope,
-            started = kotlinx.coroutines.flow.SharingStarted.WhileSubscribed(5000),
+            started = SharingStarted.WhileSubscribed(5000),
             initialValue = WalletState()
         )
 
@@ -67,11 +68,32 @@ class WalletViewModel @AssistedInject constructor(
                         }
                     )
             }
-
             is WalletEvent.AddPaymentMethodToHousehold -> {
-                // TODO
+                allPaymentMethodUseCase.linkPaymentMethodToHouseholdUseCase(
+                    householdId,
+                    event.paymentMethodId,
+                ).fold(
+                    onSuccess = {
+                        fetchPaymentMethods()
+                    },
+                    onFailure = {
+                        // TODO
+                    }
+                )
             }
-
+            is WalletEvent.RemovePaymentMethodFromHousehold -> {
+                allPaymentMethodUseCase.unlinkPaymentMethodFromHouseholdUseCase(
+                    householdId,
+                    event.paymentMethodId,
+                ).fold(
+                    onSuccess = {
+                        fetchPaymentMethods()
+                    },
+                    onFailure = {
+                        // TODO
+                    }
+                )
+            }
             WalletEvent.ClearTransactions -> {
                 _walletState.update {
                     it.copy(transactions = UiState.Success(emptyMap()))

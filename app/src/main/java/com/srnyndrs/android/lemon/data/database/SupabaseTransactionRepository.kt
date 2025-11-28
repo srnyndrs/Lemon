@@ -6,6 +6,7 @@ import com.srnyndrs.android.lemon.data.database.dto.TransactionDto
 import com.srnyndrs.android.lemon.data.database.dto.TransactionStatsDto
 import com.srnyndrs.android.lemon.data.database.dto.TransactionsView
 import com.srnyndrs.android.lemon.data.mapper.toDomain
+import com.srnyndrs.android.lemon.data.mapper.toDomainDto
 import com.srnyndrs.android.lemon.data.mapper.toDto
 import com.srnyndrs.android.lemon.domain.database.TransactionRepository
 import com.srnyndrs.android.lemon.domain.database.model.Transaction
@@ -123,6 +124,57 @@ class SupabaseTransactionRepository @Inject constructor(
             Result.success(transaction)
         } catch (e: Exception) {
             Log.e(_tag, "addTransaction() failed", e)
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun updateTransaction(
+        householdId: String,
+        userId: String,
+        transactionId: String,
+        transactionDetailsDto: TransactionDetailsDto
+    ): Result<Transaction> {
+        Log.d(_tag, "updateTransaction() called with: householdId = $householdId, userId = $userId, transactionId = $transactionId, transactionDetailsDto = $transactionDetailsDto")
+        return try {
+            val response = client.from(table = "transactions")
+                .update(
+                    value = transactionDetailsDto.toDto(householdId, userId)
+                ) {
+                    filter {
+                        TransactionDto::id eq transactionId
+                        TransactionDto::householdId eq householdId
+                    }
+                    select()
+                }
+                .decodeSingle<TransactionDto>()
+            val transaction = response.toDomain()
+            Log.d(_tag, "updateTransaction() returned: $transaction")
+            Result.success(transaction)
+        } catch (e: Exception) {
+            Log.e(_tag, "updateTransaction() failed", e)
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun getTransactionById(
+        householdId: String,
+        transactionId: String
+    ): Result<TransactionDetailsDto> {
+        Log.d(_tag, "getTransactionById() called with: householdId = $householdId, transactionId = $transactionId")
+        return try {
+            val response = client.from(table = "transactions")
+                .select {
+                    filter {
+                        TransactionDto::householdId eq householdId
+                        TransactionDto::id eq transactionId
+                    }
+                }
+                .decodeList<TransactionDto>()
+            val transaction = response.first().toDomainDto()
+            Log.d(_tag, "getTransactionById() returned: $transaction")
+            Result.success(transaction)
+        } catch (e: Exception) {
+            Log.e(_tag, "getTransactionById() failed", e)
             Result.failure(e)
         }
     }

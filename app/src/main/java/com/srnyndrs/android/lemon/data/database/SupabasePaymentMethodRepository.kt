@@ -34,7 +34,18 @@ class SupabasePaymentMethodRepository @Inject constructor(
                     }
                 }
                 .decodeList<PaymentMethodDto>()
-            val methods = response.map { it.toDomain(householdId, userId) }.sortedByDescending { it.inHousehold }
+
+            // Deduplicate payment methods by id. If a payment method appears multiple times
+            // (e.g. it's linked to multiple households and also owned by the user), prefer
+            // the row that matches the requested `householdId` so `inHousehold` is correct.
+            val uniqueDtos = response
+                .groupBy { it.id }
+                .mapValues { (_, list) -> list.find { it.householdId == householdId } ?: list.first() }
+                .values
+                .toList()
+
+            val methods = uniqueDtos.map { it.toDomain(householdId, userId) }
+                .sortedByDescending { it.inHousehold }
             Log.d(_tag, "getPaymentMethods() returned: $methods")
             Result.success(methods)
         } catch (e: Exception) {
@@ -54,7 +65,7 @@ class SupabasePaymentMethodRepository @Inject constructor(
                     put("p_name", paymentMethod.name)
                     put("p_icon", paymentMethod.icon)
                     put("p_color", paymentMethod.color)
-                    put("p_type", paymentMethod.type)
+                    put("p_type", paymentMethod.type.lowercase())
                 }
             )
             Log.d(_tag, "addPaymentMethod() returned: $paymentMethod")
@@ -75,7 +86,7 @@ class SupabasePaymentMethodRepository @Inject constructor(
                     put("p_name", paymentMethod.name)
                     put("p_icon", paymentMethod.icon)
                     put("p_color", paymentMethod.color)
-                    put("p_type", paymentMethod.type)
+                    put("p_type", paymentMethod.type.lowercase())
                     put("p_is_active", paymentMethod.isActive)
                 }
             )
@@ -100,6 +111,42 @@ class SupabasePaymentMethodRepository @Inject constructor(
             Result.success(Unit)
         } catch (e: Exception) {
             Log.e(_tag, "deletePaymentMethod() failed", e)
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun linkPaymentMethodToHousehold(paymentMethodId: String, householdId: String): Result<Unit> {
+        Log.d(_tag, "linkPaymentMethodToHousehold() called with: paymentMethodId = $paymentMethodId, householdId = $householdId")
+        return try {
+            client.postgrest.rpc(
+                function = DatabaseEndpoint.LINK_PAYMENT_FUNCTION.path,
+                parameters = buildJsonObject {
+                    put("p_household_id", householdId)
+                    put("p_payment_method_id", paymentMethodId)
+                }
+            )
+            Log.d(_tag, "linkPaymentMethodToHousehold() returned: Unit")
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Log.e(_tag, "linkPaymentMethodToHousehold() failed", e)
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun unlinkPaymentMethodFromHousehold(paymentMethodId: String, householdId: String): Result<Unit> {
+        Log.d(_tag, "unlinkPaymentMethodFromHousehold() called with: paymentMethodId = $paymentMethodId, householdId = $householdId")
+        return try {
+            client.postgrest.rpc(
+                function = DatabaseEndpoint.UNLINK_PAYMENT_FUNCTION.path,
+                parameters = buildJsonObject {
+                    put("p_household_id", householdId)
+                    put("p_payment_method_id", paymentMethodId)
+                }
+            )
+            Log.d(_tag, "unlinkPaymentMethodFromHousehold() returned: Unit")
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Log.e(_tag, "unlinkPaymentMethodFromHousehold() failed", e)
             Result.failure(e)
         }
     }

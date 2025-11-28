@@ -5,7 +5,7 @@ data class PaymentMethod(
     val name: String,
     val icon: String? = null,
     val color: String? = null,
-    val type: String? = null,
+    val type: String = "other",
     val ownerUserId: String? = null,
     val isActive: Boolean = true,
     val inHousehold: Boolean = true,

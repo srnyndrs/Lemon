@@ -11,7 +11,7 @@ data class TransactionDto(
     @SerialName("user_id")
     val userId: String,
     @SerialName("payment_method_id")
-    val paymentMethodId: String,
+    val paymentMethodId: String? = null,
     val type: String,
     val title: String,
     val amount: Double,

@@ -63,11 +63,7 @@ CREATE POLICY "Users can view household members in shared households"
   ON public.household_members FOR SELECT
   USING (
     -- Users can see members of households where they have a direct membership
-    household_id IN (
-      SELECT hm2.household_id 
-      FROM public.household_members hm2 
-      WHERE hm2.user_id = auth.uid()
-    )
+    public.is_household_member(household_id, auth.uid())
   );
 
 DROP POLICY IF EXISTS "Users can add themselves or owners can add others" ON public.household_members;
@@ -78,24 +74,14 @@ CREATE POLICY "Users can add themselves or owners can add others"
     (user_id = auth.uid() AND role = 'owner')
     OR
     -- Existing owners can add new members
-    (household_id IN (
-      SELECT hm.household_id 
-      FROM public.household_members hm 
-      WHERE hm.user_id = auth.uid() 
-        AND hm.role = 'owner'
-    ))
+    public.is_household_owner(household_id, auth.uid())
   );
 
 DROP POLICY IF EXISTS "Only owners can remove members" ON public.household_members;
 CREATE POLICY "Only owners can remove members"
   ON public.household_members FOR DELETE
   USING (
-    household_id IN (
-      SELECT hm.household_id 
-      FROM public.household_members hm 
-      WHERE hm.user_id = auth.uid() 
-        AND hm.role = 'owner'
-    )
+    public.is_household_owner(household_id, auth.uid())
   );
 
 -- ========================
@@ -229,12 +215,15 @@ CREATE POLICY "Household members can create transactions"
   WITH CHECK (
     -- Must be household member
     public.is_household_member(household_id, auth.uid())
-    AND
-    -- Payment method must be available to the household
-    EXISTS (
-      SELECT 1 FROM public.household_payment_methods hpm
-      WHERE hpm.household_id = transactions.household_id
-        AND hpm.payment_method_id = transactions.payment_method_id
+    AND (
+      -- Payment method may be omitted (NULL) or must be available to the household
+      transactions.payment_method_id IS NULL
+      OR
+      EXISTS (
+        SELECT 1 FROM public.household_payment_methods hpm
+        WHERE hpm.household_id = transactions.household_id
+          AND hpm.payment_method_id = transactions.payment_method_id
+      )
     )
   );
 
@@ -261,59 +250,6 @@ CREATE POLICY "Transaction creators or household owners can delete"
     EXISTS (
       SELECT 1 FROM public.household_members hm
       WHERE hm.household_id = transactions.household_id
-        AND hm.user_id = auth.uid()
-        AND hm.role = 'owner'
-    )
-  );
-
--- ========================
--- RECURRING PAYMENTS
--- ========================
-DROP POLICY IF EXISTS "Household members can view recurring payments" ON public.recurring_payments;
-CREATE POLICY "Household members can view recurring payments"
-  ON public.recurring_payments FOR SELECT
-  USING (
-    public.is_household_member(household_id, auth.uid())
-  );
-
-DROP POLICY IF EXISTS "Household members can create recurring payments" ON public.recurring_payments;
-CREATE POLICY "Household members can create recurring payments"
-  ON public.recurring_payments FOR INSERT
-  WITH CHECK (
-    -- Must be household member
-    public.is_household_member(household_id, auth.uid())
-    AND
-    -- Payment method must be available to the household
-    EXISTS (
-      SELECT 1 FROM public.household_payment_methods hpm
-      WHERE hpm.household_id = recurring_payments.household_id
-        AND hpm.payment_method_id = recurring_payments.payment_method_id
-    )
-  );
-
-DROP POLICY IF EXISTS "Creators or household owners can update recurring payments" ON public.recurring_payments;
-CREATE POLICY "Creators or household owners can update recurring payments"
-  ON public.recurring_payments FOR UPDATE
-  USING (
-    user_id = auth.uid()
-    OR
-    EXISTS (
-      SELECT 1 FROM public.household_members hm
-      WHERE hm.household_id = recurring_payments.household_id
-        AND hm.user_id = auth.uid()
-        AND hm.role = 'owner'
-    )
-  );
-
-DROP POLICY IF EXISTS "Creators or household owners can delete recurring payments" ON public.recurring_payments;
-CREATE POLICY "Creators or household owners can delete recurring payments"
-  ON public.recurring_payments FOR DELETE
-  USING (
-    user_id = auth.uid()
-    OR
-    EXISTS (
-      SELECT 1 FROM public.household_members hm
-      WHERE hm.household_id = recurring_payments.household_id
         AND hm.user_id = auth.uid()
         AND hm.role = 'owner'
     )

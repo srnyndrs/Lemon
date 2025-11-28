@@ -95,3 +95,19 @@ fun Double.formatAsCurrency(): String {
     }
     return df.format(this.toLong())
 }
+
+fun String.toMillis(): Long? {
+    return try {
+        val systemZone = java.time.ZoneId.systemDefault()
+        val instant = if (this.length <= 10) {
+            val localDate = java.time.LocalDate.parse(this)
+            localDate.atStartOfDay(java.time.ZoneOffset.UTC).toInstant()
+        } else {
+            val localDateTime = java.time.LocalDateTime.parse(this)
+            localDateTime.atZone(systemZone).toInstant()
+        }
+        instant.toEpochMilli()
+    } catch (_: Exception) {
+        null
+    }
+}

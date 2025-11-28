@@ -5,6 +5,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -19,6 +20,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -34,21 +36,33 @@ import androidx.compose.ui.unit.sp
 import com.srnyndrs.android.lemon.domain.database.model.Transaction
 import com.srnyndrs.android.lemon.domain.database.model.TransactionItem
 import com.srnyndrs.android.lemon.domain.database.model.TransactionType
+import com.srnyndrs.android.lemon.ui.components.UiStateContainer
 import com.srnyndrs.android.lemon.ui.components.transaction.TransactionList
 import com.srnyndrs.android.lemon.ui.theme.LemonTheme
+import com.srnyndrs.android.lemon.ui.utils.UiState
 import compose.icons.FeatherIcons
 import compose.icons.feathericons.Airplay
+import compose.icons.feathericons.ChevronLeft
+import compose.icons.feathericons.ChevronRight
 import compose.icons.feathericons.Plus
 
 @Composable
 fun TransactionsScreen(
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    transactionState: TransactionState,
+    onEvent: (TransactionsEvent) -> Unit
 ) {
+
+    val months = listOf(
+        "January", "February", "March", "April", "May", "June",
+        "July", "August", "September", "October", "November", "December"
+    )
+    
     Column(
         modifier = Modifier.then(modifier),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        Text(
+        /*Text(
             text = "Occurring Payments",
             style = MaterialTheme.typography.titleLarge
         )
@@ -153,42 +167,79 @@ fun TransactionsScreen(
                     }
                 }
             }
-        }
+        }*/
         Text(
             text = "Transactions",
-            style = MaterialTheme.typography.titleLarge
+            style = MaterialTheme.typography.headlineMedium
         )
-        TransactionList(
+        Row(
             modifier = Modifier.fillMaxWidth(),
-            isLoading = false, // TODO
-            transactions = mapOf(
-                "June 20, 2024" to listOf(
-                    TransactionItem(
-                        id = "1",
-                        title = "Grocery Store",
-                        amount = 54000.0,
-                        type = TransactionType.EXPENSE,
-                        date = "June 19, 2024"
-                    ),
-                    TransactionItem(
-                        id = "2",
-                        title = "Salary",
-                        amount = 150000.0,
-                        type = TransactionType.INCOME,
-                        date = "June 19, 2024"
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            IconButton(
+                onClick = {
+                    var month = transactionState.selectedMonth - 1
+                    var year = transactionState.selectedYear
+                    if (month < 1) {
+                        month = 12
+                        year -= 1
+                    }
+                    onEvent(
+                        TransactionsEvent.ChangeDate(
+                            year = year,
+                            month = month
+                        )
                     )
-                ),
-                "June 19, 2024" to listOf(
-                    TransactionItem(
-                        id = "3",
-                        title = "Electricity Bill",
-                        amount = 7500.0,
-                        type = TransactionType.EXPENSE,
-                        date = "June 19, 2024"
-                    )
+                }
+            ) {
+                Icon(
+                    imageVector = FeatherIcons.ChevronLeft,
+                    contentDescription = null
                 )
+            }
+            Text(
+                text = transactionState.let {
+                    "${it.selectedYear}  ${months[it.selectedMonth - 1]}"
+                }
             )
-        ) {}
+            IconButton(
+                onClick = {
+                    var month = transactionState.selectedMonth + 1
+                    var year = transactionState.selectedYear
+                    if (month > 12) {
+                        month = 1
+                        year += 1
+                    }
+                    onEvent(
+                        TransactionsEvent.ChangeDate(
+                            year = year,
+                            month = month
+                        )
+                    )
+                }
+            ) {
+                Icon(
+                    imageVector = FeatherIcons.ChevronRight,
+                    contentDescription = null
+                )
+            }
+        }
+
+        UiStateContainer(
+            modifier = Modifier.fillMaxWidth(),
+            state = transactionState.transactions
+        ) { isLoading, transactions ->
+            TransactionList(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(6.dp),
+                isLoading = isLoading,
+                transactions = transactions,
+                onDelete = { /* TODO */ },
+            ) {}
+        }
+
     }
 }
 
@@ -200,8 +251,39 @@ fun TransactionsScreenPreview() {
             TransactionsScreen(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(6.dp)
-            )
+                    .padding(6.dp),
+                transactionState = TransactionState(
+                    transactions = UiState.Success(
+                        data = mapOf(
+                            "June 20, 2024" to listOf(
+                                TransactionItem(
+                                    id = "1",
+                                    title = "Grocery Store",
+                                    amount = 54000.0,
+                                    type = TransactionType.EXPENSE,
+                                    date = "June 19, 2024"
+                                ),
+                                TransactionItem(
+                                    id = "2",
+                                    title = "Salary",
+                                    amount = 150000.0,
+                                    type = TransactionType.INCOME,
+                                    date = "June 19, 2024"
+                                )
+                            ),
+                            "June 19, 2024" to listOf(
+                                TransactionItem(
+                                    id = "3",
+                                    title = "Electricity Bill",
+                                    amount = 7500.0,
+                                    type = TransactionType.EXPENSE,
+                                    date = "June 19, 2024"
+                                )
+                            )
+                        )
+                    )
+                )
+            ){}
         }
     }
 }

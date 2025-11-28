@@ -32,7 +32,8 @@ fun TransactionList(
     modifier: Modifier = Modifier,
     isLoading: Boolean,
     transactions: Map<String, List<TransactionItem>>? = null,
-    onDelete: (String) -> Unit
+    onDelete: (String) -> Unit,
+    onClick: (String) -> Unit = {}
 ) {
 
     LazyColumn(
@@ -91,7 +92,7 @@ fun TransactionList(
                             onDelete(item.id)
                         }
                     ) {
-                        // TODO: Handle transaction click
+                        onClick(item.id)
                     }
                 }
             }
@@ -137,7 +138,8 @@ fun TransactionListPreview() {
                             date = "June 19, 2024"
                         )
                     )
-                )
+                ),
+                onDelete = {},
             ) {
 
             }

@@ -24,7 +24,7 @@ ORDER BY
 -- All payment methods available to each household
 -- ==============================
 CREATE OR REPLACE VIEW household_payment_methods_view AS
-SELECT 
+SELECT DISTINCT ON (hpm.household_id, pm.id)
   hpm.household_id,
   pm.id as payment_method_id,
   pm.name,
@@ -37,7 +37,8 @@ SELECT
 FROM public.household_payment_methods hpm
 JOIN public.payment_methods pm ON hpm.payment_method_id = pm.id
 JOIN public.users u ON pm.owner_user_id = u.id
-WHERE pm.is_active = true;
+WHERE pm.is_active = true
+ORDER BY hpm.household_id, pm.id;
 
 -- ==============================
 -- View: household_categories_view  
@@ -76,8 +77,8 @@ SELECT
   c.name as category_name,
   c.icon as category_icon,
   c.color as category_color,
-  pm.id as payment_method_id,
-  pm.is_active as payment_method_is_active,
+  t.payment_method_id as payment_method_id,
+  COALESCE(pm.is_active, false) as payment_method_is_active,
   t.title,
   t.type,
   t.amount,
@@ -86,45 +87,6 @@ FROM public.transactions t
 LEFT JOIN public.categories c ON t.category_id = c.id
 LEFT JOIN public.payment_methods pm ON t.payment_method_id = pm.id
 ORDER BY t.transaction_date DESC;
-
--- ==============================
--- View: household_recurring_payments_view
--- All recurring payments with related data
--- ==============================
-CREATE OR REPLACE VIEW household_recurring_payments_view AS
-SELECT 
-  rp.id as recurring_payment_id,
-  rp.household_id,
-  rp.user_id,
-  u.username,
-  rp.payment_method_id,
-  pm.name as payment_method_name,
-  pm.icon as payment_method_icon,
-  pm.color as payment_method_color,
-  rp.category_id,
-  c.name as category_name,
-  c.icon as category_icon,
-  c.color as category_color,
-  rp.title,
-  rp.description,
-  rp.amount,
-  rp.recurrence_period,
-  rp.start_date,
-  rp.next_due_date,
-  rp.last_paid_date,
-  rp.is_active,
-  -- Calculate if payment is overdue
-  CASE 
-    WHEN rp.next_due_date < CURRENT_DATE AND rp.is_active THEN true
-    ELSE false
-  END as is_overdue,
-  -- Days until/since due date
-  rp.next_due_date - CURRENT_DATE as days_until_due,
-  pm.is_active as payment_method_is_active
-FROM public.recurring_payments rp
-JOIN public.users u ON rp.user_id = u.id
-JOIN public.payment_methods pm ON rp.payment_method_id = pm.id
-LEFT JOIN public.categories c ON rp.category_id = c.id;
 
 -- ==============================
 -- View: household_members_view
@@ -227,7 +189,6 @@ GRANT SELECT ON user_households TO authenticated;
 GRANT SELECT ON household_payment_methods_view TO authenticated;
 GRANT SELECT ON household_categories_view TO authenticated;
 GRANT SELECT ON household_transactions_view TO authenticated;
-GRANT SELECT ON household_recurring_payments_view TO authenticated;
 GRANT SELECT ON household_members_view TO authenticated;
 GRANT SELECT ON household_monthly_expenses_view TO authenticated;
 GRANT SELECT ON household_summary_view TO authenticated;
@@ -271,4 +232,3 @@ FROM
     public.users u;
 
 GRANT SELECT ON users_view TO authenticated;
-

@@ -30,10 +30,23 @@ fun TransactionDetailsDto.toDto(
 fun TransactionDto.toDomain(): Transaction {
     return Transaction(
         id = id ?: "",
-        type = TransactionType.valueOf(type),
+        type = TransactionType.valueOf(type.uppercase()),
         title = title,
         amount = amount,
         date = date!!, // TODO
+        description = description
+    )
+}
+
+fun TransactionDto.toDomainDto(): TransactionDetailsDto {
+    return TransactionDetailsDto(
+        title = title,
+        type = TransactionType.valueOf(type.uppercase()),
+        amount = amount,
+        date = date!!, // TODO
+        categoryId = categoryId,
+        paymentMethodId = paymentMethodId,
+        recurringPaymentId = recurringPaymentId,
         description = description
     )
 }

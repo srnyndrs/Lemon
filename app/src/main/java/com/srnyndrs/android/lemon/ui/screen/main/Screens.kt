@@ -16,4 +16,5 @@ sealed class Screens(val route: String, val title: String, val icon: ImageVector
     object Profile: Screens("profile", "Profile", FeatherIcons.User)
     object Transactions: Screens("transactions", "Transactions")
     object Household: Screens("household", "Household")
+    object TransactionEditor: Screens("transaction_editor", "Transaction Editor")
 }

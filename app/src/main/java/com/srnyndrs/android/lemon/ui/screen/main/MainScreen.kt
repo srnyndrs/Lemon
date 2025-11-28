@@ -1,5 +1,6 @@
 package com.srnyndrs.android.lemon.ui.screen.main
 
+import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
@@ -57,8 +58,11 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.navArgument
+import androidx.navigation.NavType
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.srnyndrs.android.lemon.domain.database.model.dto.TransactionDetailsDto
 import com.srnyndrs.android.lemon.ui.components.forms.TransactionForm
 import com.srnyndrs.android.lemon.ui.screen.main.content.category.CategoryScreen
 import com.srnyndrs.android.lemon.ui.screen.main.content.category.CategoryViewModel
@@ -70,6 +74,9 @@ import com.srnyndrs.android.lemon.ui.screen.main.content.insights.InsightsScreen
 import com.srnyndrs.android.lemon.ui.screen.main.content.insights.InsightsViewModel
 import com.srnyndrs.android.lemon.ui.screen.main.content.profile.ProfileScreen
 import com.srnyndrs.android.lemon.ui.screen.main.content.transactions.TransactionsScreen
+import com.srnyndrs.android.lemon.ui.screen.main.content.transactions.TransactionsViewModel
+import com.srnyndrs.android.lemon.ui.screen.main.content.transactions.editor.TransactionEditorScreen
+import com.srnyndrs.android.lemon.ui.screen.main.content.transactions.editor.TransactionEditorViewModel
 import com.srnyndrs.android.lemon.ui.screen.main.content.wallet.WalletScreen
 import com.srnyndrs.android.lemon.ui.screen.main.content.wallet.WalletViewModel
 import com.srnyndrs.android.lemon.ui.theme.LemonTheme
@@ -278,6 +285,7 @@ fun MainScreen(
                     }
                     TransactionForm(
                         modifier = Modifier.fillMaxSize(),
+                        transaction = TransactionDetailsDto(),
                         categories = mainState.categories,
                         payments = mainState.paymentMethods
                     ) { transaction ->
@@ -321,9 +329,10 @@ fun MainScreen(
                             onUiEvent = { event ->
                                 when(event) {
                                     is MainUiEvent.ShowBottomSheet -> {
-                                        scope.launch {
+                                        /*scope.launch {
                                             bottomSheetState.bottomSheetState.expand()
-                                        }
+                                        }*/
+                                        navController.navigate(Screens.TransactionEditor.route)
                                     }
                                     is MainUiEvent.ShowTransactions -> {
                                         navController.navigate(Screens.Transactions.route)
@@ -331,8 +340,17 @@ fun MainScreen(
                                     is MainUiEvent.ShowHousehold -> {
                                         navController.navigate(Screens.Household.route)
                                     }
+                                    is MainUiEvent.ShowTransactionEditor -> {
+                                        Log.d("MainScreen", "Navigating to Transaction Editor with ID: ${event.transactionId}")
+                                        navController.navigate(
+                                            if(event.transactionId != null) {
+                                                "${Screens.TransactionEditor.route}?transactionId=${event.transactionId}"
+                                            } else {
+                                                Screens.TransactionEditor.route
+                                            }
+                                        )
+                                    }
                                 }
-
                             }
                         ) { mainEvent ->
                             onMainEvent(mainEvent)
@@ -411,9 +429,21 @@ fun MainScreen(
                             )
                         }
                     ) {
-                        TransactionsScreen(
-                            modifier = Modifier.fillMaxSize().padding(top = 32.dp)
+
+                        val transactionsViewModel = hiltViewModel<TransactionsViewModel, TransactionsViewModel.TransactionsViewModelFactory>(
+                            creationCallback = { factory -> factory.create(mainState.selectedHouseholdId) }
                         )
+
+                        val transactionState by transactionsViewModel.transactionState.collectAsStateWithLifecycle()
+
+                        TransactionsScreen(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(top = 32.dp),
+                            transactionState = transactionState
+                        ) { event ->
+                            transactionsViewModel.onEvent(event)
+                        }
                     }
                     composable(
                         route = Screens.Profile.route,
@@ -469,6 +499,50 @@ fun MainScreen(
                             householdState = householdState,
                         ) { event ->
                             householdViewModel.onEvent(event)
+                        }
+                    }
+                    composable(
+                        route = "${Screens.TransactionEditor.route}?transactionId={transactionId}",
+                        arguments = listOf(
+                            navArgument("transactionId") {
+                                type = NavType.StringType
+                                nullable = true
+                                defaultValue = null
+                            }
+                        ),
+                        enterTransition = {
+                            slideInVertically(
+                                initialOffsetY = { it },
+                                animationSpec = tween(400)
+                            )
+                        },
+                        exitTransition = {
+                            slideOutVertically(
+                                targetOffsetY = { it },
+                                animationSpec = tween(400)
+                            )
+                        }
+                    ) { backStackEntry ->
+
+                        val transactionId = backStackEntry.arguments?.getString("transactionId")
+
+                        val transactionEditorViewModel = hiltViewModel<TransactionEditorViewModel, TransactionEditorViewModel.TransactionEditorViewModelFactory>(
+                            creationCallback = { factory ->
+                                factory.create(
+                                    mainState.selectedHouseholdId,
+                                    mainState.user.userId,
+                                    transactionId
+                                )
+                            }
+                        )
+
+                        val transactionEditorState by transactionEditorViewModel.uiState.collectAsStateWithLifecycle()
+
+                        TransactionEditorScreen(
+                            modifier = Modifier.fillMaxSize().padding(top = 32.dp),
+                            state = transactionEditorState
+                        ) { event ->
+                            transactionEditorViewModel.onEvent(event)
                         }
                     }
                 }

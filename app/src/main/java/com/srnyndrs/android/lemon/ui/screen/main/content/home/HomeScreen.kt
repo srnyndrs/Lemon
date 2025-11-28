@@ -256,7 +256,7 @@ fun HomeScreen(
                 title = "Add new",
                 icon = FeatherIcons.Plus,
                 onClick = {
-                    onUiEvent(MainUiEvent.ShowBottomSheet)
+                    onUiEvent(MainUiEvent.ShowTransactionEditor())
                 }
             )
             ActionButton(
@@ -319,7 +319,9 @@ fun HomeScreen(
                             onHomeEvent(HomeEvent.DeleteTransaction(it))
                             //onEvent(MainEvent.DeleteTransaction(it))
                         }
-                    )
+                    ) { transactionId ->
+                        onUiEvent(MainUiEvent.ShowTransactionEditor(transactionId))
+                    }
                 }
             }
         }

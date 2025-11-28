@@ -83,6 +83,7 @@ fun TransactionRow(
             .combinedClickable(
                 onClick = {
                     isEditMode = false
+                    onClick()
                 },
                 onLongClick = {
                     isEditMode = !isEditMode

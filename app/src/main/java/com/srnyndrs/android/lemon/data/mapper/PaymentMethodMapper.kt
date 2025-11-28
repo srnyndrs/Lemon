@@ -12,7 +12,7 @@ fun PaymentMethodDto.toDomain(
         name = name,
         icon = icon,
         color = color,
-        type = type,
+        type = type ?: "other",
         ownerUserId = ownerUserId,
         isActive = isActive,
         inHousehold = this.householdId == householdId,

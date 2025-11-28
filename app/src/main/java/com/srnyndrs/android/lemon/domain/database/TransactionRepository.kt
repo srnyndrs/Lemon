@@ -25,6 +25,18 @@ interface TransactionRepository {
         transactionDetailsDto: TransactionDetailsDto
     ): Result<Transaction>
 
+    suspend fun updateTransaction(
+        householdId: String,
+        userId: String,
+        transactionId: String,
+        transactionDetailsDto: TransactionDetailsDto
+    ): Result<Transaction>
+
+    suspend fun getTransactionById(
+        householdId: String,
+        transactionId: String
+    ): Result<TransactionDetailsDto>
+
     suspend fun getTransactionsByPaymentMethod(
         householdId: String,
         paymentMethodId: String

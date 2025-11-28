@@ -262,6 +262,7 @@ fun WalletScreen(
                                                 },
                                                 onClick = {
                                                     // TODO: Remove from household
+                                                    onEvent(WalletEvent.RemovePaymentMethodFromHousehold(payment.id!!))
                                                     showDropdown = false
                                                 }
                                             )
@@ -341,7 +342,8 @@ fun WalletScreen(
                 TransactionList(
                     modifier = Modifier.fillMaxWidth(),
                     transactions = transactions,
-                    isLoading = isLoading
+                    isLoading = isLoading,
+                    onDelete = {}
                 ) {
                     // TODO
                 }

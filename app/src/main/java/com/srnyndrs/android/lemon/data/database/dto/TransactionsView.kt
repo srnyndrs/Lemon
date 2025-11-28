@@ -19,7 +19,7 @@ data class TransactionsView(
     @SerialName("category_color")
     val categoryColor: String? = null,
     @SerialName("payment_method_id")
-    val paymentMethodId: String,
+    val paymentMethodId: String? = null,
     @SerialName("title")
     val title: String,
     @SerialName("type")

@@ -128,24 +128,25 @@ fun InsightsScreen(
             }
         }
         HorizontalPager(
-            modifier = Modifier.then(modifier),
+            modifier = Modifier.fillMaxSize(),
             verticalAlignment = Alignment.Top,
             userScrollEnabled = false,
             state = pagerState
         ) { page ->
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 6.dp, vertical = 12.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(22.dp)
-            ) {
-                when (page) {
-                    0 -> {
-                        UiStateContainer(
-                            modifier = Modifier.fillMaxSize(),
-                            state = insightsState.statistics
-                        ) { isLoading, statisticsResult ->
+            when (page) {
+                0 -> {
+                    UiStateContainer(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(horizontal = 6.dp, vertical = 12.dp),
+                        state = insightsState.statistics
+                    ) { isLoading, statisticsResult ->
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth(),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
                             PieChartDiagram(
                                 modifier = Modifier
                                     .fillMaxWidth()
@@ -241,17 +242,26 @@ fun InsightsScreen(
                             }
                         }
                     }
-                    1 -> {
-                        UiStateContainer(
-                            modifier = Modifier.fillMaxSize(),
-                            state = insightsState.allExpenses
-                        ) { isLoading, allExpenses ->
 
-                            val monthlyExpenses = months.mapIndexed { index, (monthName, _) ->
-                                val totalAmount = allExpenses?.find { (month, _) -> month == index + 1 }?.second ?: 0.0
-                                Pair(monthName, totalAmount)
-                            }
+                }
+                1 -> {
+                    UiStateContainer(
+                        modifier = Modifier.fillMaxSize(),
+                        state = insightsState.allExpenses
+                    ) { isLoading, allExpenses ->
 
+                        val monthlyExpenses = months.mapIndexed { index, (monthName, _) ->
+                            val totalAmount = allExpenses?.find { (month, _) -> month == index + 1 }?.second ?: 0.0
+                            Pair(monthName, totalAmount)
+                        }
+
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 6.dp, vertical = 12.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
                             ColumnChartDiagram(
                                 modifier = Modifier
                                     .fillMaxWidth()
@@ -304,7 +314,7 @@ private fun InsightsScreenPreview() {
     LemonTheme {
         Surface {
             InsightsScreen(
-                modifier = Modifier.fillMaxSize(),
+                modifier = Modifier.fillMaxSize().padding(top = 96.dp),
                 insightsState = InsightsState(
                     statistics = UiState.Success(
                         listOf(

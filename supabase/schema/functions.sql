@@ -66,6 +66,7 @@ BEGIN
 
   -- Create default categories
   PERFORM public.create_default_categories(new_household_id);
+  -- Note: default payment methods are created only for initial user registration
 
   RETURN new_household_id;
 END;
@@ -95,8 +96,17 @@ CREATE OR REPLACE FUNCTION public.trigger_create_default_household_for_new_user(
 RETURNS trigger
 SET search_path = ''
 AS $$
+DECLARE
+  new_household_id uuid;
 BEGIN
-  PERFORM public.create_household_for_user(NEW.id, 'Private household');
+  SELECT public.create_household_for_user(NEW.id, 'Private household') INTO new_household_id;
+
+  -- For initial registration, also create default payment methods and link them
+  -- to the newly created household. This is intentionally done here so that
+  -- explicit calls to create_household_for_user (e.g. user-invoked) do not
+  -- automatically create payment methods.
+  PERFORM public.create_default_payment_methods(NEW.id, new_household_id);
+
   RETURN NEW;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
@@ -146,7 +156,6 @@ BEGIN
     (p_household_id, 'Personal Care', 'icon', '#FDCB6E'),
     (p_household_id, 'Subscriptions', 'icon', '#E17055'),
     (p_household_id, 'Travel', 'icon', '#00B894'),
-    (p_household_id, 'Income', 'icon', '#00CEC9'),
     (p_household_id, 'Other', 'icon', '#636E72');
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
@@ -195,103 +204,6 @@ BEGIN
   VALUES (p_household_id, pm_id);
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
-
--- ==============================
--- Function: calculate_next_due_date
--- Calculates the next due date based on recurrence period
--- ==============================
-CREATE OR REPLACE FUNCTION public.calculate_next_due_date(
-  base_date date,
-  period recurrence_period
-)
-RETURNS date
-SET search_path = ''
-AS $$
-BEGIN
-  CASE period
-    WHEN 'weekly' THEN
-      RETURN base_date + INTERVAL '1 week';
-    WHEN 'monthly' THEN
-      RETURN base_date + INTERVAL '1 month';
-    WHEN 'quarterly' THEN
-      RETURN base_date + INTERVAL '3 months';
-    WHEN 'yearly' THEN
-      RETURN base_date + INTERVAL '1 year';
-    ELSE
-      RETURN base_date + INTERVAL '1 month';
-  END CASE;
-END;
-$$ LANGUAGE plpgsql;
-
--- ==============================
--- Function: update_recurring_payment_next_due
--- Updates next_due_date when a recurring payment is marked as paid
--- ==============================
-CREATE OR REPLACE FUNCTION public.update_recurring_payment_next_due()
-RETURNS trigger
-SET search_path = ''
-AS $$
-BEGIN
-  -- Only update if last_paid_date changed
-  IF NEW.last_paid_date IS DISTINCT FROM OLD.last_paid_date AND NEW.last_paid_date IS NOT NULL THEN
-    NEW.next_due_date := public.calculate_next_due_date(NEW.last_paid_date, NEW.recurrence_period);
-  END IF;
-  RETURN NEW;
-END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
-
--- ==============================
--- Function: update_recurring_payment_on_transaction
--- Updates recurring payment when a transaction is created with recurring_payment_id
--- ==============================
-CREATE OR REPLACE FUNCTION public.update_recurring_payment_on_transaction()
-RETURNS trigger
-SET search_path = ''
-AS $$
-DECLARE
-  recurring_payment_record RECORD;
-BEGIN
-  -- Only process if recurring_payment_id is not null
-  IF NEW.recurring_payment_id IS NOT NULL THEN
-    -- Get the recurring payment details
-    SELECT * INTO recurring_payment_record
-    FROM public.recurring_payments
-    WHERE id = NEW.recurring_payment_id AND is_active = true;
-    
-    IF FOUND THEN
-      -- Update the recurring payment's last_paid_date and calculate next_due_date
-      UPDATE public.recurring_payments
-      SET 
-        last_paid_date = NEW.transaction_date,
-        next_due_date = public.calculate_next_due_date(NEW.transaction_date, recurring_payment_record.recurrence_period)
-      WHERE id = NEW.recurring_payment_id;
-    END IF;
-  END IF;
-  
-  RETURN NEW;
-END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
-
--- ==============================
--- Trigger: on_transaction_with_recurring_payment
--- ==============================
-DO $$
-BEGIN
-  IF NOT EXISTS (
-    SELECT 1
-    FROM pg_trigger t
-    JOIN pg_class c ON t.tgrelid = c.oid
-    WHERE t.tgname = 'on_transaction_with_recurring_payment'
-      AND c.relname = 'transactions'
-      AND t.tgenabled <> 'D'
-  ) THEN
-    CREATE TRIGGER on_transaction_with_recurring_payment
-      AFTER INSERT ON public.transactions
-      FOR EACH ROW
-      EXECUTE PROCEDURE public.update_recurring_payment_on_transaction();
-  END IF;
-END;
-$$;
 
 -- ==============================
 -- Function: is_household_member
@@ -360,25 +272,93 @@ END;
 $$;
 
 -- ==============================
--- Trigger: on_recurring_payment_updated
+-- Function: link_payment_method_to_household
+-- Links an existing payment method to a household. Only the owner of the
+-- payment method may link it, and the owner must be a member of the household.
 -- ==============================
-DO $$
+CREATE OR REPLACE FUNCTION public.link_payment_method_to_household(
+  p_household_id uuid,
+  p_payment_method_id uuid
+)
+RETURNS void
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_owner uuid;
 BEGIN
-  IF NOT EXISTS (
-    SELECT 1
-    FROM pg_trigger t
-    JOIN pg_class c ON t.tgrelid = c.oid
-    WHERE t.tgname = 'on_recurring_payment_updated'
-      AND c.relname = 'recurring_payments'
-      AND t.tgenabled <> 'D'
-  ) THEN
-    CREATE TRIGGER on_recurring_payment_updated
-      BEFORE UPDATE ON public.recurring_payments
-      FOR EACH ROW
-      EXECUTE PROCEDURE public.update_recurring_payment_next_due();
+  SELECT owner_user_id INTO v_owner FROM public.payment_methods WHERE id = p_payment_method_id;
+
+  IF NOT FOUND THEN
+    RAISE EXCEPTION 'Payment method not found' USING ERRCODE = '42704';
   END IF;
+
+  -- Only the payment method owner can link it to a household
+  IF v_owner IS DISTINCT FROM auth.uid() THEN
+    RAISE EXCEPTION 'Not allowed: only payment method owner can link to household' USING ERRCODE = '42501';
+  END IF;
+
+  -- Caller must be a member of the household
+  IF NOT public.is_household_member(p_household_id, v_owner) THEN
+    RAISE EXCEPTION 'User is not a member of the household' USING ERRCODE = '42501';
+  END IF;
+
+  INSERT INTO public.household_payment_methods (household_id, payment_method_id)
+  VALUES (p_household_id, p_payment_method_id)
+  ON CONFLICT DO NOTHING;
 END;
-$$;
+$$ LANGUAGE plpgsql;
+
+-- ==============================
+-- Function: unlink_payment_method_from_household
+-- Unlinks a payment method from a household. Allowed for the payment method
+-- owner or a household owner.
+-- ==============================
+CREATE OR REPLACE FUNCTION public.unlink_payment_method_from_household(
+  p_household_id uuid,
+  p_payment_method_id uuid
+)
+RETURNS void
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_owner uuid;
+  v_is_house_owner boolean;
+BEGIN
+  SELECT owner_user_id INTO v_owner FROM public.payment_methods WHERE id = p_payment_method_id;
+
+  IF NOT FOUND THEN
+    RAISE EXCEPTION 'Payment method not found' USING ERRCODE = '42704';
+  END IF;
+
+  -- If caller is the payment method owner, allow unlink
+  IF v_owner = auth.uid() THEN
+    DELETE FROM public.household_payment_methods
+    WHERE household_id = p_household_id AND payment_method_id = p_payment_method_id;
+    RETURN;
+  END IF;
+
+  -- Otherwise allow if caller is household owner
+  SELECT EXISTS (
+    SELECT 1 FROM public.household_members hm
+    WHERE hm.household_id = p_household_id
+      AND hm.user_id = auth.uid()
+      AND hm.role = 'owner'
+  ) INTO v_is_house_owner;
+
+  IF v_is_house_owner THEN
+    DELETE FROM public.household_payment_methods
+    WHERE household_id = p_household_id AND payment_method_id = p_payment_method_id;
+    RETURN;
+  END IF;
+
+  RAISE EXCEPTION 'Not allowed: only payment method owner or household owner can unlink' USING ERRCODE = '42501';
+END;
+$$ LANGUAGE plpgsql;
+
+GRANT EXECUTE ON FUNCTION public.link_payment_method_to_household(uuid, uuid) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.unlink_payment_method_from_household(uuid, uuid) TO authenticated;
 
 -- ==============================
 -- Function: delete_transaction
@@ -574,7 +554,21 @@ BEGIN
   IF household_name = 'Private household' AND member_role = 'owner' THEN
     RAISE EXCEPTION 'Owner of the private household cannot be removed' USING ERRCODE = '42501';
   END IF;
+  -- Set transactions' payment_method_id to NULL for any transactions in the household
+  -- that reference payment methods owned by the removed user, then unlink those methods
+  UPDATE transactions
+  SET payment_method_id = NULL
+  WHERE household_id = p_household_id
+    AND payment_method_id IN (
+      SELECT id FROM payment_methods WHERE owner_user_id = p_user_id
+    );
 
+  -- Remove payment methods shared with the household that are owned by the user being removed
+  DELETE FROM household_payment_methods
+  WHERE household_id = p_household_id
+    AND payment_method_id IN (
+      SELECT id FROM payment_methods WHERE owner_user_id = p_user_id
+    );
   DELETE FROM household_members
   WHERE household_id = p_household_id AND user_id = p_user_id;
 END;
@@ -789,5 +783,3 @@ $$ LANGUAGE plpgsql;
 
 GRANT EXECUTE ON FUNCTION public.update_payment_method(uuid, text, text, text, payment_method_type, boolean) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.delete_payment_method(uuid) TO authenticated;
-
-
