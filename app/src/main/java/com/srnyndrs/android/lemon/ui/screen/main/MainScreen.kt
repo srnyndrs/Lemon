@@ -66,6 +66,7 @@ import com.srnyndrs.android.lemon.domain.database.model.dto.TransactionDetailsDt
 import com.srnyndrs.android.lemon.ui.components.forms.TransactionForm
 import com.srnyndrs.android.lemon.ui.screen.main.content.category.CategoryScreen
 import com.srnyndrs.android.lemon.ui.screen.main.content.category.CategoryViewModel
+import com.srnyndrs.android.lemon.ui.screen.main.content.home.HomeEvent
 import com.srnyndrs.android.lemon.ui.screen.main.content.home.HomeScreen
 import com.srnyndrs.android.lemon.ui.screen.main.content.home.HomeViewModel
 import com.srnyndrs.android.lemon.ui.screen.main.content.household.HouseholdScreen
@@ -315,6 +316,12 @@ fun MainScreen(
                         )
 
                         val homeState by homeViewModel.homeState.collectAsStateWithLifecycle()
+
+                        LaunchedEffect(mainState.selectedHouseholdId) {
+                            if (mainState.selectedHouseholdId.isNotBlank()) {
+                                homeViewModel.onEvent(HomeEvent.SwitchHousehold(mainState.selectedHouseholdId))
+                            }
+                        }
 
                         HomeScreen(
                             modifier = Modifier.fillMaxSize().padding(top = topPadding),

@@ -70,6 +70,8 @@ class HomeViewModel @AssistedInject constructor(
     }
 
     private fun init() {
+        // Avoid fetching when the householdId is not yet available (empty string).
+        if (householdId.isBlank()) return
         fetchTransactions(householdId)
     }
 
