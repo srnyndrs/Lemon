@@ -53,7 +53,7 @@ fun ProfileScreen(
     modifier: Modifier = Modifier,
     username: String,
     email: String,
-    onMainEvent: (MainEvent<*>) -> Unit
+    onMainEvent: (MainEvent) -> Unit
 ) {
 
     var showDialog by remember { mutableStateOf(false) }

@@ -28,9 +28,6 @@ class MainViewModel @AssistedInject constructor(
     @Assisted private val userId: String,
     private val getUserUseCase: GetUserUseCase,
     private val logoutUserUseCase: LogoutUserUseCase,
-    private val allCategoryUseCase: AllCategoryUseCase,
-    private val allPaymentMethodUseCase: AllPaymentMethodUseCase,
-    private val allTransactionUseCase: AllTransactionUseCase,
     private val allHouseholdUseCase: AllHouseholdUseCase
 ): ViewModel() {
 
@@ -39,7 +36,6 @@ class MainViewModel @AssistedInject constructor(
         fun create(userId: String): MainViewModel
     }
 
-    private val stateCache: MutableMap<String, MainState> = mutableMapOf()
     private val _mainState = MutableStateFlow(MainState())
     val mainState = _mainState.asStateFlow()
         .onStart {
@@ -51,79 +47,18 @@ class MainViewModel @AssistedInject constructor(
             initialValue = MainState()
         )
 
-    fun onEvent(event: MainEvent<*>) = viewModelScope.launch {
+    fun onEvent(event: MainEvent) = viewModelScope.launch {
         when(event) {
             is MainEvent.Logout -> {
                 logoutUserUseCase()
             }
-            is MainEvent.AddCategory -> {
-                val currentHouseholdId = _mainState.value.selectedHouseholdId
-                val category = event.data as Category
-                allCategoryUseCase.addCategoryUseCase(category, currentHouseholdId).fold(
-                    onSuccess = {
-                        val currentCategories = _mainState.value.categories
-                        _mainState.value = _mainState.value.copy(categories = currentCategories + it)
-                    },
-                    onFailure = {
-                        // TODO
-                    }
-                )
-            }
-            is MainEvent.AddPaymentMethod -> {
-                val currentHouseholdId = _mainState.value.selectedHouseholdId
-                val paymentMethod = event.data as PaymentMethod
-                allPaymentMethodUseCase.addPaymentMethodUseCase(paymentMethod, currentHouseholdId, userId).fold(
-                    onSuccess = {
-                        val currentPaymentMethods = _mainState.value.paymentMethods
-                        _mainState.value = _mainState.value.copy(paymentMethods = currentPaymentMethods + it)
-                    },
-                    onFailure = {
-                        // TODO
-                    }
-                )
-            }
             is MainEvent.SwitchHousehold -> {
-                val householdId = event.data as String
-                // Update selected household ID
                 _mainState.value = _mainState.value.copy(
-                    selectedHouseholdId = householdId
-                )
-            }
-            is MainEvent.AddTransaction -> {
-                val transactionDetailsDto = event.data
-                val currentHouseholdId = _mainState.value.selectedHouseholdId
-                if (transactionDetailsDto != null) {
-                    allTransactionUseCase.addTransactionUseCase(
-                        householdId = currentHouseholdId,
-                        userId = userId,
-                        transactionDetailsDto = transactionDetailsDto
-                    ).fold(
-                        onSuccess = {
-                            fetchTransactions(currentHouseholdId)
-                        },
-                        onFailure = {
-                            // TODO
-                        }
-                    )
-                }
-            }
-            is MainEvent.DeleteTransaction -> {
-                val transactionId = event.data as String
-                val currentHouseholdId = _mainState.value.selectedHouseholdId
-                allTransactionUseCase.deleteTransactionUseCase(
-                    transactionId = transactionId
-                ).fold(
-                    onSuccess = {
-                        fetchTransactions(currentHouseholdId)
-                    },
-                    onFailure = {
-                        // TODO
-                    }
+                    selectedHouseholdId = event.householdId
                 )
             }
             is MainEvent.CreateHousehold -> {
-                val householdName = event.data as String
-                allHouseholdUseCase.createHouseholdUseCase(householdName).fold(
+                allHouseholdUseCase.createHouseholdUseCase(event.householdName).fold(
                     onSuccess = {
                         init()
                     },
@@ -144,7 +79,6 @@ class MainViewModel @AssistedInject constructor(
                     user = user,
                     selectedHouseholdId = selectedHousehold,
                 )
-                fetchData(householdId = selectedHousehold)
                 //
                 _mainState.value = _mainState.value.copy(isLoading = false)
             },
@@ -155,69 +89,6 @@ class MainViewModel @AssistedInject constructor(
                 )
             }
         )
-    }
-
-    private fun calculateExpenses(transactions: Map<String, List<TransactionItem>>) {
-        val expenses = mutableMapOf(
-            TransactionType.EXPENSE to 0.0,
-            TransactionType.INCOME to 0.0
-        )
-        transactions.values.flatten().forEach { transaction ->
-            expenses[transaction.type] = expenses.getOrDefault(transaction.type, 0.0) + transaction.amount
-        }
-        _mainState.value = _mainState.value.copy(
-            expenses = expenses
-        )
-    }
-
-    private suspend fun fetchTransactions(householdId: String) {
-        allTransactionUseCase.getMonthlyTransactionsUseCase(householdId).let { response ->
-            response.fold(
-                onSuccess = { transactions ->
-                    _mainState.value = _mainState.value.copy(
-                        transactions = transactions
-                    )
-                    calculateExpenses(transactions)
-                },
-                onFailure = { exception ->
-                    _mainState.value = _mainState.value.copy(
-                        error = "An error occurred: ${exception.message}"
-                    )
-                }
-            )
-        }
-    }
-
-    private suspend fun fetchData(householdId: String) {
-        allCategoryUseCase.getCategoriesUseCase(householdId).let { response ->
-            response.fold(
-                onSuccess = { categories ->
-                    _mainState.value = _mainState.value.copy(
-                        categories = categories
-                    )
-                },
-                onFailure = { exception ->
-                    _mainState.value = _mainState.value.copy(
-                        error = "An error occurred: ${exception.message}"
-                    )
-                }
-            )
-        }
-        allPaymentMethodUseCase.getPaymentMethodsUseCase(householdId).let { response ->
-            response.fold(
-                onSuccess = { paymentMethods ->
-                    _mainState.value = _mainState.value.copy(
-                        paymentMethods = paymentMethods
-                    )
-                },
-                onFailure = { exception ->
-                    _mainState.value = _mainState.value.copy(
-                        error = "An error occurred: ${exception.message}"
-                    )
-                }
-            )
-        }
-        fetchTransactions(householdId)
     }
 
 }

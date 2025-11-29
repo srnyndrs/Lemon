@@ -47,6 +47,7 @@ import com.srnyndrs.android.lemon.ui.components.transaction.TransactionList
 import com.srnyndrs.android.lemon.ui.screen.main.MainEvent
 import com.srnyndrs.android.lemon.ui.screen.main.MainUiEvent
 import com.srnyndrs.android.lemon.ui.theme.LemonTheme
+import com.srnyndrs.android.lemon.ui.utils.UiState
 import com.srnyndrs.android.lemon.ui.utils.formatAsCurrency
 import com.srnyndrs.android.lemon.ui.utils.shimmer
 import com.srnyndrs.android.lemon.ui.utils.shimmerEffect
@@ -61,11 +62,10 @@ fun HomeScreen(
     homeState: HomeState,
     households: List<Household>,
     selectedHouseholdId: String,
-    expenses: Map<TransactionType, Double>,
     isLoading: Boolean,
     onUiEvent: (MainUiEvent) -> Unit,
     onHomeEvent: (HomeEvent) -> Unit,
-    onEvent: (MainEvent<*>) -> Unit
+    onEvent: (MainEvent) -> Unit
 ) {
 
     var isInitialized by rememberSaveable { mutableStateOf(false) }
@@ -76,13 +76,6 @@ fun HomeScreen(
     ) {
         households.size.takeIf { it > 0 } ?: 1
     }
-
-    //val expenses = homeState.expenses
-
-    val expense = expenses[TransactionType.EXPENSE] ?: 0.0
-    val income = expenses[TransactionType.INCOME] ?: 0.0
-    val total = expense + income
-    val expenseRatio = if (total > 0.0) (expense / total).toFloat() else 0f
 
     LaunchedEffect(pagerState.currentPage) {
         if (isInitialized) {
@@ -163,57 +156,67 @@ fun HomeScreen(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
-                        if(!isLoading) {
-                            households.getOrNull(pageIndex)?.let { household ->
-                                Column(
-                                    modifier = Modifier
-                                        .fillMaxSize()
-                                        .clickable(
-                                            // TODO: proper check
-                                            enabled = household.name != "Private household"
-                                        ) {
-                                            onUiEvent(MainUiEvent.ShowHousehold)
-                                        }
-                                        .padding(12.dp),
-                                    horizontalAlignment = Alignment.CenterHorizontally,
-                                    verticalArrangement = Arrangement.Center
-                                ) {
-                                    Row(
-                                        verticalAlignment = Alignment.CenterVertically,
-                                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        UiStateContainer(
+                            modifier = Modifier.fillMaxSize(),
+                            state = homeState.expenses
+                        ) { isLoading, expenses ->
+                            if(!isLoading) {
+                                val expense = expenses!![TransactionType.EXPENSE] ?: 0.0
+                                val income = expenses!![TransactionType.INCOME] ?: 0.0
+                                val total = expense + income
+                                val expenseRatio = if (total > 0.0) (expense / total).toFloat() else 0f
+
+                                households.getOrNull(pageIndex)?.let { household ->
+                                    Column(
+                                        modifier = Modifier
+                                            .fillMaxSize()
+                                            .clickable(
+                                                // TODO: proper check
+                                                enabled = household.name != "Private household"
+                                            ) {
+                                                onUiEvent(MainUiEvent.ShowHousehold)
+                                            }
+                                            .padding(12.dp),
+                                        horizontalAlignment = Alignment.CenterHorizontally,
+                                        verticalArrangement = Arrangement.Center
                                     ) {
-                                        Icon(
-                                            modifier = Modifier.size(22.dp),
-                                            imageVector = FeatherIcons.Home,
-                                            contentDescription = null
+                                        Row(
+                                            verticalAlignment = Alignment.CenterVertically,
+                                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                        ) {
+                                            Icon(
+                                                modifier = Modifier.size(22.dp),
+                                                imageVector = FeatherIcons.Home,
+                                                contentDescription = null
+                                            )
+                                            Text(
+                                                text = household.name,
+                                                style = MaterialTheme.typography.headlineSmall
+                                            )
+                                        }
+                                        Spacer(
+                                            modifier = Modifier.requiredHeight(16.dp)
                                         )
                                         Text(
-                                            text = household.name,
-                                            style = MaterialTheme.typography.headlineSmall
+                                            text = (income.minus(expense)).formatAsCurrency() + " Ft", // TODO
+                                            style = MaterialTheme.typography.headlineLarge,
+                                            fontSize = 28.sp
+                                        )
+                                        Spacer(
+                                            modifier = Modifier.requiredHeight(8.dp)
+                                        )
+                                        LinearProgressIndicator(
+                                            modifier = Modifier
+                                                .fillMaxWidth(0.75f)
+                                                .padding(vertical = 6.dp),
+                                            progress = { expenseRatio },
+                                            color = Color.Red,
+                                            trackColor = Color.Green,
+                                            strokeCap = ProgressIndicatorDefaults.LinearStrokeCap,
+                                            gapSize = 0.dp,
+                                            drawStopIndicator = {}
                                         )
                                     }
-                                    Spacer(
-                                        modifier = Modifier.requiredHeight(16.dp)
-                                    )
-                                    Text(
-                                        text = (income.minus(expense)).formatAsCurrency() + " Ft", // TODO
-                                        style = MaterialTheme.typography.headlineLarge,
-                                        fontSize = 28.sp
-                                    )
-                                    Spacer(
-                                        modifier = Modifier.requiredHeight(8.dp)
-                                    )
-                                    LinearProgressIndicator(
-                                        modifier = Modifier
-                                            .fillMaxWidth(0.75f)
-                                            .padding(vertical = 6.dp),
-                                        progress = { expenseRatio },
-                                        color = Color.Red,
-                                        trackColor = Color.Green,
-                                        strokeCap = ProgressIndicatorDefaults.LinearStrokeCap,
-                                        gapSize = 0.dp,
-                                        drawStopIndicator = {}
-                                    )
                                 }
                             }
                         }
@@ -278,7 +281,7 @@ fun HomeScreen(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .clip(RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp))            ,
+                .clip(RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp)),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             Row(
@@ -317,7 +320,6 @@ fun HomeScreen(
                         transactions = transactions,
                         onDelete = {
                             onHomeEvent(HomeEvent.DeleteTransaction(it))
-                            //onEvent(MainEvent.DeleteTransaction(it))
                         }
                     ) { transactionId ->
                         onUiEvent(MainUiEvent.ShowTransactionEditor(transactionId))
@@ -335,7 +337,18 @@ fun HomeScreenPreview() {
         Surface {
             HomeScreen(
                 modifier = Modifier.fillMaxSize(),
-                homeState = HomeState(),
+                homeState = HomeState(
+                    selectedHouseholdId = "1",
+                    transactions = UiState.Success(
+                        emptyMap()
+                    ),
+                    expenses = UiState.Success(
+                        mapOf(
+                            TransactionType.INCOME to 0.0,
+                            TransactionType.EXPENSE to 0.0
+                        )
+                    )
+                ),
                 households = listOf(
                     Household(
                         id = "1",
@@ -347,11 +360,7 @@ fun HomeScreenPreview() {
                     )
                 ),
                 selectedHouseholdId = "1",
-                expenses = mapOf(
-                    TransactionType.EXPENSE to 5000.0,
-                    TransactionType.INCOME  to 10000.0
-                ),
-                isLoading = true,
+                isLoading = false,
                 onHomeEvent = {},
                 onUiEvent = {}
             ) {}

@@ -86,6 +86,25 @@ class SupabaseTransactionRepository @Inject constructor(
         }
     }
 
+    override suspend fun getIncomeStatistics(householdId: String): Result<List<Pair<Int, Double>>> {
+        Log.d(_tag, "getIncomeStatistics() called with: householdId = $householdId")
+        return try {
+            val response = client.from(table = "household_monthly_income_view")
+                .select {
+                    filter {
+                        com.srnyndrs.android.lemon.data.database.dto.MonthlyIncome::householdId eq householdId
+                    }
+                }
+                .decodeList<com.srnyndrs.android.lemon.data.database.dto.MonthlyIncome>()
+            val statistics = response.map { it.month to it.totalIncome }
+            Log.d(_tag, "getIncomeStatistics() returned: $statistics")
+            Result.success(statistics)
+        } catch (e: Exception) {
+            Log.e(_tag, "getIncomeStatistics() failed", e)
+            Result.failure(e)
+        }
+    }
+
     override suspend fun getTransactionsByPaymentMethod(householdId: String, paymentMethodId: String): Result<Map<String, List<TransactionItem>>> {
         Log.d(_tag, "getTransactionsByPaymentMethod() called with: householdId = $householdId, paymentMethodId = $paymentMethodId")
         return try {

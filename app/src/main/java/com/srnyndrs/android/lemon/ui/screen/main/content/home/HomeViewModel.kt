@@ -120,4 +120,19 @@ class HomeViewModel @AssistedInject constructor(
         }
     }
 
+    /*
+    private fun calculateExpenses(transactions: Map<String, List<TransactionItem>>) {
+        val expenses = mutableMapOf(
+            TransactionType.EXPENSE to 0.0,
+            TransactionType.INCOME to 0.0
+        )
+        transactions.values.flatten().forEach { transaction ->
+            expenses[transaction.type] = expenses.getOrDefault(transaction.type, 0.0) + transaction.amount
+        }
+        _mainState.value = _mainState.value.copy(
+            expenses = expenses
+        )
+    }
+     */
+
 }

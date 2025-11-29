@@ -136,16 +136,16 @@ SELECT
   COALESCE(
     CASE 
       WHEN t.type = 'income' THEN 'Income'
-      WHEN c.name IS NULL THEN 'Unknown'
+      WHEN c.name IS NULL THEN 'Uncategorized'
       ELSE c.name
-    END, 'Unknown'
+    END, 'Uncategorized'
   ) AS category_name,
   COALESCE(
     CASE 
       WHEN t.type = 'income' THEN 'income'
-      WHEN c.icon IS NULL THEN 'unknown'
+      WHEN c.icon IS NULL THEN 'Uncategorized'
       ELSE c.icon
-    END, 'unknown'
+    END, 'Uncategorized'
   ) AS category_icon,
   COALESCE(
     CASE 
@@ -165,16 +165,16 @@ GROUP BY t.household_id,
   COALESCE(
     CASE 
       WHEN t.type = 'income' THEN 'Income'
-      WHEN c.name IS NULL THEN 'Unknown'
+      WHEN c.name IS NULL THEN 'Uncategorized'
       ELSE c.name
-    END, 'Unknown'
+    END, 'Uncategorized'
   ),
   COALESCE(
     CASE 
       WHEN t.type = 'income' THEN 'income'
-      WHEN c.icon IS NULL THEN 'unknown'
+      WHEN c.icon IS NULL THEN 'Uncategorized'
       ELSE c.icon
-    END, 'unknown'
+    END, 'Uncategorized'
   ),
   COALESCE(
     CASE 
@@ -232,3 +232,23 @@ FROM
     public.users u;
 
 GRANT SELECT ON users_view TO authenticated;
+
+-- ==============================
+-- View: household_monthly_income_view
+-- Monthly income totals by household
+-- ==============================
+DROP VIEW IF EXISTS household_monthly_income_view;
+CREATE OR REPLACE VIEW household_monthly_income_view AS
+SELECT
+  household_id,
+  EXTRACT(YEAR FROM transaction_date)::integer AS year,
+  EXTRACT(MONTH FROM transaction_date)::integer AS month,
+  SUM(amount) AS total_income
+FROM public.transactions
+WHERE type = 'income'
+GROUP BY household_id,
+  EXTRACT(YEAR FROM transaction_date),
+  EXTRACT(MONTH FROM transaction_date)
+ORDER BY household_id, year DESC, month DESC;
+
+GRANT SELECT ON household_monthly_income_view TO authenticated;

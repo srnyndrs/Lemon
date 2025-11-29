@@ -41,6 +41,7 @@ import androidx.compose.ui.unit.dp
 import com.srnyndrs.android.lemon.domain.database.model.StatisticGroupItem
 import com.srnyndrs.android.lemon.ui.components.UiStateContainer
 import com.srnyndrs.android.lemon.ui.screen.main.components.ColumnChartDiagram
+import com.srnyndrs.android.lemon.ui.screen.main.components.LineChartDiagram
 import com.srnyndrs.android.lemon.ui.screen.main.components.PieChartDiagram
 import com.srnyndrs.android.lemon.ui.theme.LemonTheme
 import com.srnyndrs.android.lemon.ui.utils.UiState
@@ -76,13 +77,14 @@ fun InsightsScreen(
 
     val pages = listOf(
         "Category Statistics",
-        "Monthly Expenses"
+        "Monthly Expenses",
+        "Monthly Incomes"
     )
 
     val scope = rememberCoroutineScope()
     val pagerState = rememberPagerState(
         initialPage = 0
-    ) { 2 }
+    ) { 3 }
 
     var selectedCategoryIndex by rememberSaveable {
         mutableStateOf<Int?>(null)
@@ -101,7 +103,14 @@ fun InsightsScreen(
             IconButton(
                 onClick = {
                     scope.launch {
-                        pagerState.animateScrollToPage(0)
+                        pagerState.let {
+                            if(it.currentPage == 0) {
+                                it.animateScrollToPage(it.pageCount - 1)
+                                return@let
+                            } else {
+                                it.animateScrollToPage(it.currentPage - 1)
+                            }
+                        }
                     }
                 }
             ) {
@@ -117,7 +126,14 @@ fun InsightsScreen(
             IconButton(
                 onClick = {
                     scope.launch {
-                        pagerState.animateScrollToPage(10)
+                        pagerState.let {
+                            if(it.currentPage == it.pageCount - 1) {
+                                it.animateScrollToPage(0)
+                                return@let
+                            } else {
+                                it.animateScrollToPage(it.currentPage + 1)
+                            }
+                        }
                     }
                 }
             ) {
@@ -155,7 +171,7 @@ fun InsightsScreen(
                                     .let {
                                         if(isLoading) { it.shimmer() } else it
                                     },
-                                chartData = statisticsResult ?: emptyList(),
+                                data = statisticsResult ?: emptyList(),
                                 selectedIndex = selectedCategoryIndex,
                             ) { categoryIndex ->
                                 selectedCategoryIndex = categoryIndex
@@ -282,6 +298,67 @@ fun InsightsScreen(
                                 verticalArrangement = Arrangement.spacedBy(6.dp)
                             ) {
                                 items(monthlyExpenses.reversed().filter { it.second != 0.0 }) { (month, totalAmount) ->
+                                    Row(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(6.dp),
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.SpaceBetween
+                                    ) {
+                                        Text(
+                                            text = month,
+                                            style = MaterialTheme.typography.bodyLarge
+                                        )
+                                        Text(
+                                            text = totalAmount.formatAsCurrency().plus(" Ft"),
+                                            style = MaterialTheme.typography.bodyLarge
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                2 -> {
+                    UiStateContainer(
+                        modifier = Modifier.fillMaxSize(),
+                        state = insightsState.allIncomes
+                    ) { isLoading, allIncomes ->
+
+                        val monthlyIncomes = months.mapIndexed { index, (monthName, _) ->
+                            val totalAmount = allIncomes?.find { (month, _) -> month == index + 1 }?.second ?: 0.0
+                            Pair(monthName, totalAmount)
+                        }
+
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 6.dp, vertical = 12.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            LineChartDiagram(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .requiredHeight(256.dp)
+                                    .shimmerEffect(isLoading),
+                                data = monthlyIncomes
+                            )
+                            HorizontalDivider()
+                            Text(
+                                modifier = Modifier.fillMaxWidth(),
+                                text = "Months",
+                                style = MaterialTheme.typography.headlineSmall,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                            LazyColumn(
+                                modifier = Modifier.fillMaxSize(),
+                                verticalArrangement = Arrangement.spacedBy(6.dp)
+                            ) {
+                                items(
+                                    monthlyIncomes.reversed()
+                                        .filter { it.second != 0.0 }) { (month, totalAmount) ->
                                     Row(
                                         modifier = Modifier
                                             .fillMaxWidth()

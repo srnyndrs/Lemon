@@ -1,5 +1,6 @@
 package com.srnyndrs.android.lemon.ui.screen.main
 
+import android.annotation.SuppressLint
 import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
@@ -88,15 +89,15 @@ import compose.icons.feathericons.User
 import compose.icons.feathericons.X
 import kotlinx.coroutines.launch
 
+@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainScreen(
     modifier: Modifier = Modifier,
     mainState: MainState,
-    onMainEvent: (MainEvent<*>) -> Unit,
+    onMainEvent: (MainEvent) -> Unit,
 ) {
 
-    val scope = rememberCoroutineScope()
     var privacyMode by rememberSaveable { mutableStateOf(true) }
     var selectedMenuItem by rememberSaveable { mutableIntStateOf(0) }
 
@@ -112,16 +113,6 @@ fun MainScreen(
 
     val topPadding = 96.dp
 
-    val bottomSheetState = rememberBottomSheetScaffoldState(
-        bottomSheetState = rememberStandardBottomSheetState(
-            initialValue = SheetValue.Hidden,
-            confirmValueChange = {
-                it != SheetValue.PartiallyExpanded
-            },
-            skipHiddenState = false
-        )
-    )
-
     LaunchedEffect(navBackStackEntry) {
         navBackStackEntry?.destination?.route?.let { currentRoute ->
             screens.find { it.route == currentRoute }?.let { screen ->
@@ -131,12 +122,11 @@ fun MainScreen(
     }
 
     Scaffold(
-        modifier = Modifier.then(modifier)
-            .background(MaterialTheme.colorScheme.tertiary),
+        modifier = Modifier.then(modifier),
+            //.background(MaterialTheme.colorScheme.tertiary),
         topBar = {
 
-            val visible = (bottomSheetState.bottomSheetState.targetValue != SheetValue.Expanded)
-                    && screens.map { it.route }.contains(navBackStackEntry?.destination?.route)
+            val visible = screens.map { it.route }.contains(navBackStackEntry?.destination?.route)
 
             AnimatedVisibility(
                 modifier = Modifier
@@ -212,22 +202,22 @@ fun MainScreen(
                 contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
                 windowInsets = NavigationBarDefaults.windowInsets.only(WindowInsetsSides.Horizontal)
             ) {
-                repeat(4) {
+                screens.forEachIndexed { index, screen ->
                     NavigationBarItem(
-                        selected = it == selectedMenuItem,
+                        selected = index == selectedMenuItem,
                         onClick = {
-                            navController.navigate(screens[it].route)
+                            navController.navigate(screen.route)
                         },
                         icon = {
                             Icon(
                                 modifier = Modifier.size(20.dp),
-                                imageVector = screens[it].icon!!,
+                                imageVector = screen.icon!!,
                                 contentDescription = null
                             )
                         },
                         label = {
                             Text(
-                                text = screens[it].title,
+                                text = screen.title,
                                 style = MaterialTheme.typography.labelSmall
                             )
                         },
@@ -243,335 +233,272 @@ fun MainScreen(
                 }
             }
         }
-    ) { paddingValues ->
-        BottomSheetScaffold(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(if(!mainState.isLoading) MaterialTheme.colorScheme.tertiary else Color.Transparent)
-                .padding(bottom = paddingValues.calculateBottomPadding()),
-            scaffoldState = bottomSheetState,
-            sheetDragHandle = {},
-            sheetShape = RectangleShape,
-            sheetContent = {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 32.dp, bottom = paddingValues.calculateBottomPadding()),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        if (mainState.error == null) {
+            NavHost(
+                modifier = Modifier.fillMaxSize(),
+                navController = navController,
+                startDestination = Screens.Home.route
+            ) {
+                composable(
+                    route = Screens.Home.route
                 ) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(6.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            text = "Add Transaction",
-                            style = MaterialTheme.typography.headlineMedium
-                        )
-                        IconButton(
-                            onClick = {
-                                scope.launch {
-                                    bottomSheetState.bottomSheetState.hide()
+
+                    val homeViewModel = hiltViewModel<HomeViewModel, HomeViewModel.HomeViewModelFactory>(
+                        creationCallback = { factory ->
+                            factory.create(mainState.selectedHouseholdId)
+                        }
+                    )
+
+                    val homeState by homeViewModel.homeState.collectAsStateWithLifecycle()
+
+                    LaunchedEffect(mainState.selectedHouseholdId) {
+                        if (mainState.selectedHouseholdId.isNotBlank()) {
+                            homeViewModel.onEvent(HomeEvent.SwitchHousehold(mainState.selectedHouseholdId))
+                        }
+                    }
+
+                    HomeScreen(
+                        modifier = Modifier.fillMaxSize().padding(top = topPadding),
+                        homeState = homeState,
+                        households = mainState.user.households,
+                        selectedHouseholdId = mainState.selectedHouseholdId,
+                        isLoading = mainState.isLoading,
+                        onHomeEvent = { event ->
+                            homeViewModel.onEvent(event)
+                        },
+                        onUiEvent = { event ->
+                            when(event) {
+                                is MainUiEvent.ShowBottomSheet -> {
+                                    navController.navigate(Screens.TransactionEditor.route)
+                                }
+                                is MainUiEvent.ShowTransactions -> {
+                                    navController.navigate(Screens.Transactions.route)
+                                }
+                                is MainUiEvent.ShowHousehold -> {
+                                    navController.navigate(Screens.Household.route)
+                                }
+                                is MainUiEvent.ShowTransactionEditor -> {
+                                    val path = buildString {
+                                        append(Screens.TransactionEditor.route)
+                                        event.transactionId?.let {
+                                            append("?transactionId=${it}")
+                                        }
+                                    }
+                                    navController.navigate(path)
                                 }
                             }
-                        ) {
-                            Icon(
-                                imageVector = FeatherIcons.X,
-                                contentDescription = null
-                            )
                         }
-                    }
-                    TransactionForm(
-                        modifier = Modifier.fillMaxSize(),
-                        transaction = TransactionDetailsDto(),
-                        categories = mainState.categories,
-                        payments = mainState.paymentMethods
-                    ) { transaction ->
-                        onMainEvent(MainEvent.AddTransaction(transaction))
-                        scope.launch {
-                            bottomSheetState.bottomSheetState.hide()
-                        }
+                    ) { mainEvent ->
+                        onMainEvent(mainEvent)
                     }
                 }
-            },
-            sheetSwipeEnabled = false
-        ) {
-            if (mainState.error == null) {
-                NavHost(
-                    modifier = Modifier.fillMaxSize(),
-                    navController = navController,
-                    startDestination = Screens.Home.route
+                composable(
+                    route = Screens.Insights.route
                 ) {
-                    composable(
-                        route = Screens.Home.route
-                    ) {
 
-                        val homeViewModel = hiltViewModel<HomeViewModel, HomeViewModel.HomeViewModelFactory>(
-                            creationCallback = { factory ->
-                                factory.create(mainState.selectedHouseholdId)
-                            }
-                        )
-
-                        val homeState by homeViewModel.homeState.collectAsStateWithLifecycle()
-
-                        LaunchedEffect(mainState.selectedHouseholdId) {
-                            if (mainState.selectedHouseholdId.isNotBlank()) {
-                                homeViewModel.onEvent(HomeEvent.SwitchHousehold(mainState.selectedHouseholdId))
-                            }
+                    val insightsViewModel = hiltViewModel<InsightsViewModel, InsightsViewModel.InsightsViewModelFactory>(
+                        creationCallback = { factory ->
+                            factory.create(mainState.selectedHouseholdId)
                         }
+                    )
 
-                        HomeScreen(
-                            modifier = Modifier.fillMaxSize().padding(top = topPadding),
-                            homeState = homeState,
-                            households = mainState.user.households,
-                            selectedHouseholdId = mainState.selectedHouseholdId,
-                            expenses = mainState.expenses,
-                            isLoading = mainState.isLoading,
-                            onHomeEvent = { event ->
-                                homeViewModel.onEvent(event)
-                            },
-                            onUiEvent = { event ->
-                                when(event) {
-                                    is MainUiEvent.ShowBottomSheet -> {
-                                        /*scope.launch {
-                                            bottomSheetState.bottomSheetState.expand()
-                                        }*/
-                                        navController.navigate(Screens.TransactionEditor.route)
-                                    }
-                                    is MainUiEvent.ShowTransactions -> {
-                                        navController.navigate(Screens.Transactions.route)
-                                    }
-                                    is MainUiEvent.ShowHousehold -> {
-                                        navController.navigate(Screens.Household.route)
-                                    }
-                                    is MainUiEvent.ShowTransactionEditor -> {
-                                        Log.d("MainScreen", "Navigating to Transaction Editor with ID: ${event.transactionId}")
-                                        navController.navigate(
-                                            if(event.transactionId != null) {
-                                                "${Screens.TransactionEditor.route}?transactionId=${event.transactionId}"
-                                            } else {
-                                                Screens.TransactionEditor.route
-                                            }
-                                        )
-                                    }
-                                }
-                            }
-                        ) { mainEvent ->
-                            onMainEvent(mainEvent)
-                        }
-                    }
-                    composable(
-                        route = Screens.Insights.route
-                    ) {
+                    val insightsState by insightsViewModel.insightsState.collectAsStateWithLifecycle()
 
-                        val insightsViewModel = hiltViewModel<InsightsViewModel, InsightsViewModel.InsightsViewModelFactory>(
-                            creationCallback = { factory ->
-                                factory.create(mainState.selectedHouseholdId)
-                            }
-                        )
-
-                        val insightsState by insightsViewModel.insightsState.collectAsStateWithLifecycle()
-
-                        InsightsScreen(
-                            modifier = Modifier.fillMaxSize().padding(top = topPadding),
-                            insightsState = insightsState
-                        )
-                    }
-                    composable(
-                        route = Screens.Wallet.route
-                    ) {
-
-                        val walletViewModel = hiltViewModel<WalletViewModel, WalletViewModel.WalletViewModelFactory>(
-                            creationCallback = { factory ->
-                                factory.create(
-                                    mainState.selectedHouseholdId,
-                                    mainState.user.userId
-                                )
-                            }
-                        )
-
-                        val walletState by walletViewModel.walletState.collectAsStateWithLifecycle()
-
-                        WalletScreen(
-                            modifier = Modifier.fillMaxSize().padding(top = topPadding),
-                            state = walletState,
-                            onEvent = { event ->
-                                walletViewModel.onEvent(event)
-                            }
-                        )
-                    }
-                    composable(
-                        route = Screens.Categories.route
-                    ) {
-
-                        val categoryViewModel = hiltViewModel<CategoryViewModel, CategoryViewModel.CategoryViewModelFactory>(
-                            creationCallback = { factory -> factory.create(mainState.selectedHouseholdId) }
-                        )
-
-                        val categoriesState by categoryViewModel.categoryState.collectAsStateWithLifecycle()
-
-                        CategoryScreen(
-                            modifier = Modifier.fillMaxSize().padding(top = topPadding),
-                            categoriesState = categoriesState,
-                            onEvent = { categoryEvent ->
-                                categoryViewModel.onEvent(categoryEvent)
-                            }
-                        )
-                    }
-                    composable(
-                        route = Screens.Transactions.route,
-                        enterTransition = {
-                            slideInVertically(
-                                initialOffsetY = { it },
-                                animationSpec = tween(400)
-                            )
-                        },
-                        exitTransition = {
-                            slideOutVertically(
-                                targetOffsetY = { it },
-                                animationSpec = tween(400)
-                            )
-                        }
-                    ) {
-
-                        val transactionsViewModel = hiltViewModel<TransactionsViewModel, TransactionsViewModel.TransactionsViewModelFactory>(
-                            creationCallback = { factory -> factory.create(mainState.selectedHouseholdId) }
-                        )
-
-                        val transactionState by transactionsViewModel.transactionState.collectAsStateWithLifecycle()
-
-                        TransactionsScreen(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .padding(top = 32.dp),
-                            transactionState = transactionState
-                        ) { event ->
-                            transactionsViewModel.onEvent(event)
-                        }
-                    }
-                    composable(
-                        route = Screens.Profile.route,
-                        enterTransition = {
-                            slideInVertically(
-                                initialOffsetY = { it },
-                                animationSpec = tween(400)
-                            )
-                        },
-                        exitTransition = {
-                            slideOutVertically(
-                                targetOffsetY = { it },
-                                animationSpec = tween(400)
-                            )
-                        }
-                    ) {
-                        ProfileScreen(
-                            modifier = Modifier.fillMaxSize().padding(top = 32.dp),
-                            username = mainState.user.username,
-                            email = mainState.user.email,
-                            onMainEvent = {
-                                onMainEvent(it)
-                            },
-                        )
-                    }
-                    composable(
-                        route = Screens.Household.route,
-                        enterTransition = {
-                            slideInVertically(
-                                initialOffsetY = { it },
-                                animationSpec = tween(400)
-                            )
-                        },
-                        exitTransition = {
-                            slideOutVertically(
-                                targetOffsetY = { it },
-                                animationSpec = tween(400)
-                            )
-                        }
-                    ) {
-
-                        val householdId = mainState.selectedHouseholdId
-
-                        val householdViewModel = hiltViewModel<HouseholdViewModel, HouseholdViewModel.HouseholdViewModelFactory>(
-                            creationCallback = { factory -> factory.create(
-                                householdId = householdId,
-                                userId = mainState.user.userId
-                            )}
-                        )
-
-                        val householdState by householdViewModel.uiState.collectAsStateWithLifecycle()
-
-                        HouseholdScreen(
-                            modifier = Modifier.fillMaxSize().padding(top = 32.dp),
-                            mainUserId = mainState.user.userId,
-                            householdState = householdState,
-                        ) { event ->
-                            householdViewModel.onEvent(event)
-                        }
-                    }
-                    composable(
-                        route = "${Screens.TransactionEditor.route}?transactionId={transactionId}",
-                        arguments = listOf(
-                            navArgument("transactionId") {
-                                type = NavType.StringType
-                                nullable = true
-                                defaultValue = null
-                            }
-                        ),
-                        enterTransition = {
-                            slideInVertically(
-                                initialOffsetY = { it },
-                                animationSpec = tween(400)
-                            )
-                        },
-                        exitTransition = {
-                            slideOutVertically(
-                                targetOffsetY = { it },
-                                animationSpec = tween(400)
-                            )
-                        }
-                    ) { backStackEntry ->
-
-                        val transactionId = backStackEntry.arguments?.getString("transactionId")
-
-                        val transactionEditorViewModel = hiltViewModel<TransactionEditorViewModel, TransactionEditorViewModel.TransactionEditorViewModelFactory>(
-                            creationCallback = { factory ->
-                                factory.create(
-                                    mainState.selectedHouseholdId,
-                                    mainState.user.userId,
-                                    transactionId
-                                )
-                            }
-                        )
-
-                        val transactionEditorState by transactionEditorViewModel.uiState.collectAsStateWithLifecycle()
-
-                        TransactionEditorScreen(
-                            modifier = Modifier.fillMaxSize().padding(top = 32.dp),
-                            state = transactionEditorState,
-                            onBack = {
-                                navController.popBackStack()
-                            }
-                        ) { event ->
-                            transactionEditorViewModel.onEvent(event)
-                        }
-                    }
-                }
-            } else {
-                // TODO: Show error screen
-                Column(
-                    modifier = Modifier.fillMaxSize(),
-                    verticalArrangement = Arrangement.Center,
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Text(
-                        text = "Error: ${mainState.error}",
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.error
+                    InsightsScreen(
+                        modifier = Modifier.fillMaxSize().padding(top = topPadding),
+                        insightsState = insightsState
                     )
                 }
+                composable(
+                    route = Screens.Wallet.route
+                ) {
+
+                    val walletViewModel = hiltViewModel<WalletViewModel, WalletViewModel.WalletViewModelFactory>(
+                        creationCallback = { factory ->
+                            factory.create(
+                                mainState.selectedHouseholdId,
+                                mainState.user.userId
+                            )
+                        }
+                    )
+
+                    val walletState by walletViewModel.walletState.collectAsStateWithLifecycle()
+
+                    WalletScreen(
+                        modifier = Modifier.fillMaxSize().padding(top = topPadding),
+                        state = walletState,
+                        onEvent = { event ->
+                            walletViewModel.onEvent(event)
+                        }
+                    )
+                }
+                composable(
+                    route = Screens.Categories.route
+                ) {
+
+                    val categoryViewModel = hiltViewModel<CategoryViewModel, CategoryViewModel.CategoryViewModelFactory>(
+                        creationCallback = { factory -> factory.create(mainState.selectedHouseholdId) }
+                    )
+
+                    val categoriesState by categoryViewModel.categoryState.collectAsStateWithLifecycle()
+
+                    CategoryScreen(
+                        modifier = Modifier.fillMaxSize().padding(top = topPadding),
+                        categoriesState = categoriesState,
+                        onEvent = { categoryEvent ->
+                            categoryViewModel.onEvent(categoryEvent)
+                        }
+                    )
+                }
+                composable(
+                    route = Screens.Transactions.route,
+                    enterTransition = {
+                        slideInVertically(
+                            initialOffsetY = { it },
+                            animationSpec = tween(400)
+                        )
+                    },
+                    exitTransition = {
+                        slideOutVertically(
+                            targetOffsetY = { it },
+                            animationSpec = tween(400)
+                        )
+                    }
+                ) {
+
+                    val transactionsViewModel = hiltViewModel<TransactionsViewModel, TransactionsViewModel.TransactionsViewModelFactory>(
+                        creationCallback = { factory -> factory.create(mainState.selectedHouseholdId) }
+                    )
+
+                    val transactionState by transactionsViewModel.transactionState.collectAsStateWithLifecycle()
+
+                    TransactionsScreen(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(top = 32.dp),
+                        transactionState = transactionState
+                    ) { event ->
+                        transactionsViewModel.onEvent(event)
+                    }
+                }
+                composable(
+                    route = Screens.Profile.route,
+                    enterTransition = {
+                        slideInVertically(
+                            initialOffsetY = { it },
+                            animationSpec = tween(400)
+                        )
+                    },
+                    exitTransition = {
+                        slideOutVertically(
+                            targetOffsetY = { it },
+                            animationSpec = tween(400)
+                        )
+                    }
+                ) {
+                    ProfileScreen(
+                        modifier = Modifier.fillMaxSize().padding(top = 32.dp),
+                        username = mainState.user.username,
+                        email = mainState.user.email,
+                        onMainEvent = {
+                            onMainEvent(it)
+                        },
+                    )
+                }
+                composable(
+                    route = Screens.Household.route,
+                    enterTransition = {
+                        slideInVertically(
+                            initialOffsetY = { it },
+                            animationSpec = tween(400)
+                        )
+                    },
+                    exitTransition = {
+                        slideOutVertically(
+                            targetOffsetY = { it },
+                            animationSpec = tween(400)
+                        )
+                    }
+                ) {
+
+                    val householdViewModel = hiltViewModel<HouseholdViewModel, HouseholdViewModel.HouseholdViewModelFactory>(
+                        creationCallback = { factory -> factory.create(
+                            householdId = mainState.selectedHouseholdId,
+                            userId = mainState.user.userId
+                        )}
+                    )
+
+                    val householdState by householdViewModel.uiState.collectAsStateWithLifecycle()
+
+                    HouseholdScreen(
+                        modifier = Modifier.fillMaxSize().padding(top = 32.dp),
+                        mainUserId = mainState.user.userId,
+                        householdState = householdState,
+                    ) { event ->
+                        householdViewModel.onEvent(event)
+                    }
+                }
+                composable(
+                    route = "${Screens.TransactionEditor.route}?transactionId={transactionId}",
+                    arguments = listOf(
+                        navArgument("transactionId") {
+                            type = NavType.StringType
+                            nullable = true
+                            defaultValue = null
+                        }
+                    ),
+                    enterTransition = {
+                        slideInVertically(
+                            initialOffsetY = { it },
+                            animationSpec = tween(400)
+                        )
+                    },
+                    exitTransition = {
+                        slideOutVertically(
+                            targetOffsetY = { it },
+                            animationSpec = tween(400)
+                        )
+                    }
+                ) { backStackEntry ->
+
+                    val transactionId = backStackEntry.arguments?.getString("transactionId")
+
+                    val transactionEditorViewModel = hiltViewModel<TransactionEditorViewModel, TransactionEditorViewModel.TransactionEditorViewModelFactory>(
+                        creationCallback = { factory ->
+                            factory.create(
+                                mainState.selectedHouseholdId,
+                                mainState.user.userId,
+                                transactionId
+                            )
+                        }
+                    )
+
+                    val transactionEditorState by transactionEditorViewModel.uiState.collectAsStateWithLifecycle()
+
+                    TransactionEditorScreen(
+                        modifier = Modifier.fillMaxSize().padding(top = 32.dp),
+                        state = transactionEditorState,
+                        onBack = {
+                            navController.popBackStack()
+                        }
+                    ) { event ->
+                        transactionEditorViewModel.onEvent(event)
+                    }
+                }
+            }
+        } else {
+            // TODO: Show error screen
+            Column(
+                modifier = Modifier.fillMaxSize(),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(
+                    text = "Error: ${mainState.error}",
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.error
+                )
             }
         }
     }

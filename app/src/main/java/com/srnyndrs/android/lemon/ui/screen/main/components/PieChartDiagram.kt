@@ -3,13 +3,9 @@ package com.srnyndrs.android.lemon.ui.screen.main.components
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.FlowRow
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.requiredHeight
 import androidx.compose.foundation.layout.size
@@ -19,15 +15,12 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.srnyndrs.android.lemon.domain.database.model.StatisticGroupItem
@@ -39,14 +32,14 @@ import ir.ehsannarmani.compose_charts.models.Pie
 @Composable
 fun PieChartDiagram(
     modifier: Modifier = Modifier,
-    chartData: List<StatisticGroupItem>,
+    data: List<StatisticGroupItem>,
     selectedIndex: Int? = null,
     onClick: (Int?) -> Unit
 ) {
 
-    var data by remember {
+    var pies by remember {
         mutableStateOf(
-            chartData.mapIndexed { index, item ->
+            data.mapIndexed { index, item ->
                 Pie(
                     selected = selectedIndex == index,
                     label = item.categoryName,
@@ -72,12 +65,12 @@ fun PieChartDiagram(
     var selectedPercent by remember { mutableStateOf<Float?>(null) }
 
     val selectPie = { index: Int? ->
-        data = data.mapIndexed { mapIndex, pie ->
+        pies = pies.mapIndexed { mapIndex, pie ->
             pie.copy(selected = index == mapIndex)
         }
         selectedPercent = if (index != null) {
-            val selectedData = data[index].data.toFloat()
-            val totalData = data.sumOf { it.data }.toFloat()
+            val selectedData = pies[index].data.toFloat()
+            val totalData = pies.sumOf { it.data }.toFloat()
             if (totalData == 0f) 0f else (selectedData / totalData * 100f)
         } else {
             null
@@ -101,10 +94,10 @@ fun PieChartDiagram(
     ) {
         PieChart(
             modifier = Modifier.size(200.dp),
-            data = data,
+            data = pies,
             onPieClick = {
                 if(it.data == 0.0) return@PieChart
-                val pieIndex = data.indexOf(it)
+                val pieIndex = pies.indexOf(it)
                 onClick(pieIndex)
                 selectPie(pieIndex)
             },
@@ -140,7 +133,7 @@ fun PieChartDiagramPreview() {
                     .fillMaxWidth()
                     .requiredHeight(200.dp),
                 selectedIndex = 0,
-                chartData = listOf(
+                data = listOf(
                     StatisticGroupItem("Food", "", "#FFB74D", 200.0),
                     StatisticGroupItem("Transport", "", "#64B5F6", 150.0),
                     StatisticGroupItem("Entertainment", "", "#BA68C8", 100.0),

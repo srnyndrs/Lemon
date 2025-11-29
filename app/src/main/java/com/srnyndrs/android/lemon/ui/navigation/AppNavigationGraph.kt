@@ -33,8 +33,10 @@ fun AppNavigationGraph(
         composable(
             route = "auth"
         ) {
+
             val authenticationViewModel = hiltViewModel<AuthenticationViewModel>()
             val authenticationState by authenticationViewModel.authState.collectAsState()
+
             AuthenticationScreen(
                 modifier = Modifier.fillMaxSize().padding(top = 24.dp),
                 authenticationState = authenticationState,

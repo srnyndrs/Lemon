@@ -4,12 +4,8 @@ import com.srnyndrs.android.lemon.domain.database.model.Category
 import com.srnyndrs.android.lemon.domain.database.model.PaymentMethod
 import com.srnyndrs.android.lemon.domain.database.model.dto.TransactionDetailsDto
 
-sealed class MainEvent<T>(val data: T? = null) {
-    object Logout: MainEvent<Unit>()
-    class AddPaymentMethod(paymentMethod: PaymentMethod): MainEvent<PaymentMethod>(data = paymentMethod)
-    class AddCategory(category: Category): MainEvent<Category>(data = category)
-    class AddTransaction(transactionDetailsDto: TransactionDetailsDto): MainEvent<TransactionDetailsDto>(data = transactionDetailsDto)
-    class SwitchHousehold(householdId: String): MainEvent<String>(data = householdId)
-    class DeleteTransaction(transactionId: String): MainEvent<String>(data = transactionId)
-    class CreateHousehold(householdName: String): MainEvent<String>(data = householdName)
+sealed class MainEvent {
+    object Logout: MainEvent()
+    class SwitchHousehold(val householdId: String): MainEvent()
+    class CreateHousehold(val householdName: String): MainEvent()
 }

@@ -18,6 +18,7 @@ interface TransactionRepository {
     ): Result<List<StatisticGroupItem>>
 
     suspend fun getStatistics(householdId: String): Result<List<Pair<Int, Double>>>
+    suspend fun getIncomeStatistics(householdId: String): Result<List<Pair<Int, Double>>>
 
     suspend fun addTransaction(
         householdId: String,

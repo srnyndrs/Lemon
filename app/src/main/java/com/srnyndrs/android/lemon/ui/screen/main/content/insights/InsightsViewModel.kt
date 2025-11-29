@@ -41,6 +41,7 @@ class InsightsViewModel @AssistedInject constructor(
     private fun init() = viewModelScope.launch {
         fetchStatistics(householdId)
         fetchAllExpenses(householdId)
+        fetchAllIncomes(householdId)
     }
 
     private suspend fun fetchStatistics(householdId: String) {
@@ -71,6 +72,23 @@ class InsightsViewModel @AssistedInject constructor(
                 onFailure = { exception ->
                     _insightsState.update {
                         it.copy(allExpenses = UiState.Error(exception.message ?: "Unknown error"))
+                    }
+                }
+            )
+        }
+    }
+
+    private suspend fun fetchAllIncomes(householdId: String) {
+        allTransactionUseCase.getIncomeStatisticsUseCase(householdId).let { response ->
+            response.fold(
+                onSuccess = { allIncomes ->
+                    _insightsState.update {
+                        it.copy(allIncomes = UiState.Success(allIncomes))
+                    }
+                },
+                onFailure = { exception ->
+                    _insightsState.update {
+                        it.copy(allIncomes = UiState.Error(exception.message ?: "Unknown error"))
                     }
                 }
             )
