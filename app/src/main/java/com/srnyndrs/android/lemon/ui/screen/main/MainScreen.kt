@@ -493,7 +493,8 @@ fun MainScreen(
                         modifier = Modifier.fillMaxSize().padding(top = 32.dp),
                         state = transactionEditorState,
                         onBack = {
-                            navController.popBackStack()
+                            // TODO
+                            navController.navigate(Screens.Home.route)
                         }
                     ) { event ->
                         transactionEditorViewModel.onEvent(event)

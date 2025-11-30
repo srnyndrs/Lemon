@@ -135,14 +135,18 @@ fun TransactionForm(
     } ?: ""
 
     var selectedPaymentIndex by rememberSaveable {
-        mutableIntStateOf(
-            max(0,payments.indexOf(payments.find { it.id == transaction.paymentMethodId }))
+        mutableStateOf(
+            payments.find { it.id == transaction.paymentMethodId }?.let { paymentMethod ->
+                payments.indexOf(paymentMethod)
+            }
         )
     }
 
     var selectedCategoryIndex by rememberSaveable {
-        mutableIntStateOf(
-            max(0,categories.indexOf(categories.find { it.id == transaction.categoryId }))
+        mutableStateOf(
+            categories.find { it.id == transaction.categoryId }?.let { category ->
+                categories.indexOf(category)
+            }
         )
     }
 
@@ -400,6 +404,27 @@ fun TransactionForm(
                     }
                 }
             }
+            // Category selector
+            AnimatedVisibility(
+                visible = selectedTypeIndex == 1
+            ) {
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Text(
+                        text = "Transaction Category",
+                        style = MaterialTheme.typography.titleMedium
+                    )
+                    CategorySelector(
+                        modifier = Modifier.fillMaxWidth(),
+                        categories = categories,
+                        selectedIndex = selectedCategoryIndex
+                    ) {
+                        selectedCategoryIndex = it
+                    }
+                }
+            }
             // Optional fields
             var showOptionalFields by rememberSaveable { mutableStateOf(false) }
             Row(
@@ -470,28 +495,6 @@ fun TransactionForm(
                             ),
                         )
                     }
-                    // Category selector
-                    AnimatedVisibility(
-                        visible = selectedTypeIndex == 1
-                    ) {
-                        Column(
-                            modifier = Modifier.fillMaxWidth(),
-                            verticalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
-                            Text(
-                                text = "Transaction Category",
-                                style = MaterialTheme.typography.titleMedium
-                            )
-                            CategorySelector(
-                                modifier = Modifier.fillMaxWidth(),
-                                categories = categories,
-                                selectedIndex = selectedCategoryIndex
-                            ) {
-                                selectedCategoryIndex = it
-                            }
-                        }
-                    }
-
                 }
             }
         }
@@ -511,8 +514,8 @@ fun TransactionForm(
                                 amount = transactionAmount.text.toDouble(),
                                 type = if(selectedTypeIndex == 1) TransactionType.EXPENSE else TransactionType.INCOME,
                                 date = datePickerState.selectedDateMillis?.let { convertMillisToDate(it) },
-                                paymentMethodId = payments.getOrNull(selectedPaymentIndex)?.id,
-                                categoryId = if(selectedTypeIndex == 1) categories.getOrNull(selectedCategoryIndex)?.id else null,
+                                paymentMethodId = selectedPaymentIndex?.let { payments[it].id },
+                                categoryId = if(selectedTypeIndex == 1) selectedCategoryIndex?.let { categories[it].id } else null,
                                 description = transactionDetails.text.ifBlank { null },
                             )
                             onConfirm(transactionDetailsDto)

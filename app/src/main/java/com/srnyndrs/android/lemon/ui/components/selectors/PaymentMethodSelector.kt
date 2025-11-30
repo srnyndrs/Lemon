@@ -19,6 +19,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -34,15 +35,45 @@ import com.srnyndrs.android.lemon.ui.utils.fromHex
 @Composable
 fun PaymentMethodSelector(
     modifier: Modifier = Modifier,
-    selectedItem: Int,
+    selectedItem: Int?,
     paymentMethods: List<PaymentMethod>,
-    onSelect: (Int) -> Unit,
+    onSelect: (Int?) -> Unit,
 ) {
+
+
+
     LazyRow(
         modifier = Modifier.then(modifier)
             .requiredHeight(56.dp),
         horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
+        item {
+            Card(
+                modifier = Modifier
+                    .requiredHeight(56.dp)
+                    .border(2.dp, if (selectedItem == null) MaterialTheme.colorScheme.onSurface else Color.Transparent, CardDefaults.shape),
+                colors = CardDefaults.cardColors(
+                    containerColor = Color.Transparent
+                ),
+                onClick = {
+                    onSelect(null)
+                }
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(vertical = 3.dp, horizontal = 6.dp),
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(
+                        modifier = Modifier,
+                        text = "NONE",
+                        color = MaterialTheme.colorScheme.onSurface,
+                    )
+                }
+            }
+        }
         itemsIndexed(paymentMethods) { index, paymentMethod ->
             Card(
                 modifier = Modifier
@@ -79,7 +110,7 @@ fun PaymentMethodSelector(
 private fun PaymentMethodSelectorPreview() {
     LemonTheme {
         Surface {
-            var selectedIndex by remember { mutableIntStateOf(0) }
+            var selectedIndex by remember { mutableStateOf<Int?>(null) }
             PaymentMethodSelector(
                 modifier = Modifier.fillMaxWidth().padding(6.dp),
                 selectedItem = selectedIndex,

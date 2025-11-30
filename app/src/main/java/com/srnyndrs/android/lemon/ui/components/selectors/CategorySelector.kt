@@ -50,13 +50,19 @@ import compose.icons.feathericons.ChevronUp
 @Composable
 fun CategorySelector(
     modifier: Modifier = Modifier,
-    selectedIndex: Int = 0,
+    selectedIndex: Int?,
     categories: List<Category>,
-    onSelect: (Int) -> Unit
+    onSelect: (Int?) -> Unit
 ) {
 
     var isExpanded by rememberSaveable { mutableStateOf(false) }
-    //var selectedIndex by rememberSaveable { mutableIntStateOf(0) }
+
+    val uncategorizedCategory = Category(
+        id = "",
+        name = "Uncategorized",
+        color = "#9E9E9E",
+        icon = "folder"
+    )
 
     Column(
         modifier = Modifier.then(modifier),
@@ -69,7 +75,7 @@ fun CategorySelector(
         ) {
             CategoryItem(
                 modifier = Modifier.fillMaxWidth(),
-                category = categories[selectedIndex],
+                category = selectedIndex?.let { categories[it] } ?: uncategorizedCategory,
                 trailingContent = {
                     Icon(
                         imageVector = if(isExpanded) FeatherIcons.ChevronUp else FeatherIcons.ChevronDown,
@@ -87,6 +93,23 @@ fun CategorySelector(
                     .requiredHeight(256.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
+                item {
+                    CategoryItem(
+                        modifier = Modifier.fillMaxWidth(),
+                        category = uncategorizedCategory,
+                        trailingContent = {
+                            if(selectedIndex == null) {
+                                Icon(
+                                    imageVector = FeatherIcons.Check,
+                                    contentDescription = null
+                                )
+                            }
+                        }
+                    ) {
+                        onSelect(null)
+                        isExpanded = false
+                    }
+                }
                 itemsIndexed(categories) { index, category ->
                     CategoryItem(
                         modifier = Modifier.fillMaxWidth(),
@@ -116,7 +139,7 @@ private fun CategorySelectorPreview() {
         Surface(
             modifier = Modifier.fillMaxWidth()
         ) {
-            var selectedIndex by rememberSaveable { mutableIntStateOf(0) }
+            var selectedIndex by rememberSaveable { mutableStateOf<Int?>(null) }
             CategorySelector(
                 modifier = Modifier.fillMaxWidth(),
                 selectedIndex = selectedIndex,

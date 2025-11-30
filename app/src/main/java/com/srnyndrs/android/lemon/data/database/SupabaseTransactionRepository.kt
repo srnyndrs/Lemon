@@ -166,9 +166,56 @@ class SupabaseTransactionRepository @Inject constructor(
                     select()
                 }
                 .decodeSingle<TransactionDto>()
-            val transaction = response.toDomain()
-            Log.d(_tag, "updateTransaction() returned: $transaction")
-            Result.success(transaction)
+            // Some clients/serializers omit null properties when serializing.
+            // If requester explicitly set paymentMethodId or categoryId = null we need to
+            // ensure the corresponding DB column is nulled. We call small RPCs that set
+            // the columns to NULL and then re-fetch the transaction to return
+            // the final state to the caller.
+            val needsNullPayment = transactionDetailsDto.paymentMethodId == null
+            val needsNullCategory = transactionDetailsDto.categoryId == null
+
+            if (needsNullPayment || needsNullCategory) {
+                if (needsNullPayment) {
+                    try {
+                        client.postgrest.rpc(
+                            function = "set_transaction_payment_method_null",
+                            parameters = mapOf("p_transaction_id" to transactionId)
+                        )
+                    } catch (e: Exception) {
+                        Log.w(_tag, "Failed to null payment_method_id via RPC", e)
+                    }
+                }
+
+                if (needsNullCategory) {
+                    try {
+                        client.postgrest.rpc(
+                            function = "set_transaction_category_null",
+                            parameters = mapOf("p_transaction_id" to transactionId)
+                        )
+                    } catch (e: Exception) {
+                        Log.w(_tag, "Failed to null category_id via RPC", e)
+                    }
+                }
+
+                // Re-fetch updated transaction to return accurate state
+                val final = client.from(table = "transactions")
+                    .select {
+                        filter {
+                            TransactionDto::id eq transactionId
+                            TransactionDto::householdId eq householdId
+                        }
+                    }
+                    .decodeList<TransactionDto>()
+                    .first()
+
+                val transaction = final.toDomain()
+                Log.d(_tag, "updateTransaction() returned: $final")
+                Result.success(transaction)
+            } else {
+                val transaction = response.toDomain()
+                Log.d(_tag, "updateTransaction() returned: $response")
+                Result.success(transaction)
+            }
         } catch (e: Exception) {
             Log.e(_tag, "updateTransaction() failed", e)
             Result.failure(e)
