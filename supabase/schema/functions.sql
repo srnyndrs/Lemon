@@ -144,19 +144,19 @@ SET search_path = ''
 AS $$
 BEGIN
   INSERT INTO public.categories (household_id, name, icon, color) VALUES
-    (p_household_id, 'Food & Dining', 'icon', '#FF6B6B'),
-    (p_household_id, 'Groceries', 'icon', '#4ECDC4'),
-    (p_household_id, 'Transportation', 'icon', '#45B7D1'),
-    (p_household_id, 'Entertainment', 'icon', '#96CEB4'),
-    (p_household_id, 'Shopping', 'icon', '#FFEAA7'),
-    (p_household_id, 'Bills & Utilities', 'icon', '#FD79A8'),
-    (p_household_id, 'Healthcare', 'icon', '#A29BFE'),
-    (p_household_id, 'Education', 'icon', '#6C5CE7'),
-    (p_household_id, 'Home & Garden', 'icon', '#FD6C6C'),
-    (p_household_id, 'Personal Care', 'icon', '#FDCB6E'),
-    (p_household_id, 'Subscriptions', 'icon', '#E17055'),
-    (p_household_id, 'Travel', 'icon', '#00B894'),
-    (p_household_id, 'Other', 'icon', '#636E72');
+    (p_household_id, 'Food & Dining', 'DINING', '#FF6B6B'),
+    (p_household_id, 'Groceries', 'CART', '#4ECDC4'),
+    (p_household_id, 'Transportation', 'CAR', '#45B7D1'),
+    (p_household_id, 'Entertainment', 'TELEVISION', '#96CEB4'),
+    (p_household_id, 'Shopping', 'FASHION', '#FFEAA7'),
+    (p_household_id, 'Bills & Utilities', 'BANK', '#FD79A8'),
+    (p_household_id, 'Healthcare', 'HEALTHCARE', '#A29BFE'),
+    (p_household_id, 'Education', 'BOOKS', '#6C5CE7'),
+    (p_household_id, 'Home & Garden', 'HOME', '#FD6C6C'),
+    (p_household_id, 'Personal Care', 'HANGER', '#FDCB6E'),
+    (p_household_id, 'Subscriptions', 'CATEGORIES', '#E17055'),
+    (p_household_id, 'Travel', 'AIRPLANE', '#00B894'),
+    (p_household_id, 'Other', 'DEFAULT', '#636E72');
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 

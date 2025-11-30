@@ -61,7 +61,7 @@ fun CategorySelector(
         id = "",
         name = "Uncategorized",
         color = "#9E9E9E",
-        icon = "folder"
+        icon = "DEFAULT"
     )
 
     Column(

@@ -25,7 +25,9 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import com.srnyndrs.android.lemon.domain.database.model.Category
+import com.srnyndrs.android.lemon.ui.components.LemonIcon
 import com.srnyndrs.android.lemon.ui.theme.LemonTheme
+import com.srnyndrs.android.lemon.ui.utils.LemonIcons
 import com.srnyndrs.android.lemon.ui.utils.fromHex
 import compose.icons.FeatherIcons
 import compose.icons.feathericons.ArrowRight
@@ -54,7 +56,6 @@ fun CategoryItem(
             horizontalArrangement = Arrangement.spacedBy(12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // TODO: Use category icon
             Box(
                 modifier = Modifier
                     .size(32.dp)
@@ -63,9 +64,9 @@ fun CategoryItem(
                     .border(1.dp, MaterialTheme.colorScheme.onSurface, CircleShape),
                 contentAlignment = Alignment.Center
             ) {
-                Icon(
-                    modifier = Modifier.size(24.dp),
-                    imageVector = FeatherIcons.ArrowRight,
+                LemonIcon(
+                    modifier = Modifier.size(28.dp).padding(3.dp),
+                    icon = LemonIcons.valueOf(category.icon),
                     contentDescription = category.name,
                     tint = Color.Black
                 )
@@ -93,7 +94,7 @@ private fun CategoryItemPreview() {
                     id = "1",
                     name = "Shopping",
                     color = "FF5733",
-                    icon = ""
+                    icon = "CART"
                 ),
                 trailingContent = {},
                 onClick = {}

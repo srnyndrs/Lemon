@@ -59,7 +59,7 @@ fun TransactionsView.toDomain(): TransactionItem {
         amount = amount,
         categoryName = categoryName,
         color = categoryColor,
-        icon = categoryIcon,
+        icon = categoryIcon?.uppercase(),
         date = transactionDate
     )
 }
@@ -67,7 +67,7 @@ fun TransactionsView.toDomain(): TransactionItem {
 fun TransactionStatsDto.toDomain(): StatisticGroupItem {
     return StatisticGroupItem(
         categoryName = categoryName,
-        icon = icon,
+        icon = icon?.uppercase(),
         color = color,
         totalAmount = totalAmount,
         year = year,

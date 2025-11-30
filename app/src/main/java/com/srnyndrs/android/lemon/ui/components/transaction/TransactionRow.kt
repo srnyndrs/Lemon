@@ -45,7 +45,9 @@ import androidx.compose.ui.unit.sp
 import com.srnyndrs.android.lemon.domain.database.model.Transaction
 import com.srnyndrs.android.lemon.domain.database.model.TransactionItem
 import com.srnyndrs.android.lemon.domain.database.model.TransactionType
+import com.srnyndrs.android.lemon.ui.components.LemonIcon
 import com.srnyndrs.android.lemon.ui.theme.LemonTheme
+import com.srnyndrs.android.lemon.ui.utils.LemonIcons
 import com.srnyndrs.android.lemon.ui.utils.formatAsCurrency
 import com.srnyndrs.android.lemon.ui.utils.fromHex
 import compose.icons.FeatherIcons
@@ -114,9 +116,9 @@ fun TransactionRow(
                     contentAlignment = Alignment.Center
                 ) {
                     if(transaction.icon != null) {
-                        Icon(
+                        LemonIcon(
                             modifier = Modifier.size(18.dp),
-                            imageVector = FeatherIcons.Book,
+                            icon = LemonIcons.valueOf(transaction.icon),
                             contentDescription = null
                         )
                     } else {

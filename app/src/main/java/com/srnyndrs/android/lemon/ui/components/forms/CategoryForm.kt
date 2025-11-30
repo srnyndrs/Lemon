@@ -33,8 +33,7 @@ import com.srnyndrs.android.lemon.domain.database.model.Category
 import com.srnyndrs.android.lemon.ui.components.colors.ColorPicker
 import com.srnyndrs.android.lemon.ui.components.icons.IconPicker
 import com.srnyndrs.android.lemon.ui.theme.LemonTheme
-import compose.icons.FeatherIcons
-import compose.icons.feathericons.DollarSign
+import com.srnyndrs.android.lemon.ui.utils.LemonIcons
 
 @Composable
 fun CategoryForm(
@@ -59,9 +58,8 @@ fun CategoryForm(
     }
 
     var selectedIcon by remember {
-        mutableStateOf(
-            // TODO: get icon from category
-            FeatherIcons.DollarSign
+        mutableStateOf<String?>(
+            category?.icon
         )
     }
 
@@ -126,7 +124,8 @@ fun CategoryForm(
                     style = MaterialTheme.typography.titleMedium
                 )
                 IconPicker(
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    selectedIcon = selectedIcon
                 ) {
                     selectedIcon = it
                 }
@@ -183,9 +182,8 @@ fun CategoryForm(
                         val category = Category(
                             id = category?.id,
                             name = categoryName.text.trim(),
-                            icon = selectedIcon.name,
+                            icon = selectedIcon ?: LemonIcons.DEFAULT.name,
                             color = selectedColor,
-
                         )
                         onConfirm(category)
                     }

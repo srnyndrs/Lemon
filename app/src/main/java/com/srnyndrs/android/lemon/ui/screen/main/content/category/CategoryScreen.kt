@@ -47,9 +47,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.Popup
 import com.srnyndrs.android.lemon.domain.database.model.Category
+import com.srnyndrs.android.lemon.ui.components.LemonIcon
 import com.srnyndrs.android.lemon.ui.components.UiStateContainer
 import com.srnyndrs.android.lemon.ui.components.forms.CategoryForm
 import com.srnyndrs.android.lemon.ui.theme.LemonTheme
+import com.srnyndrs.android.lemon.ui.utils.LemonIcons
 import com.srnyndrs.android.lemon.ui.utils.UiState
 import com.srnyndrs.android.lemon.ui.utils.fromHex
 import com.srnyndrs.android.lemon.ui.utils.shimmer
@@ -122,12 +124,12 @@ fun CategoryScreen(
                 modifier = Modifier.fillMaxSize(),
                 columns = GridCells.Fixed(2),
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
-                //verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
                 if(isLoading) {
                     items(6) {
                         Card(
                             modifier = Modifier
+                                .padding(vertical = 6.dp)
                                 .fillMaxWidth()
                                 .requiredHeight(72.dp)
                                 .shimmerEffect(isLoading),
@@ -181,9 +183,10 @@ fun CategoryScreen(
                                             .border(1.dp, Color.Black, CircleShape),
                                         contentAlignment = Alignment.Center
                                     ) {
-                                        Icon(
-                                            imageVector = FeatherIcons.Bold,
-                                            contentDescription = null,
+                                        LemonIcon(
+                                            modifier = Modifier.size(28.dp).padding(3.dp),
+                                            icon = LemonIcons.valueOf(category.icon),
+                                            tint = Color.Black
                                         )
                                     }
                                     Text(
@@ -348,21 +351,21 @@ fun CategoryScreenPreview() {
                                 id = "1",
                                 name = "Food",
                                 color = "FFE57373",
-                                icon = "Bold",
+                                icon = "DINING",
                                 householdId = "1"
                             ),
                             Category(
                                 id = "2",
                                 name = "Transport",
                                 color = "FF64B5F6",
-                                icon = "Bold",
+                                icon = "AIRPLANE",
                                 householdId = "1"
                             ),
                             Category(
                                 id = "3",
                                 name = "Shopping",
                                 color = "FFFFB74D",
-                                icon = "Bold",
+                                icon = "CART",
                                 householdId = "1"
                             )
                         )

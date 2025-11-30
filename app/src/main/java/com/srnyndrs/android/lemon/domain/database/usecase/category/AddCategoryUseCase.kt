@@ -9,7 +9,6 @@ class AddCategoryUseCase @Inject constructor(
     private val categoryRepository: CategoryRepository
 ) {
     suspend operator fun invoke(category: Category, householdId: String): Result<Category> {
-        delay(5000L)
         return categoryRepository.addCategory(category, householdId)
     }
 }

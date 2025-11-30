@@ -7,7 +7,7 @@ fun CategoryDto.toDomain(): Category {
     return Category(
         id = id,
         name = name,
-        icon = icon,
+        icon = icon.uppercase(),
         color = color,
         householdId = householdId
     )
@@ -20,7 +20,7 @@ fun Category.toDto(
         id = null,
         householdId = householdId,
         name = name,
-        icon = icon,
+        icon = icon.uppercase(),
         color = color,
         createdAt = null,
     )

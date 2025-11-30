@@ -1,16 +1,29 @@
 package com.srnyndrs.android.lemon.ui.utils
 
 import android.annotation.SuppressLint
+import android.graphics.drawable.Icon
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.core.graphics.toColorInt
 import androidx.compose.animation.core.*
+import androidx.compose.material3.Icon
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.painterResource
+import java.text.DecimalFormat
+import java.text.DecimalFormatSymbols
+import java.time.LocalDate
+import java.time.LocalDateTime
+import java.time.ZoneId
+import java.time.ZoneOffset
 
 fun Modifier.shimmerEffect(isLoading: Boolean): Modifier {
     return if (isLoading) {
@@ -81,15 +94,15 @@ fun DrawScope.drawSpline(points: List<Offset>, color: Color) {
         // Line to last point
         lineTo(points.last().x, points.last().y)
     }
-    drawPath(path, color, style = androidx.compose.ui.graphics.drawscope.Stroke(width = 4f))
+    drawPath(path, color, style = Stroke(width = 4f))
 }
 
 @SuppressLint("DefaultLocale")
 fun Double.formatAsCurrency(): String {
-    val symbols = java.text.DecimalFormatSymbols().apply {
+    val symbols = DecimalFormatSymbols().apply {
         groupingSeparator = ' '
     }
-    val df = java.text.DecimalFormat("#,##0", symbols).apply {
+    val df = DecimalFormat("#,##0", symbols).apply {
         isGroupingUsed = true
         maximumFractionDigits = 0
     }
@@ -98,12 +111,12 @@ fun Double.formatAsCurrency(): String {
 
 fun String.toMillis(): Long? {
     return try {
-        val systemZone = java.time.ZoneId.systemDefault()
+        val systemZone = ZoneId.systemDefault()
         val instant = if (this.length <= 10) {
-            val localDate = java.time.LocalDate.parse(this)
-            localDate.atStartOfDay(java.time.ZoneOffset.UTC).toInstant()
+            val localDate = LocalDate.parse(this)
+            localDate.atStartOfDay(ZoneOffset.UTC).toInstant()
         } else {
-            val localDateTime = java.time.LocalDateTime.parse(this)
+            val localDateTime = LocalDateTime.parse(this)
             localDateTime.atZone(systemZone).toInstant()
         }
         instant.toEpochMilli()
