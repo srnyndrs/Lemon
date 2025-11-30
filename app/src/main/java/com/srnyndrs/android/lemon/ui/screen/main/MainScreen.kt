@@ -89,7 +89,6 @@ import compose.icons.feathericons.User
 import compose.icons.feathericons.X
 import kotlinx.coroutines.launch
 
-@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainScreen(
@@ -233,10 +232,12 @@ fun MainScreen(
                 }
             }
         }
-    ) {
+    ) { paddingValues ->
         if (mainState.error == null) {
             NavHost(
-                modifier = Modifier.fillMaxSize(),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(bottom = paddingValues.calculateBottomPadding()),
                 navController = navController,
                 startDestination = Screens.Home.route
             ) {
@@ -286,6 +287,9 @@ fun MainScreen(
                                         }
                                     }
                                     navController.navigate(path)
+                                }
+                                is MainUiEvent.NavigateBack -> {
+                                    navController.popBackStack()
                                 }
                             }
                         }
@@ -435,6 +439,15 @@ fun MainScreen(
                         modifier = Modifier.fillMaxSize().padding(top = 32.dp),
                         mainUserId = mainState.user.userId,
                         householdState = householdState,
+                        onUiEvent = { uiEvent ->
+                            // TODO: generic handler function for ui events
+                            when (uiEvent) {
+                                is MainUiEvent.NavigateBack -> {
+                                    navController.popBackStack()
+                                }
+                                else -> {}
+                            }
+                        }
                     ) { event ->
                         householdViewModel.onEvent(event)
                     }

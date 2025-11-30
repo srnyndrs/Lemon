@@ -5,4 +5,5 @@ sealed class MainUiEvent {
     data object ShowTransactions: MainUiEvent()
     data class ShowTransactionEditor(val transactionId: String? = null): MainUiEvent()
     data object ShowHousehold: MainUiEvent()
+    data object NavigateBack: MainUiEvent()
 }

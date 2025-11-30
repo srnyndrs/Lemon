@@ -46,6 +46,8 @@ import com.srnyndrs.android.lemon.domain.database.model.Category
 import com.srnyndrs.android.lemon.domain.database.model.Household
 import com.srnyndrs.android.lemon.domain.database.model.Member
 import com.srnyndrs.android.lemon.ui.components.UiStateContainer
+import com.srnyndrs.android.lemon.ui.screen.main.MainUiEvent
+import com.srnyndrs.android.lemon.ui.screen.main.content.category.CategoryUiEvent
 import com.srnyndrs.android.lemon.ui.theme.LemonTheme
 import com.srnyndrs.android.lemon.ui.utils.UiState
 import compose.icons.FeatherIcons
@@ -69,10 +71,11 @@ fun HouseholdScreen(
     modifier: Modifier = Modifier,
     mainUserId: String,
     householdState: HouseholdState,
+    onUiEvent: (MainUiEvent) -> Unit,
     onEvent: (HouseholdEvent) -> Unit
 ) {
 
-    var showDialog by rememberSaveable { mutableStateOf(false) }
+    var showDialog by rememberSaveable { mutableStateOf<HouseholdUiEvent?>(null) }
 
     val getAvailableActions = { userId: String, role: String ->
         // TODO: Modify role check
@@ -184,7 +187,7 @@ fun HouseholdScreen(
                         shape = RoundedCornerShape(8.dp),
                         onClick = {
                             // Delete household
-                            onEvent(HouseholdEvent.DeleteHousehold)
+                            showDialog = HouseholdUiEvent.DELETE
                         }
                     ) {
                         Text(
@@ -214,7 +217,7 @@ fun HouseholdScreen(
                             IconButton(
                                 modifier = Modifier.size(32.dp),
                                 onClick = {
-                                    showDialog = true
+                                    showDialog = HouseholdUiEvent.EDIT
                                 }
                             ) {
                                 Icon(
@@ -328,10 +331,10 @@ fun HouseholdScreen(
                 }
             }
         }
-        if(showDialog) {
+        showDialog?.let { uiEvent ->
             Dialog(
                 onDismissRequest = {
-                    showDialog = false
+                    showDialog = null
                 }
             ) {
                 Column(
@@ -345,65 +348,120 @@ fun HouseholdScreen(
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
 
-                    var selectedUserIndex by remember { mutableIntStateOf(0) }
+                    when(uiEvent) {
+                        HouseholdUiEvent.EDIT -> {
+                            var selectedUserIndex by remember { mutableIntStateOf(0) }
 
-                    // Title
-                    Text(
-                        text = "Add user to household",
-                        style = MaterialTheme.typography.headlineSmall
-                    )
-                    UiStateContainer(
-                        modifier = Modifier.fillMaxWidth(),
-                        state = householdState.users
-                    ) { isLoading, users ->
-                        // TODO: Loading status
-                        if(!isLoading) {
-                            Column {
-                                LazyColumn(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .requiredHeight(256.dp),
-                                    verticalArrangement = Arrangement.spacedBy(12.dp)
-                                ) {
-                                    if(users.isNullOrEmpty()) {
-                                        item {
-                                            Row(
-                                                modifier = Modifier.fillMaxWidth(),
-                                                verticalAlignment = Alignment.CenterVertically
-                                            ) {
-                                                Text(
-                                                    text = "No users available to add.",
-                                                    style = MaterialTheme.typography.bodyMedium,
-                                                    color = MaterialTheme.colorScheme.onSurface.copy(0.7f)
-                                                )
+                            // Title
+                            Text(
+                                text = "Add user to household",
+                                style = MaterialTheme.typography.headlineSmall
+                            )
+                            UiStateContainer(
+                                modifier = Modifier.fillMaxWidth(),
+                                state = householdState.users
+                            ) { isLoading, users ->
+                                // TODO: Loading status
+                                if(!isLoading) {
+                                    Column {
+                                        LazyColumn(
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .requiredHeight(256.dp),
+                                            verticalArrangement = Arrangement.spacedBy(12.dp)
+                                        ) {
+                                            if(users.isNullOrEmpty()) {
+                                                item {
+                                                    Row(
+                                                        modifier = Modifier.fillMaxWidth(),
+                                                        verticalAlignment = Alignment.CenterVertically
+                                                    ) {
+                                                        Text(
+                                                            text = "No users available to add.",
+                                                            style = MaterialTheme.typography.bodyMedium,
+                                                            color = MaterialTheme.colorScheme.onSurface.copy(0.7f)
+                                                        )
+                                                    }
+                                                }
+                                            } else {
+                                                itemsIndexed(users) { index, (id, name) ->
+                                                    Row(
+                                                        modifier = Modifier
+                                                            .fillMaxWidth()
+                                                            .clickable {
+                                                                selectedUserIndex = index
+                                                            }
+                                                            .background(
+                                                                if (selectedUserIndex == index)
+                                                                    MaterialTheme.colorScheme.onSurface.copy(
+                                                                        0.15f
+                                                                    )
+                                                                else Color.Transparent
+                                                            )
+                                                            .padding(3.dp),
+                                                        verticalAlignment = Alignment.CenterVertically,
+                                                        horizontalArrangement = Arrangement.SpaceBetween
+                                                    ) {
+                                                        Text(
+                                                            text = name
+                                                        )
+                                                    }
+                                                }
                                             }
                                         }
-                                    } else {
-                                        itemsIndexed(users) { index, (id, name) ->
-                                            Row(
-                                                modifier = Modifier
-                                                    .fillMaxWidth()
-                                                    .clickable {
-                                                        selectedUserIndex = index
-                                                    }
-                                                    .background(
-                                                        if (selectedUserIndex == index)
-                                                            MaterialTheme.colorScheme.onSurface.copy(
-                                                                0.15f
-                                                            )
-                                                        else Color.Transparent
-                                                    )
-                                                    .padding(3.dp),
-                                                verticalAlignment = Alignment.CenterVertically,
-                                                horizontalArrangement = Arrangement.SpaceBetween
+                                        // Actions
+                                        Row(
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .requiredHeight(42.dp)
+                                                .clip(RoundedCornerShape(5.dp))
+                                                .background(MaterialTheme.colorScheme.onSurface.copy(0.1f)),
+                                        ) {
+                                            TextButton(
+                                                modifier = Modifier.weight(0.5f),
+                                                colors = ButtonDefaults.textButtonColors(
+                                                    contentColor = MaterialTheme.colorScheme.error
+                                                ),
+                                                onClick = {
+                                                    showDialog = null
+                                                }
                                             ) {
                                                 Text(
-                                                    text = name
+                                                    text = "Cancel"
+                                                )
+                                            }
+                                            VerticalDivider(
+                                                color = MaterialTheme.colorScheme.surface,
+                                                thickness = 1.dp
+                                            )
+                                            TextButton(
+                                                modifier = Modifier.weight(0.5f),
+                                                colors = ButtonDefaults.textButtonColors(
+                                                    contentColor = MaterialTheme.colorScheme.primary
+                                                ),
+                                                onClick = {
+                                                    users?.get(selectedUserIndex)?.let {
+                                                        onEvent(HouseholdEvent.AddMember(it.first))
+                                                        showDialog = null
+                                                    }
+                                                }
+                                            ) {
+                                                Text(
+                                                    text = "Done"
                                                 )
                                             }
                                         }
                                     }
                                 }
+                            }
+                        }
+                        HouseholdUiEvent.DELETE -> {
+                            Column {
+                                // Title
+                                Text(
+                                    text = "Are you sure you want to delete the household?",
+                                    style = MaterialTheme.typography.titleLarge
+                                )
                                 // Actions
                                 Row(
                                     modifier = Modifier
@@ -418,7 +476,7 @@ fun HouseholdScreen(
                                             contentColor = MaterialTheme.colorScheme.error
                                         ),
                                         onClick = {
-                                            showDialog = false
+                                            showDialog = null
                                         }
                                     ) {
                                         Text(
@@ -435,10 +493,9 @@ fun HouseholdScreen(
                                             contentColor = MaterialTheme.colorScheme.primary
                                         ),
                                         onClick = {
-                                            users?.get(selectedUserIndex)?.let {
-                                                onEvent(HouseholdEvent.AddMember(it.first))
-                                                showDialog = false
-                                            }
+                                            onEvent(HouseholdEvent.DeleteHousehold)
+                                            showDialog = null
+                                            onUiEvent(MainUiEvent.NavigateBack)
                                         }
                                     ) {
                                         Text(
@@ -453,6 +510,11 @@ fun HouseholdScreen(
             }
         }
     }
+}
+
+enum class HouseholdUiEvent {
+    EDIT,
+    DELETE,
 }
 
 @Preview
@@ -495,7 +557,8 @@ fun HouseholdScreenPreview() {
                             Pair("2", "User 2"),
                         )
                     )
-                )
+                ),
+                onUiEvent = {}
             ) {
 
             }

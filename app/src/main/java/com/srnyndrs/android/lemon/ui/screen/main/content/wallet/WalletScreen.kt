@@ -18,6 +18,7 @@ import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
@@ -26,6 +27,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -37,6 +39,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
@@ -46,6 +49,7 @@ import com.srnyndrs.android.lemon.domain.database.model.TransactionType
 import com.srnyndrs.android.lemon.ui.components.UiStateContainer
 import com.srnyndrs.android.lemon.ui.components.forms.PaymentMethodForm
 import com.srnyndrs.android.lemon.ui.components.transaction.TransactionList
+import com.srnyndrs.android.lemon.ui.screen.main.content.category.CategoryEvent
 import com.srnyndrs.android.lemon.ui.theme.LemonTheme
 import com.srnyndrs.android.lemon.ui.utils.UiState
 import com.srnyndrs.android.lemon.ui.utils.fromHex
@@ -241,10 +245,9 @@ fun WalletScreen(
                                                     Text(text = "Edit")
                                                 },
                                                 onClick = {
-                                                    // open edit dialog with selected payment
+                                                    showDropdown = false
                                                     selectedPaymentMethod = payment
                                                     showDialog = PaymentUiEvent.UPDATE
-                                                    showDropdown = false
                                                 }
                                             )
                                             DropdownMenuItem(
@@ -254,12 +257,9 @@ fun WalletScreen(
                                                     )
                                                 },
                                                 onClick = {
-                                                    onEvent(
-                                                        WalletEvent.DeletePaymentMethod(
-                                                            payment.id!!
-                                                        )
-                                                    )
                                                     showDropdown = false
+                                                    selectedPaymentMethod = payment
+                                                    showDialog = PaymentUiEvent.DELETE
                                                 }
                                             )
                                             DropdownMenuItem(
@@ -267,12 +267,12 @@ fun WalletScreen(
                                                     Text(text = "Remove from Household")
                                                 },
                                                 onClick = {
+                                                    showDropdown = false
                                                     onEvent(
                                                         WalletEvent.RemovePaymentMethodFromHousehold(
                                                             payment.id!!
                                                         )
                                                     )
-                                                    showDropdown = false
                                                 }
                                             )
                                         } else {
@@ -281,12 +281,12 @@ fun WalletScreen(
                                                     Text(text = "Add to Household")
                                                 },
                                                 onClick = {
+                                                    showDropdown = false
                                                     onEvent(
                                                         WalletEvent.AddPaymentMethodToHousehold(
                                                             payment.id!!
                                                         )
                                                     )
-                                                    showDropdown = false
                                                 }
                                             )
                                         }
@@ -296,9 +296,7 @@ fun WalletScreen(
                         }
                     }
                     // Page indicator
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(3.dp)
-                    ) {
+                    Row(horizontalArrangement = Arrangement.spacedBy(3.dp)) {
                         repeat(pagerState.pageCount) { index ->
                             val color =
                                 if (index == pagerState.currentPage) MaterialTheme.colorScheme.onSurface else Color.Gray
@@ -403,6 +401,63 @@ fun WalletScreen(
                                 selectedPaymentMethod = null
                             }
                         }
+                        PaymentUiEvent.DELETE -> {
+                            Column(
+                                modifier = Modifier.fillMaxWidth(),
+                                verticalArrangement = Arrangement.spacedBy(12.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
+                                Text(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(12.dp),
+                                    text = "Are you sure you want to delete this payment method?",
+                                    style = MaterialTheme.typography.bodyLarge,
+                                    textAlign = TextAlign.Center
+                                )
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .requiredHeight(42.dp)
+                                        .clip(RoundedCornerShape(5.dp))
+                                        .background(MaterialTheme.colorScheme.onSurface.copy(0.1f)),
+                                ) {
+                                    TextButton(
+                                        modifier = Modifier.weight(0.5f),
+                                        colors = ButtonDefaults.textButtonColors(
+                                            contentColor = MaterialTheme.colorScheme.error
+                                        ),
+                                        onClick = {
+                                            showDialog = null
+                                            selectedPaymentMethod = null
+                                        }
+                                    ) {
+                                        Text(
+                                            text = "No"
+                                        )
+                                    }
+                                    VerticalDivider(
+                                        color = MaterialTheme.colorScheme.surface,
+                                        thickness = 1.dp
+                                    )
+                                    TextButton(
+                                        modifier = Modifier.weight(0.5f),
+                                        colors = ButtonDefaults.textButtonColors(
+                                            contentColor = MaterialTheme.colorScheme.primary
+                                        ),
+                                        onClick = {
+                                            onEvent(WalletEvent.DeletePaymentMethod(selectedPaymentMethod!!.id!!))
+                                            showDialog = null
+                                            selectedPaymentMethod = null
+                                        }
+                                    ) {
+                                        Text(
+                                            text = "Yes"
+                                        )
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -412,7 +467,8 @@ fun WalletScreen(
 
 enum class PaymentUiEvent {
     ADD,
-    UPDATE
+    UPDATE,
+    DELETE
 }
 
 @Preview
