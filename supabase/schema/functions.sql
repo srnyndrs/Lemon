@@ -334,6 +334,11 @@ BEGIN
 
   -- If caller is the payment method owner, allow unlink
   IF v_owner = auth.uid() THEN
+    -- Nullify any transactions in this household that reference this payment method
+    UPDATE public.transactions
+    SET payment_method_id = NULL
+    WHERE household_id = p_household_id AND payment_method_id = p_payment_method_id;
+
     DELETE FROM public.household_payment_methods
     WHERE household_id = p_household_id AND payment_method_id = p_payment_method_id;
     RETURN;
@@ -348,6 +353,11 @@ BEGIN
   ) INTO v_is_house_owner;
 
   IF v_is_house_owner THEN
+    -- Nullify any transactions in this household that reference this payment method
+    UPDATE public.transactions
+    SET payment_method_id = NULL
+    WHERE household_id = p_household_id AND payment_method_id = p_payment_method_id;
+
     DELETE FROM public.household_payment_methods
     WHERE household_id = p_household_id AND payment_method_id = p_payment_method_id;
     RETURN;
@@ -786,3 +796,45 @@ $$ LANGUAGE plpgsql;
 
 GRANT EXECUTE ON FUNCTION public.update_payment_method(uuid, text, text, text, payment_method_type, boolean) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.delete_payment_method(uuid) TO authenticated;
+
+-- ==============================
+-- Function: set_transaction_payment_method_null
+-- Sets payment_method_id to NULL for a transaction. Used by client when
+-- updating and explicitly wanting to remove the payment method.
+-- ==============================
+CREATE OR REPLACE FUNCTION public.set_transaction_payment_method_null(
+  p_transaction_id uuid
+)
+RETURNS void
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+  UPDATE public.transactions
+  SET payment_method_id = NULL
+  WHERE id = p_transaction_id;
+END;
+$$ LANGUAGE plpgsql;
+
+GRANT EXECUTE ON FUNCTION public.set_transaction_payment_method_null(uuid) TO authenticated;
+
+-- ==============================
+-- Function: set_transaction_category_null
+-- Sets category_id to NULL for a transaction. Used by client when
+-- updating and explicitly wanting to remove the category.
+-- ==============================
+CREATE OR REPLACE FUNCTION public.set_transaction_category_null(
+  p_transaction_id uuid
+)
+RETURNS void
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+  UPDATE public.transactions
+  SET category_id = NULL
+  WHERE id = p_transaction_id;
+END;
+$$ LANGUAGE plpgsql;
+
+GRANT EXECUTE ON FUNCTION public.set_transaction_category_null(uuid) TO authenticated;

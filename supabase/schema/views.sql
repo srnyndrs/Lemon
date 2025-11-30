@@ -86,7 +86,7 @@ SELECT
 FROM public.transactions t
 LEFT JOIN public.categories c ON t.category_id = c.id
 LEFT JOIN public.payment_methods pm ON t.payment_method_id = pm.id
-ORDER BY t.transaction_date DESC;
+ORDER BY t.transaction_date DESC, t.creation_date DESC;
 
 -- ==============================
 -- View: household_members_view
@@ -133,56 +133,21 @@ SELECT
   EXTRACT(YEAR FROM t.transaction_date)::integer AS year,
   EXTRACT(MONTH FROM t.transaction_date)::integer AS month,
   c.id as category_id,
-  COALESCE(
-    CASE 
-      WHEN t.type = 'income' THEN 'Income'
-      WHEN c.name IS NULL THEN 'Uncategorized'
-      ELSE c.name
-    END, 'Uncategorized'
-  ) AS category_name,
-  COALESCE(
-    CASE 
-      WHEN t.type = 'income' THEN 'income'
-      WHEN c.icon IS NULL THEN 'Uncategorized'
-      ELSE c.icon
-    END, 'Uncategorized'
-  ) AS category_icon,
-  COALESCE(
-    CASE 
-      WHEN t.type = 'income' THEN '#2ecc40'
-      WHEN c.color IS NULL THEN '#cccccc'
-      ELSE c.color
-    END, '#cccccc'
-  ) AS category_color,
+  COALESCE(c.name, 'Uncategorized') AS category_name,
+  COALESCE(c.icon, 'Uncategorized') AS category_icon,
+  COALESCE(c.color, '#cccccc') AS category_color,
   SUM(t.amount) AS total_amount
 FROM public.transactions t
 LEFT JOIN public.categories c ON t.category_id = c.id
 WHERE DATE_TRUNC('month', t.transaction_date) = DATE_TRUNC('month', CURRENT_DATE)
+  AND t.type <> 'income'
 GROUP BY t.household_id,
   EXTRACT(YEAR FROM t.transaction_date),
   EXTRACT(MONTH FROM t.transaction_date),
   c.id,
-  COALESCE(
-    CASE 
-      WHEN t.type = 'income' THEN 'Income'
-      WHEN c.name IS NULL THEN 'Uncategorized'
-      ELSE c.name
-    END, 'Uncategorized'
-  ),
-  COALESCE(
-    CASE 
-      WHEN t.type = 'income' THEN 'income'
-      WHEN c.icon IS NULL THEN 'Uncategorized'
-      ELSE c.icon
-    END, 'Uncategorized'
-  ),
-  COALESCE(
-    CASE 
-      WHEN t.type = 'income' THEN '#2ecc40'
-      WHEN c.color IS NULL THEN '#cccccc'
-      ELSE c.color
-    END, '#cccccc'
-  )
+  COALESCE(c.name, 'Uncategorized'),
+  COALESCE(c.icon, 'Uncategorized'),
+  COALESCE(c.color, '#cccccc')
 ORDER BY t.household_id, year, month, category_name;
 
 GRANT SELECT ON user_households TO authenticated;

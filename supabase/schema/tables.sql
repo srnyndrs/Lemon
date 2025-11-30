@@ -73,7 +73,8 @@ CREATE TABLE IF NOT EXISTS public.transactions (
   title text NOT NULL,
   description text,
   amount numeric(12,2) NOT NULL CHECK (amount > 0),
-  transaction_date date NOT NULL DEFAULT now()
+  transaction_date date NOT NULL DEFAULT now(),
+  creation_date timestamptz NOT NULL DEFAULT now()
 );
 
 -- HOUSEHOLD PAYMENT METHODS
