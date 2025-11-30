@@ -46,6 +46,7 @@ import com.srnyndrs.android.lemon.domain.database.model.Category
 import com.srnyndrs.android.lemon.domain.database.model.Household
 import com.srnyndrs.android.lemon.domain.database.model.Member
 import com.srnyndrs.android.lemon.ui.components.UiStateContainer
+import com.srnyndrs.android.lemon.ui.screen.main.MainEvent
 import com.srnyndrs.android.lemon.ui.screen.main.MainUiEvent
 import com.srnyndrs.android.lemon.ui.screen.main.content.category.CategoryUiEvent
 import com.srnyndrs.android.lemon.ui.theme.LemonTheme
@@ -72,6 +73,7 @@ fun HouseholdScreen(
     mainUserId: String,
     householdState: HouseholdState,
     onUiEvent: (MainUiEvent) -> Unit,
+    onMainEvent: (MainEvent) -> Unit,
     onEvent: (HouseholdEvent) -> Unit
 ) {
 
@@ -148,7 +150,10 @@ fun HouseholdScreen(
                             onClick = {
                                 // Save household name change
                                 isEditMode = false
-                                onEvent(HouseholdEvent.UpdateHouseholdName(householdName.text))
+                                onMainEvent(MainEvent.UpdateHouseholdName(
+                                    householdId = household!!.id,
+                                    householdName.text
+                                ))
                             }
                         ) {
                             Icon(
@@ -493,7 +498,14 @@ fun HouseholdScreen(
                                             contentColor = MaterialTheme.colorScheme.primary
                                         ),
                                         onClick = {
-                                            onEvent(HouseholdEvent.DeleteHousehold)
+                                            onMainEvent(MainEvent.DeleteHousehold(
+                                                householdId = householdState.household.let {
+                                                    when(it) {
+                                                        is UiState.Success -> it.data!!.id
+                                                        else -> ""
+                                                    }
+                                                }
+                                            ))
                                             showDialog = null
                                             onUiEvent(MainUiEvent.NavigateBack)
                                         }
@@ -558,6 +570,7 @@ fun HouseholdScreenPreview() {
                         )
                     )
                 ),
+                onMainEvent = {},
                 onUiEvent = {}
             ) {
 

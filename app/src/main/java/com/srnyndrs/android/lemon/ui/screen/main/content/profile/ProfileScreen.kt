@@ -107,12 +107,8 @@ fun ProfileScreen(
             ActionButton(
                 title = "Edit Profile",
                 icon = FeatherIcons.Edit2,
-            ) { }
-            ActionButton(
-                title = "Create Household",
-                icon = FeatherIcons.Home,
             ) {
-                showDialog = true
+                // TODO: Edit Profile
             }
             ActionButton(
                 title = "Sign out",

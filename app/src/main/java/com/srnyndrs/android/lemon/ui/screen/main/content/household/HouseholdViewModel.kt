@@ -52,12 +52,6 @@ class HouseholdViewModel @AssistedInject constructor(
             is HouseholdEvent.UpdateMemberRole -> {
                 updateMemberRole(event.userId, event.role)
             }
-            is HouseholdEvent.UpdateHouseholdName -> {
-                updateHouseholdName(event.name)
-            }
-            HouseholdEvent.DeleteHousehold -> {
-                deleteHousehold()
-            }
         }
     }
 
@@ -113,25 +107,6 @@ class HouseholdViewModel @AssistedInject constructor(
         viewModelScope.launch {
             allHouseholdUseCase.updateMemberRoleUseCase(householdId, userId, role)
                 .onSuccess { fetchHousehold() }
-                .onFailure { error ->
-                    _uiState.update { it.copy(household = UiState.Error(error.message ?: "Unknown error")) }
-                }
-        }
-    }
-
-    private fun updateHouseholdName(name: String) {
-        viewModelScope.launch {
-            allHouseholdUseCase.updateHouseholdNameUseCase(householdId, name)
-                .onSuccess { fetchHousehold() }
-                .onFailure { error ->
-                    _uiState.update { it.copy(household = UiState.Error(error.message ?: "Unknown error")) }
-                }
-        }
-    }
-
-    private fun deleteHousehold() {
-        viewModelScope.launch {
-            allHouseholdUseCase.deleteHouseholdUseCase(householdId)
                 .onFailure { error ->
                     _uiState.update { it.copy(household = UiState.Error(error.message ?: "Unknown error")) }
                 }

@@ -447,6 +447,9 @@ fun MainScreen(
                                 }
                                 else -> {}
                             }
+                        },
+                        onMainEvent = {
+                            onMainEvent(it)
                         }
                     ) { event ->
                         householdViewModel.onEvent(event)

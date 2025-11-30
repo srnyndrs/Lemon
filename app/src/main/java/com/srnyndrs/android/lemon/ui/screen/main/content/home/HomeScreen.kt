@@ -1,6 +1,7 @@
 package com.srnyndrs.android.lemon.ui.screen.main.content.home
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -28,6 +29,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -39,17 +41,18 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
 import com.srnyndrs.android.lemon.domain.database.model.Household
 import com.srnyndrs.android.lemon.domain.database.model.TransactionType
 import com.srnyndrs.android.lemon.ui.components.ActionButton
 import com.srnyndrs.android.lemon.ui.components.UiStateContainer
+import com.srnyndrs.android.lemon.ui.components.forms.HouseholdForm
 import com.srnyndrs.android.lemon.ui.components.transaction.TransactionList
 import com.srnyndrs.android.lemon.ui.screen.main.MainEvent
 import com.srnyndrs.android.lemon.ui.screen.main.MainUiEvent
 import com.srnyndrs.android.lemon.ui.theme.LemonTheme
 import com.srnyndrs.android.lemon.ui.utils.UiState
 import com.srnyndrs.android.lemon.ui.utils.formatAsCurrency
-import com.srnyndrs.android.lemon.ui.utils.shimmer
 import com.srnyndrs.android.lemon.ui.utils.shimmerEffect
 import compose.icons.FeatherIcons
 import compose.icons.feathericons.Camera
@@ -65,7 +68,7 @@ fun HomeScreen(
     isLoading: Boolean,
     onUiEvent: (MainUiEvent) -> Unit,
     onHomeEvent: (HomeEvent) -> Unit,
-    onEvent: (MainEvent) -> Unit
+    onMainEvent: (MainEvent) -> Unit
 ) {
 
     var isInitialized by rememberSaveable { mutableStateOf(false) }
@@ -77,11 +80,13 @@ fun HomeScreen(
         households.size.takeIf { it > 0 } ?: 1
     }
 
+    var showDialog by remember { mutableStateOf(false) }
+
     LaunchedEffect(pagerState.currentPage) {
         if (isInitialized) {
             val selectedHousehold = households.getOrNull(pagerState.currentPage)
             selectedHousehold?.let {
-                onEvent(MainEvent.SwitchHousehold(it.id))
+                onMainEvent(MainEvent.SwitchHousehold(it.id))
                 onHomeEvent(HomeEvent.SwitchHousehold(it.id))
             }
         } else if (!isLoading){
@@ -271,9 +276,9 @@ fun HomeScreen(
             )
             ActionButton(
                 title = "Add household",
-                icon = FeatherIcons.Camera,
+                icon = FeatherIcons.Home,
                 onClick = {
-                    // TODO: Open add household
+                    showDialog = true
                 }
             )
         }
@@ -323,6 +328,30 @@ fun HomeScreen(
                         }
                     ) { transactionId ->
                         onUiEvent(MainUiEvent.ShowTransactionEditor(transactionId))
+                    }
+                }
+            }
+        }
+        // Dialog
+        if(showDialog) {
+            Dialog(
+                onDismissRequest = {
+                    showDialog = false
+                }
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(6.dp))
+                        .background(MaterialTheme.colorScheme.surface, RoundedCornerShape(6.dp))
+                        .border(1.dp, MaterialTheme.colorScheme.onSurface, RoundedCornerShape(6.dp))
+                ) {
+                    HouseholdForm(
+                        modifier = Modifier.fillMaxWidth(),
+                        onDismissRequest = { showDialog = false },
+                    ) { householdName ->
+                        onMainEvent(MainEvent.CreateHousehold(householdName))
+                        showDialog = false
                     }
                 }
             }

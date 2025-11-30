@@ -12,6 +12,7 @@ import com.srnyndrs.android.lemon.domain.database.usecase.category.AllCategoryUs
 import com.srnyndrs.android.lemon.domain.database.usecase.household.AllHouseholdUseCase
 import com.srnyndrs.android.lemon.domain.database.usecase.payment_method.AllPaymentMethodUseCase
 import com.srnyndrs.android.lemon.domain.database.usecase.transaction.AllTransactionUseCase
+import com.srnyndrs.android.lemon.ui.utils.UiState
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
@@ -21,6 +22,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 @HiltViewModel(assistedFactory = MainViewModel.MainViewModelFactory::class)
@@ -39,7 +41,7 @@ class MainViewModel @AssistedInject constructor(
     private val _mainState = MutableStateFlow(MainState())
     val mainState = _mainState.asStateFlow()
         .onStart {
-            init()
+            fetchHouseholds()
         }
         .stateIn(
             scope = viewModelScope,
@@ -60,17 +62,23 @@ class MainViewModel @AssistedInject constructor(
             is MainEvent.CreateHousehold -> {
                 allHouseholdUseCase.createHouseholdUseCase(event.householdName).fold(
                     onSuccess = {
-                        init()
+                        fetchHouseholds()
                     },
                     onFailure = {
                         // TODO
                     }
                 )
             }
+            is MainEvent.UpdateHouseholdName -> {
+                updateHouseholdName(event.householdId, event.name)
+            }
+            is MainEvent.DeleteHousehold -> {
+                deleteHousehold(event.householdId)
+            }
         }
     }
 
-    private fun init() = viewModelScope.launch {
+    private fun fetchHouseholds() = viewModelScope.launch {
         _mainState.value = _mainState.value.copy(isLoading = true)
         getUserUseCase(userId).fold(
             onSuccess = { user ->
@@ -89,6 +97,30 @@ class MainViewModel @AssistedInject constructor(
                 )
             }
         )
+    }
+
+    private fun updateHouseholdName(householdId: String, name: String) {
+        viewModelScope.launch {
+            allHouseholdUseCase.updateHouseholdNameUseCase(householdId, name)
+                .onSuccess {
+                    fetchHouseholds()
+                }
+                .onFailure { error ->
+                   // _uiState.update { it.copy(household = UiState.Error(error.message ?: "Unknown error")) }
+                }
+        }
+    }
+
+    private fun deleteHousehold(householdId: String) {
+        viewModelScope.launch {
+            allHouseholdUseCase.deleteHouseholdUseCase(householdId)
+                .onSuccess {
+                    fetchHouseholds()
+                }
+                .onFailure { error ->
+                    //_uiState.update { it.copy(household = UiState.Error(error.message ?: "Unknown error")) }
+                }
+        }
     }
 
 }
