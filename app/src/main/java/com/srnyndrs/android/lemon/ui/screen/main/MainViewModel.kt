@@ -12,6 +12,7 @@ import com.srnyndrs.android.lemon.domain.database.usecase.category.AllCategoryUs
 import com.srnyndrs.android.lemon.domain.database.usecase.household.AllHouseholdUseCase
 import com.srnyndrs.android.lemon.domain.database.usecase.payment_method.AllPaymentMethodUseCase
 import com.srnyndrs.android.lemon.domain.database.usecase.transaction.AllTransactionUseCase
+import com.srnyndrs.android.lemon.domain.database.usecase.user.UpdateUsernameUseCase
 import com.srnyndrs.android.lemon.ui.utils.UiState
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
@@ -30,7 +31,8 @@ class MainViewModel @AssistedInject constructor(
     @Assisted private val userId: String,
     private val getUserUseCase: GetUserUseCase,
     private val logoutUserUseCase: LogoutUserUseCase,
-    private val allHouseholdUseCase: AllHouseholdUseCase
+    private val updateUsernameUseCase: UpdateUsernameUseCase,
+    private val allHouseholdUseCase: AllHouseholdUseCase,
 ): ViewModel() {
 
     @AssistedFactory
@@ -75,6 +77,9 @@ class MainViewModel @AssistedInject constructor(
             is MainEvent.DeleteHousehold -> {
                 deleteHousehold(event.householdId)
             }
+            is MainEvent.UpdateUsername -> {
+                updateUsername(event.newUsername)
+            }
         }
     }
 
@@ -107,6 +112,18 @@ class MainViewModel @AssistedInject constructor(
                 }
                 .onFailure { error ->
                    // _uiState.update { it.copy(household = UiState.Error(error.message ?: "Unknown error")) }
+                }
+        }
+    }
+
+    private fun updateUsername(newName: String) {
+        viewModelScope.launch {
+            updateUsernameUseCase(userId, newName)
+                .onSuccess {
+                    fetchHouseholds()
+                }
+                .onFailure { error ->
+                    //_uiState.update { it.copy(household = UiState.Error(error.message ?: "Unknown error")) }
                 }
         }
     }

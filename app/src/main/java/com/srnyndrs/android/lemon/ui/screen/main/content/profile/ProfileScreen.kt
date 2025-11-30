@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.requiredWidth
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
@@ -36,6 +37,7 @@ import com.srnyndrs.android.lemon.ui.components.ActionButton
 import com.srnyndrs.android.lemon.ui.components.forms.CategoryForm
 import com.srnyndrs.android.lemon.ui.components.forms.HouseholdForm
 import com.srnyndrs.android.lemon.ui.components.forms.PaymentMethodForm
+import com.srnyndrs.android.lemon.ui.components.forms.ProfileForm
 import com.srnyndrs.android.lemon.ui.screen.main.MainEvent
 import com.srnyndrs.android.lemon.ui.theme.LemonTheme
 import compose.icons.FeatherIcons
@@ -62,15 +64,16 @@ fun ProfileScreen(
         modifier = Modifier
             .then(modifier)
             .padding(6.dp),
-        verticalArrangement = Arrangement.spacedBy(24.dp),
+        verticalArrangement = Arrangement.spacedBy(32.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Row(
+        Column (
             modifier = Modifier
                 .fillMaxWidth()
+                .requiredWidth(256.dp)
                 .padding(3.dp),
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
-            verticalAlignment = Alignment.CenterVertically
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Box(
                 modifier = Modifier
@@ -86,7 +89,9 @@ fun ProfileScreen(
                 )
             }
             Column(
-                verticalArrangement = Arrangement.spacedBy(0.dp)
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
                     text = username,
@@ -108,7 +113,7 @@ fun ProfileScreen(
                 title = "Edit Profile",
                 icon = FeatherIcons.Edit2,
             ) {
-                // TODO: Edit Profile
+                showDialog = true
             }
             ActionButton(
                 title = "Sign out",
@@ -131,11 +136,14 @@ fun ProfileScreen(
                         .background(MaterialTheme.colorScheme.surface, RoundedCornerShape(6.dp))
                         .border(1.dp, MaterialTheme.colorScheme.onSurface, RoundedCornerShape(6.dp))
                 ) {
-                    HouseholdForm(
+                    ProfileForm(
                         modifier = Modifier.fillMaxWidth(),
-                        onDismissRequest = { showDialog = false },
-                    ) { householdName ->
-                        onMainEvent(MainEvent.CreateHousehold(householdName))
+                        initialName = username,
+                        onDismissRequest = {
+                            showDialog = false
+                        }
+                    ) {
+                        onMainEvent(MainEvent.UpdateUsername(it))
                         showDialog = false
                     }
                 }

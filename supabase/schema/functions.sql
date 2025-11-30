@@ -838,3 +838,44 @@ END;
 $$ LANGUAGE plpgsql;
 
 GRANT EXECUTE ON FUNCTION public.set_transaction_category_null(uuid) TO authenticated;
+
+-- ==============================
+-- Function: update_username
+-- Updates the username for the given user. Caller must be the user.
+-- Ensures the new username is not already taken.
+-- ==============================
+CREATE OR REPLACE FUNCTION public.update_username(
+  p_user_id uuid,
+  p_new_username text
+)
+RETURNS void
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_auth uuid := auth.uid();
+BEGIN
+  IF v_auth IS NULL THEN
+    RAISE EXCEPTION 'Not authenticated' USING ERRCODE = '42501';
+  END IF;
+
+  IF v_auth <> p_user_id THEN
+    RAISE EXCEPTION 'Not allowed: can only update your own username' USING ERRCODE = '42501';
+  END IF;
+
+  -- Check uniqueness of the new username
+  IF EXISTS (
+    SELECT 1 FROM public.users u
+    WHERE u.username = p_new_username
+      AND u.id <> p_user_id
+  ) THEN
+    RAISE EXCEPTION 'Username already taken' USING ERRCODE = '23505';
+  END IF;
+
+  UPDATE public.users
+  SET username = p_new_username
+  WHERE id = p_user_id;
+END;
+$$ LANGUAGE plpgsql;
+
+GRANT EXECUTE ON FUNCTION public.update_username(uuid, text) TO authenticated;

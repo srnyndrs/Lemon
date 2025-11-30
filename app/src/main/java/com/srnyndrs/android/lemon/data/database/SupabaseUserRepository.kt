@@ -8,6 +8,8 @@ import com.srnyndrs.android.lemon.domain.database.UserRepository
 import com.srnyndrs.android.lemon.domain.database.model.UserMainData
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.postgrest.from
+import io.github.jan.supabase.postgrest.postgrest
+import io.github.jan.supabase.postgrest.rpc
 import javax.inject.Inject
 
 class SupabaseUserRepository @Inject constructor(
@@ -46,6 +48,24 @@ class SupabaseUserRepository @Inject constructor(
             Result.success(users)
         } catch (e: Exception) {
             Log.e(_tag, "getUsers() failed", e)
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun updateUsername(userId: String, newUsername: String): Result<Unit> {
+        Log.d(_tag, "updateUsername() called with: userId = $userId, newUsername = $newUsername")
+        return try {
+            client.postgrest.rpc(
+                function = "update_username",
+                parameters = mapOf(
+                    "p_user_id" to userId,
+                    "p_new_username" to newUsername
+                )
+            )
+            Log.d(_tag, "updateUsername() returned: Unit")
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Log.e(_tag, "updateUsername() failed", e)
             Result.failure(e)
         }
     }
