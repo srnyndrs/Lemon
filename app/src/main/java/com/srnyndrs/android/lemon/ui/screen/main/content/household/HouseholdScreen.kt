@@ -34,14 +34,20 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import com.srnyndrs.android.lemon.domain.database.model.Category
 import com.srnyndrs.android.lemon.domain.database.model.Household
 import com.srnyndrs.android.lemon.domain.database.model.Member
@@ -109,6 +115,21 @@ fun HouseholdScreen(
 
             var isEditMode by remember { mutableStateOf(false) }
 
+            val focusRequester = remember { FocusRequester() }
+            val keyboardController = LocalSoftwareKeyboardController.current
+            val focusManager = LocalFocusManager.current
+
+            LaunchedEffect(isEditMode) {
+                if (isEditMode) {
+                    householdName = householdName.copy(selection = TextRange(householdName.text.length))
+                    focusRequester.requestFocus()
+                    keyboardController?.show()
+                } else {
+                    focusManager.clearFocus()
+                    keyboardController?.hide()
+                }
+            }
+
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -129,6 +150,7 @@ fun HouseholdScreen(
                         contentDescription = null
                     )
                     TextField(
+                        modifier = Modifier.focusRequester(focusRequester),
                         value = householdName,
                         onValueChange = {
                             householdName = it
@@ -140,8 +162,8 @@ fun HouseholdScreen(
                             disabledContainerColor = Color.Transparent,
                             disabledTextColor = MaterialTheme.colorScheme.onSurface,
                             disabledIndicatorColor = Color.Transparent,
-                            focusedIndicatorColor = Color.Transparent,
-                            unfocusedIndicatorColor = Color.Transparent
+                            focusedIndicatorColor = MaterialTheme.colorScheme.onSurface,
+                            unfocusedIndicatorColor = Color.Transparent,
                         ),
                         textStyle = MaterialTheme.typography.headlineSmall
                     )
@@ -176,7 +198,7 @@ fun HouseholdScreen(
                         ),
                         shape = RoundedCornerShape(8.dp),
                         onClick = {
-                            isEditMode = true
+                            isEditMode = !isEditMode
                         },
                     ) {
                         Text(
