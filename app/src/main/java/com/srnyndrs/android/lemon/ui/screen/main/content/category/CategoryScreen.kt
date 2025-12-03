@@ -82,7 +82,7 @@ fun CategoryScreen(
             modifier = Modifier
                 .fillMaxWidth()
                 .requiredHeight(56.dp)
-                .padding(6.dp),
+                .padding(horizontal = 8.dp, vertical = 6.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween,
         ) {
@@ -121,7 +121,8 @@ fun CategoryScreen(
             state = categoriesState.categories
         ) { isLoading, categories ->
             LazyVerticalGrid(
-                modifier = Modifier.fillMaxSize(),
+                modifier = Modifier.fillMaxSize()
+                    .padding(horizontal = 8.dp),
                 columns = GridCells.Fixed(2),
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
             ) {

@@ -178,14 +178,16 @@ fun InsightsScreen(
                             }
                             HorizontalDivider()
                             Text(
-                                modifier = Modifier.fillMaxWidth(),
+                                modifier = Modifier.fillMaxWidth()
+                                    .padding(horizontal = 8.dp),
                                 text = "Categories",
                                 style = MaterialTheme.typography.headlineSmall,
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis
                             )
                             LazyColumn(
-                                modifier = Modifier.fillMaxSize(),
+                                modifier = Modifier.fillMaxSize()
+                                    .padding(horizontal = 8.dp),
                                 verticalArrangement = Arrangement.spacedBy(6.dp)
                             ) {
                                 if(isLoading) {
@@ -287,7 +289,8 @@ fun InsightsScreen(
                             )
                             HorizontalDivider()
                             Text(
-                                modifier = Modifier.fillMaxWidth(),
+                                modifier = Modifier.fillMaxWidth()
+                                    .padding(horizontal = 8.dp),
                                 text = "Months",
                                 style = MaterialTheme.typography.headlineSmall,
                                 maxLines = 1,
@@ -346,7 +349,8 @@ fun InsightsScreen(
                             )
                             HorizontalDivider()
                             Text(
-                                modifier = Modifier.fillMaxWidth(),
+                                modifier = Modifier.fillMaxWidth()
+                                    .padding(horizontal = 8.dp),
                                 text = "Months",
                                 style = MaterialTheme.typography.headlineSmall,
                                 maxLines = 1,

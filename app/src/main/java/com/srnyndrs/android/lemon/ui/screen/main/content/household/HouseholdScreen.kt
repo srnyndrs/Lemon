@@ -140,7 +140,8 @@ fun HouseholdScreen(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .requiredHeight(72.dp),
+                        .requiredHeight(72.dp)
+                        .padding(horizontal = 8.dp),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(3.dp)
                 ) {
@@ -187,7 +188,8 @@ fun HouseholdScreen(
                 }
                 // Actions
                 Row(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier.fillMaxWidth()
+                        .padding(horizontal = 8.dp),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
@@ -228,7 +230,7 @@ fun HouseholdScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .requiredHeight(256.dp)
-                        .padding(vertical = 12.dp),
+                        .padding(horizontal = 8.dp, vertical = 12.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     item {

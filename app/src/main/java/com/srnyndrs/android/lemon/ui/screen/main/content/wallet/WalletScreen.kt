@@ -101,7 +101,8 @@ fun WalletScreen(
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Text(
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier.fillMaxWidth()
+                            .padding(horizontal = 8.dp),
                         text = "Payment Methods",
                         style = MaterialTheme.typography.titleLarge
                     )
@@ -337,7 +338,7 @@ fun WalletScreen(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(6.dp),
+                .padding(horizontal = 12.dp, vertical = 6.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             Text(
@@ -513,7 +514,7 @@ fun WalletScreenPreview() {
                                     date = "2025-01-01",
                                     categoryName = "Shopping",
                                     color = "#cccccc",
-                                    icon = "fork",
+                                    icon = "CAR",
                                 )
                             )
                         )
