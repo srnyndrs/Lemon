@@ -4,29 +4,27 @@
 - [x] Android project setup (MVVM, Clean Architecture)
 - [x] Supabase initialization
 - [x] Navigation setup
-- [ ] First version of design
-- [ ] Database schema
+- [x] First version of design
+- [x] Database schema
 
 ## Core Feature Development
 - [x] Authentication (sign up, login, session)
-- [ ] User profile + household loading
-- [ ] Household list and details
-- [ ] Household creation
-- [ ] Membership management
-- [ ] Payment methods UI + integration
-- [ ] Create payment methods
-- [ ] Record transaction (expense/income)
-- [ ] Transaction list and basic filtering
+- [x] User profile + household loading
+- [x] Household list and details
+- [x] Household creation
+- [x] Membership management
+- [x] Payment methods UI + integration
+- [x] Create payment methods
+- [x] Record transaction (expense/income)
+- [x] Transaction list and basic filtering
 
 ## Interactive Features and Refinements
-- [ ] Category management (name, color, icon)
-- [ ] Transaction UI with category selection
-- [ ] Charts and statistics
+- [x] Category management (name, color, icon)
+- [x] Transaction UI with category selection
+- [x] Charts and statistics
+- [x] Monthly contribution calculations
 - [ ] Category limits management
 - [ ] Saving goals module
-- [ ] Weekly/monthly contribution calculations
-- [ ] Recurring expenses management
-- [ ] Automatic transaction reminders
 - [ ] Receipt scan (OCR) for transaction auto-fill
 
 ## Documentation
