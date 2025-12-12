@@ -11,6 +11,7 @@ import io.github.jan.supabase.auth.Auth
 import javax.inject.Singleton
 import io.github.jan.supabase.createSupabaseClient
 import io.github.jan.supabase.postgrest.Postgrest
+import io.github.jan.supabase.storage.Storage
 
 @Module
 @InstallIn(SingletonComponent::class)
@@ -25,6 +26,7 @@ object AppModule {
         ) {
             install(Auth)
             install(Postgrest)
+            install(Storage)
         }
     }
 }

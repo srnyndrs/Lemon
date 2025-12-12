@@ -7,5 +7,6 @@ data class UserMainData(
     val userId: String = "",
     val username: String = "",
     val email: String = "",
+    val profilePictureUrl: String = "",
     val households: List<Household> = emptyList(),
 )

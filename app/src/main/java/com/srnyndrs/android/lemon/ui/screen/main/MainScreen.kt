@@ -2,6 +2,8 @@ package com.srnyndrs.android.lemon.ui.screen.main
 
 import android.annotation.SuppressLint
 import android.util.Log
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
@@ -66,6 +68,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.srnyndrs.android.lemon.domain.database.model.dto.TransactionDetailsDto
 import com.srnyndrs.android.lemon.ui.components.forms.TransactionForm
+import com.srnyndrs.android.lemon.ui.screen.main.components.RemotePicture
 import com.srnyndrs.android.lemon.ui.screen.main.content.category.CategoryScreen
 import com.srnyndrs.android.lemon.ui.screen.main.content.category.CategoryViewModel
 import com.srnyndrs.android.lemon.ui.screen.main.content.home.HomeEvent
@@ -76,6 +79,7 @@ import com.srnyndrs.android.lemon.ui.screen.main.content.household.HouseholdView
 import com.srnyndrs.android.lemon.ui.screen.main.content.insights.InsightsScreen
 import com.srnyndrs.android.lemon.ui.screen.main.content.insights.InsightsViewModel
 import com.srnyndrs.android.lemon.ui.screen.main.content.profile.ProfileScreen
+import com.srnyndrs.android.lemon.ui.screen.main.content.profile.ProfileViewModel
 import com.srnyndrs.android.lemon.ui.screen.main.content.transactions.TransactionsScreen
 import com.srnyndrs.android.lemon.ui.screen.main.content.transactions.TransactionsViewModel
 import com.srnyndrs.android.lemon.ui.screen.main.content.transactions.editor.TransactionEditorScreen
@@ -123,7 +127,6 @@ fun MainScreen(
 
     Scaffold(
         modifier = Modifier.then(modifier),
-            //.background(MaterialTheme.colorScheme.tertiary),
         topBar = {
 
             val visible = screens.map { it.route }.contains(navBackStackEntry?.destination?.route)
@@ -140,10 +143,10 @@ fun MainScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .requiredHeight(topPadding)
-                        .clip(RoundedCornerShape(
+                        /*.clip(RoundedCornerShape(
                             bottomStart = 16.dp,
                             bottomEnd = 16.dp
-                        ))
+                        ))*/
                         .background( MaterialTheme.colorScheme.primaryContainer),
                     contentAlignment = Alignment.BottomCenter
                 ) {
@@ -168,10 +171,9 @@ fun MainScreen(
                                     },
                                 contentAlignment = Alignment.Center
                             ) {
-                                // Placeholder for profile image
-                                Icon(
-                                    imageVector = FeatherIcons.User,
-                                    contentDescription = null,
+                                RemotePicture(
+                                    modifier = Modifier.fillMaxSize(),
+                                    url = mainState.user.profilePictureUrl,
                                 )
                             }
                             //
@@ -402,14 +404,20 @@ fun MainScreen(
                         )
                     }
                 ) {
+
+                    val profileViewModel = hiltViewModel<ProfileViewModel, ProfileViewModel.ProfileViewModelFactory>(
+                        creationCallback = { factory -> factory.create(mainState.user.userId) }
+                    )
+
                     ProfileScreen(
                         modifier = Modifier.fillMaxSize().padding(top = 32.dp),
-                        username = mainState.user.username,
-                        email = mainState.user.email,
+                        userMainData = mainState.user,
                         onMainEvent = {
                             onMainEvent(it)
                         },
-                    )
+                    ) { event ->
+                        profileViewModel.onEvent(event)
+                    }
                 }
                 composable(
                     route = Screens.Household.route,

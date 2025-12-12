@@ -125,7 +125,6 @@ fun HomeScreen(
                         drawRect(
                             Brush.verticalGradient(
                                 colors = listOf(
-                                    foregroundColor,
                                     foregroundColor.copy(0.7f),
                                     foregroundColor.copy(0.4f),
                                     foregroundColor.copy(0.2f),

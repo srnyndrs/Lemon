@@ -1,8 +1,12 @@
 package com.srnyndrs.android.lemon.ui.screen.main.content.profile
 
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -33,12 +37,14 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
+import com.srnyndrs.android.lemon.domain.database.model.UserMainData
 import com.srnyndrs.android.lemon.ui.components.ActionButton
 import com.srnyndrs.android.lemon.ui.components.forms.CategoryForm
 import com.srnyndrs.android.lemon.ui.components.forms.HouseholdForm
 import com.srnyndrs.android.lemon.ui.components.forms.PaymentMethodForm
 import com.srnyndrs.android.lemon.ui.components.forms.ProfileForm
 import com.srnyndrs.android.lemon.ui.screen.main.MainEvent
+import com.srnyndrs.android.lemon.ui.screen.main.components.RemotePicture
 import com.srnyndrs.android.lemon.ui.theme.LemonTheme
 import compose.icons.FeatherIcons
 import compose.icons.feathericons.ChevronDown
@@ -53,12 +59,20 @@ import compose.icons.feathericons.UserX
 @Composable
 fun ProfileScreen(
     modifier: Modifier = Modifier,
-    username: String,
-    email: String,
-    onMainEvent: (MainEvent) -> Unit
+    userMainData: UserMainData,
+    onMainEvent: (MainEvent) -> Unit,
+    onEvent: (ProfileEvent) -> Unit,
 ) {
 
     var showDialog by remember { mutableStateOf(false) }
+    val singlePhotoPickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.PickVisualMedia(),
+        onResult = { uri ->
+            uri?.let {
+                onEvent(ProfileEvent.UploadProfilePicture(it))
+            }
+        }
+    )
 
     Column(
         modifier = Modifier
@@ -75,30 +89,28 @@ fun ProfileScreen(
             verticalArrangement = Arrangement.spacedBy(12.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Box(
+            RemotePicture(
                 modifier = Modifier
                     .size(72.dp)
                     .clip(CircleShape)
+                    .clickable {
+                        singlePhotoPickerLauncher.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
+                    }
                     .background(MaterialTheme.colorScheme.onSurface.copy(0.4f))
                     .border(1.dp, MaterialTheme.colorScheme.onSurface, CircleShape),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    imageVector = FeatherIcons.User,
-                    contentDescription = null
-                )
-            }
+                url = userMainData.profilePictureUrl,
+            )
             Column(
                 modifier = Modifier.fillMaxWidth(),
                 verticalArrangement = Arrangement.spacedBy(12.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
-                    text = username,
+                    text = userMainData.username,
                     style = MaterialTheme.typography.titleLarge
                 )
                 Text(
-                    text = email,
+                    text = userMainData.email,
                     style = MaterialTheme.typography.bodyMedium
                 )
             }
@@ -138,12 +150,12 @@ fun ProfileScreen(
                 ) {
                     ProfileForm(
                         modifier = Modifier.fillMaxWidth(),
-                        initialName = username,
+                        initialName = userMainData.username,
                         onDismissRequest = {
                             showDialog = false
                         }
                     ) {
-                        onMainEvent(MainEvent.UpdateUsername(it))
+                        onEvent(ProfileEvent.UpdateUsername(it))
                         showDialog = false
                     }
                 }
@@ -159,8 +171,13 @@ fun ProfileScreenPreview() {
         Surface {
             ProfileScreen(
                 modifier = Modifier.fillMaxSize(),
-                username = "John Doe",
-                email = "johndoe@example.com",
+                userMainData = UserMainData(
+                    userId = "user123",
+                    username = "John Doe",
+                    email = "johndoe@example.com",
+                    profilePictureUrl = "https://api.dicebear.com/6.x/initials/svg?seed=JD"
+                ),
+                onMainEvent = {}
             ) {  }
         }
     }

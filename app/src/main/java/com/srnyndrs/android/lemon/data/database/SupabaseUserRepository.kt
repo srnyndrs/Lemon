@@ -27,7 +27,7 @@ class SupabaseUserRepository @Inject constructor(
                     filter { UserWithHousehold::userId eq userId }
                 }
                 .decodeList<UserWithHousehold>()
-            val user = response.toDomain()
+            val user = response.toDomain(client.supabaseHttpUrl)
             Log.d(_tag, "getUser() returned: $user")
             return Result.success(user)
         } catch (e: Exception) {

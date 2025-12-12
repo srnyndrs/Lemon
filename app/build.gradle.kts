@@ -81,6 +81,9 @@ dependencies {
     implementation(libs.androidx.ui.text.google.fonts)
     // Charts
     implementation ("io.github.ehsannarmani:compose-charts:0.1.0")
+    // Coil
+    implementation(libs.coil.compose)
+    implementation(libs.coil.network.okhttp)
     // CameraX
     implementation(libs.camera.core)
     implementation(libs.camera.camera2)

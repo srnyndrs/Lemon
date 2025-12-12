@@ -209,6 +209,57 @@ CREATE POLICY "Household members can view transactions"
     public.is_household_member(household_id, auth.uid())
   );
 
+
+-- ========================
+-- STORAGE: PROFILE PICTURE BUCKET
+-- ========================
+-- Allow authenticated users to manage objects only in their own folder within the
+-- 'profile_picture' bucket. Folder name must equal their `auth.uid()`.
+
+-- READ: users can read their own profile picture objects
+DROP POLICY IF EXISTS "Users can read their own profile pictures" ON storage.objects;
+CREATE POLICY "Users can read their own profile pictures"
+  ON storage.objects FOR SELECT
+  TO authenticated
+  USING (
+    bucket_id = 'profile_picture'
+    AND split_part(name, '/', 1) = auth.uid()::text
+  );
+
+-- INSERT: users can upload only to their own folder
+DROP POLICY IF EXISTS "Users can upload their own profile pictures" ON storage.objects;
+CREATE POLICY "Users can upload their own profile pictures"
+  ON storage.objects FOR INSERT
+  TO authenticated
+  WITH CHECK (
+    bucket_id = 'profile_picture'
+    AND split_part(name, '/', 1) = auth.uid()::text
+  );
+
+-- UPDATE: users can update only their own objects
+DROP POLICY IF EXISTS "Users can update their own profile pictures" ON storage.objects;
+CREATE POLICY "Users can update their own profile pictures"
+  ON storage.objects FOR UPDATE
+  TO authenticated
+  USING (
+    bucket_id = 'profile_picture'
+    AND split_part(name, '/', 1) = auth.uid()::text
+  )
+  WITH CHECK (
+    bucket_id = 'profile_picture'
+    AND split_part(name, '/', 1) = auth.uid()::text
+  );
+
+-- DELETE: users can delete only their own objects
+DROP POLICY IF EXISTS "Users can delete their own profile pictures" ON storage.objects;
+CREATE POLICY "Users can delete their own profile pictures"
+  ON storage.objects FOR DELETE
+  TO authenticated
+  USING (
+    bucket_id = 'profile_picture'
+    AND split_part(name, '/', 1) = auth.uid()::text
+  );
+
 DROP POLICY IF EXISTS "Household members can create transactions" ON public.transactions;
 CREATE POLICY "Household members can create transactions"
   ON public.transactions FOR INSERT
