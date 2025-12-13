@@ -1,85 +1,122 @@
 package com.srnyndrs.android.lemon.ui.screen.scan.content.scanner
 
 import android.Manifest
-import android.util.Log
-import androidx.camera.core.CameraSelector
-import androidx.camera.core.ImageAnalysis
-import androidx.camera.core.ImageProxy
-import androidx.camera.core.Preview
-import androidx.camera.lifecycle.ProcessCameraProvider
-import androidx.camera.view.PreviewView
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.AlertDialog
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.viewinterop.AndroidView
-import androidx.core.content.ContextCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.MultiplePermissionsState
 import com.google.accompanist.permissions.PermissionState
 import com.google.accompanist.permissions.rememberPermissionState
-import com.srnyndrs.android.lemon.ui.screen.scan.Screen
+import com.srnyndrs.android.lemon.ui.screen.scan.ScanEvent
+import com.srnyndrs.android.lemon.ui.screen.scan.ScanScreen
 import com.srnyndrs.android.lemon.ui.screen.scan.SplitBillUiState
 import com.srnyndrs.android.lemon.ui.screen.scan.SplitBillViewModel
-import com.srnyndrs.android.lemon.ui.screen.scan.components.ScanLineAnimation
+import com.srnyndrs.android.lemon.ui.screen.scan.components.CameraPermissionDialog
+import com.srnyndrs.android.lemon.ui.theme.LemonTheme
 import kotlinx.coroutines.launch
-import java.util.concurrent.Executors
 
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun SplitBillMainScreen(
     modifier: Modifier = Modifier,
+    uiState: SplitBillUiState,
+    cameraPermissionState: PermissionState = rememberPermissionState(Manifest.permission.CAMERA),
     navController: NavController,
-    viewModel: SplitBillViewModel
+    onEvent: (ScanEvent) -> Unit
 ) {
-    val cameraPermissionState = rememberPermissionState(Manifest.permission.CAMERA)
-    val uiState by viewModel.uiState.collectAsState()
+
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
+    val captureSeqState = remember { mutableIntStateOf(0) }
+
     LaunchedEffect(Unit) {
         cameraPermissionState.launchPermissionRequest()
     }
 
     Scaffold(
-        snackbarHost = { SnackbarHost(snackbarHostState) },
-        modifier = modifier
+        modifier = Modifier.then(modifier),
+        snackbarHost = { SnackbarHost(snackbarHostState) }
     ) { paddingValues ->
-        Box(modifier = Modifier.padding(paddingValues).fillMaxSize()) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+        ) {
             when {
                 cameraPermissionState.hasPermission -> {
                     CameraScanScreen(
+                        modifier = Modifier.fillMaxSize(),
                         onBillScanned = { imageProxy ->
                             // ViewModel now handles if it's already loading
-                            viewModel.extractBillDataFromImage(imageProxy)
+                            onEvent(ScanEvent.ExtractBillDataFromImage(imageProxy))
                         },
-                        uiState = uiState // Pass UI state for showing loader
+                        uiState = uiState, // Pass UI state for showing loader
+                        captureSequence = captureSeqState.intValue
                     )
+                    // Manual capture control overlay
+                    Row(
+                        modifier = Modifier
+                            .align(Alignment.BottomCenter)
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        horizontalArrangement = Arrangement.Center,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Button(
+                            modifier = Modifier.size(48.dp),
+                            shape = CircleShape,
+                            enabled = uiState is SplitBillUiState.Idle || uiState is SplitBillUiState.Error,
+                            onClick = { captureSeqState.intValue += 1 },
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = MaterialTheme.colorScheme.primaryContainer
+                            )
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxSize(0.8f)
+                                    .clip(CircleShape)
+                                    .background(MaterialTheme.colorScheme.primary)
+                            )
+                        }
+                    }
                 }
 
                 cameraPermissionState.shouldShowRationale -> {
@@ -116,13 +153,12 @@ fun SplitBillMainScreen(
         }
     }
 
-
     LaunchedEffect(uiState) {
         when (val currentUiState = uiState) {
             is SplitBillUiState.Success -> {
                 // To prevent re-navigation if already on BillResultScreen and state somehow re-triggers
-                if (navController.currentDestination?.route != Screen.BillResultScreen.route) {
-                    navController.navigate(Screen.BillResultScreen.route)
+                if (navController.currentDestination?.route != ScanScreen.BillResultScanScreen.route) {
+                    navController.navigate(ScanScreen.BillResultScanScreen.route)
                 }
             }
 
@@ -141,12 +177,11 @@ fun SplitBillMainScreen(
         }
     }
     val lifecycleOwner = LocalLifecycleOwner.current
-    DisposableEffect(lifecycleOwner, viewModel) {
+    DisposableEffect(lifecycleOwner,) {
         val observer = LifecycleEventObserver { _, event ->
-            if (event == Lifecycle.Event.ON_PAUSE) {
-            } else if (event == Lifecycle.Event.ON_RESUME) {
+            if (event == Lifecycle.Event.ON_RESUME) {
                 if (uiState !is SplitBillUiState.Success && uiState !is SplitBillUiState.Loading) {
-                    viewModel.resetScanState()
+                    onEvent(ScanEvent.ResetScanState)
                 }
             }
         }
@@ -157,83 +192,40 @@ fun SplitBillMainScreen(
     }
 }
 
-@OptIn(ExperimentalPermissionsApi::class)
-@Composable
-fun CameraPermissionDialog(
-    onDismissRequest: () -> Unit,
-    cameraPermissionState: PermissionState
-) {
-    AlertDialog(
-        onDismissRequest = onDismissRequest,
-        title = { Text(text = "Permission Required") },
-        text = { Text(text = "This app needs camera access to scan your bills.") },
-        confirmButton = {
-            TextButton(onClick = { cameraPermissionState.launchPermissionRequest() }) {
-                Text("Grant")
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismissRequest) {
-                Text("Cancel")
-            }
-        }
-    )
+@ExperimentalPermissionsApi
+class PermissionsStatePreview(
+) : PermissionState {
+
+    override val hasPermission: Boolean
+        get() = false
+
+    override val permission: String
+        get() = Manifest.permission.CAMERA
+
+    override val permissionRequested: Boolean
+        get() = true
+
+    override val shouldShowRationale: Boolean
+        get() = false
+
+    override fun launchPermissionRequest() {
+        // do nothing
+    }
 }
 
+@OptIn(ExperimentalPermissionsApi::class)
+@Preview
 @Composable
-fun CameraScanScreen(
-    modifier: Modifier = Modifier,
-    onBillScanned: (ImageProxy) -> Unit,
-    uiState: SplitBillUiState
-) {
-    val context = LocalContext.current
-    val lifecycleOwner = LocalLifecycleOwner.current
-    val cameraProviderFuture = remember { ProcessCameraProvider.getInstance(context) }
-    val cameraExecutor = remember { Executors.newSingleThreadExecutor() }
-
-    DisposableEffect(Unit) {
-        onDispose {
-            cameraExecutor.shutdown()
+fun SplitBillMainScreenPreview() {
+    LemonTheme {
+        Surface {
+            SplitBillMainScreen(
+                modifier = Modifier.fillMaxSize(),
+                uiState = SplitBillUiState.Loading,
+                cameraPermissionState = PermissionsStatePreview(),
+                navController = rememberNavController(),
+                onEvent = {}
+            )
         }
-    }
-
-    Box(modifier = modifier.fillMaxSize()) {
-        AndroidView(
-            modifier = Modifier.fillMaxSize(),
-            factory = { ctx ->
-                val previewView = PreviewView(ctx).apply {
-                    this.scaleType = PreviewView.ScaleType.FILL_CENTER
-                }
-                cameraProviderFuture.addListener({
-                    try {
-                        val cameraProvider = cameraProviderFuture.get()
-                        val preview = Preview.Builder().build().also {
-                            it.setSurfaceProvider(previewView.surfaceProvider)
-                        }
-
-                        val imageAnalyzer = ImageAnalysis.Builder()
-                            .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
-                            .build()
-                            .also { analyzer ->
-                                analyzer.setAnalyzer(cameraExecutor) { imageProxy ->
-                                    onBillScanned(imageProxy)
-                                }
-                            }
-
-                        val cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
-
-                        cameraProvider.unbindAll() // Unbind previous use cases
-                        cameraProvider.bindToLifecycle(
-                            lifecycleOwner, cameraSelector, preview, imageAnalyzer
-                        )
-                        Log.d("CameraScanScreen", "Camera bound to lifecycle.")
-                    } catch (e: Exception) {
-                        Log.e("CameraScanScreen", "Use case binding failed", e)
-                    }
-                }, ContextCompat.getMainExecutor(ctx))
-                previewView
-            }
-        )
-        ScanLineAnimation(modifier = Modifier.fillMaxSize()) // Your scanning animation
     }
 }

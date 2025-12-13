@@ -16,8 +16,10 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Divider
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -65,16 +67,19 @@ fun CategorySelector(
     )
 
     Column(
-        modifier = Modifier.then(modifier),
+        modifier = Modifier.then(modifier)
+            .border(1.dp, MaterialTheme.colorScheme.onSurface, RoundedCornerShape(5.dp)),
         verticalArrangement = Arrangement.spacedBy(4.dp)
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .border(1.dp, MaterialTheme.colorScheme.onSurface, RoundedCornerShape(5.dp))
+                //.border(1.dp, MaterialTheme.colorScheme.onSurface, RoundedCornerShape(5.dp))
         ) {
             CategoryItem(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .requiredHeight(64.dp),
                 category = selectedIndex?.let { categories[it] } ?: uncategorizedCategory,
                 trailingContent = {
                     Icon(
@@ -93,6 +98,12 @@ fun CategorySelector(
                     .requiredHeight(256.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
+                item {
+                    HorizontalDivider(
+                        modifier = Modifier.fillMaxWidth(),
+                        color = MaterialTheme.colorScheme.onSurface,
+                    )
+                }
                 item {
                     CategoryItem(
                         modifier = Modifier.fillMaxWidth(),
@@ -148,19 +159,19 @@ private fun CategorySelectorPreview() {
                         id = "1",
                         name = "Groceries",
                         color = "#FF5733",
-                        icon = "shopping-cart"
+                        icon = "DEFAULT"
                     ),
                     Category(
                         id = "2",
                         name = "Utilities",
                         color = "#33FF57",
-                        icon = "flash"
+                        icon = "DEFAULT"
                     ),
                     Category(
                         id = "3",
                         name = "Entertainment",
                         color = "#3357FF",
-                        icon = "film"
+                        icon = "DEFAULT"
                     )
                 )
             ) {

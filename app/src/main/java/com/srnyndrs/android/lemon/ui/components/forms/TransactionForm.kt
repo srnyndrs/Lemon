@@ -26,6 +26,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
@@ -368,6 +369,10 @@ fun TransactionForm(
                             }
                         ),
                         singleLine = true,
+                        colors = OutlinedTextFieldDefaults.colors(
+                            unfocusedBorderColor = MaterialTheme.colorScheme.onSurface,
+                            focusedBorderColor = MaterialTheme.colorScheme.onSurface,
+                        )
                     )
                     // Date picker
                     AnimatedVisibility(showDatePicker) {
@@ -554,19 +559,19 @@ fun TransactionFormPreview() {
                         id = "1",
                         name = "Shopping",
                         color = "FF5722",
-                        icon = "shopping-bag"
+                        icon = "SHOPPING"
                     ),
                     Category(
                         id = "2",
                         name = "Salary",
                         color = "4CAF50",
-                        icon = "dollar-sign"
+                        icon = "BANK"
                     ),
                     Category(
                         id = "3",
                         name = "Food",
                         color = "FFC107",
-                        icon = "coffee"
+                        icon = "DEFAULT"
                     ),
                 ),
                 payments = listOf(

@@ -139,7 +139,8 @@ fun CategoryForm(
                     style = MaterialTheme.typography.titleMedium
                 )
                 ColorPicker(
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    initialColor = selectedColor
                 ) {
                     selectedColor = it
                 }

@@ -10,9 +10,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavArgument
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.navArgument
 import com.srnyndrs.android.lemon.domain.authentication.model.AuthStatus
 import com.srnyndrs.android.lemon.ui.screen.authentication.AuthenticationScreen
 import com.srnyndrs.android.lemon.ui.screen.authentication.AuthenticationViewModel
@@ -67,7 +70,7 @@ fun AppNavigationGraph(
                 mainState = mainState,
                 onMainEvent = { event ->
                     if(event == MainEvent.NavigateScanScreen) {
-                        navController.navigate("scan")
+                        navController.navigate("scan/${mainState.selectedHouseholdId}")
                     } else {
                         mainViewModel.onEvent(event)
                     }
@@ -76,10 +79,27 @@ fun AppNavigationGraph(
         }
 
         composable(
-            route = "scan"
+            route = "scan/{householdId}",
+            arguments = listOf(
+                navArgument("householdId") {
+                    type = NavType.StringType
+                    nullable = true
+                    defaultValue = ""
+                }
+            )
         ) {
+
+            val userId = when(authStatus) {
+                is AuthStatus.Authenticated -> authStatus.userSession.user?.id ?: ""
+                else -> ""
+            }
+
+            val householdId = it.arguments?.getString("householdId") ?: ""
+
             MainBillNavigation(
-                modifier = Modifier.fillMaxSize()
+                modifier = Modifier.fillMaxSize(),
+                householdId = householdId,
+                userId = userId
             )
         }
     }

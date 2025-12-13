@@ -1,5 +1,6 @@
 package com.srnyndrs.android.lemon.ui.components.selectors
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -11,6 +12,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
@@ -39,35 +41,39 @@ fun PaymentMethodSelector(
     paymentMethods: List<PaymentMethod>,
     onSelect: (Int?) -> Unit,
 ) {
-
-
-
     LazyRow(
         modifier = Modifier.then(modifier)
-            .requiredHeight(56.dp),
-        horizontalArrangement = Arrangement.spacedBy(12.dp)
+            .requiredHeight(42.dp),
+        horizontalArrangement = Arrangement.spacedBy(14.dp),
+        verticalAlignment = Alignment.CenterVertically
     ) {
         item {
             Card(
-                modifier = Modifier
-                    .requiredHeight(56.dp)
-                    .border(2.dp, if (selectedItem == null) MaterialTheme.colorScheme.onSurface else Color.Transparent, CardDefaults.shape),
+                modifier = Modifier.requiredHeight(42.dp),
                 colors = CardDefaults.cardColors(
                     containerColor = Color.Transparent
                 ),
                 onClick = {
                     onSelect(null)
-                }
+                },
+                border = BorderStroke(
+                    width = 2.dp,
+                    color = if (selectedItem == null) {
+                        MaterialTheme.colorScheme.onSurface
+                    } else {
+                        Color.Transparent
+                    }
+                ),
+                shape = RoundedCornerShape(5.dp)
             ) {
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(vertical = 3.dp, horizontal = 6.dp),
+                        .padding(horizontal = 8.dp),
                     verticalArrangement = Arrangement.Center,
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Text(
-                        modifier = Modifier,
                         text = "NONE",
                         color = MaterialTheme.colorScheme.onSurface,
                     )
@@ -76,26 +82,31 @@ fun PaymentMethodSelector(
         }
         itemsIndexed(paymentMethods) { index, paymentMethod ->
             Card(
-                modifier = Modifier
-                    .requiredHeight(56.dp)
-                    .border(2.dp, if (selectedItem == index) MaterialTheme.colorScheme.onSurface else Color.Transparent, CardDefaults.shape),
-                    //.border(1.dp, MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f), CardDefaults.shape),
+                modifier = Modifier.requiredHeight(42.dp),
                 colors = CardDefaults.cardColors(
                     containerColor = Color.fromHex(paymentMethod.color ?: "#BBDEFB")
                 ),
                 onClick = {
                     onSelect(index)
-                }
+                },
+                border = BorderStroke(
+                    width = 2.dp,
+                    color = if (selectedItem == index) {
+                        MaterialTheme.colorScheme.onSurface
+                    } else {
+                        Color.Transparent
+                    }
+                ),
+                shape = RoundedCornerShape(5.dp)
             ) {
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(vertical = 3.dp, horizontal = 6.dp),
+                        .padding(horizontal = 8.dp),
                     verticalArrangement = Arrangement.Center,
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Text(
-                        modifier = Modifier,
                         text = paymentMethod.name.uppercase(),
                         color = Color.Black,
                     )

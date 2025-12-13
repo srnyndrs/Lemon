@@ -45,7 +45,7 @@ fun CategoryItem(
     Row(
         modifier = Modifier
             .then(modifier)
-            .padding(horizontal = 6.dp, vertical = 8.dp)
+            .padding(8.dp)
             .clickable {
                 onClick()
             },
