@@ -68,7 +68,10 @@ dependencies {
     // Serialization
     implementation(libs.kotlinx.serialization.json)
     // Ktor
+    implementation(libs.ktor.client.core)
     implementation(libs.ktor.client.okhttp)
+    implementation(libs.ktor.client.content.negotiation)
+    implementation(libs.ktor.client.plugins)
     // Supabase
     implementation(platform("io.github.jan-tennert.supabase:bom:3.0.0"))
     implementation(libs.supabase.postgrest.kt)
@@ -90,7 +93,8 @@ dependencies {
     implementation(libs.camera.view)
     implementation(libs.camera.lifecycle)
     // GenAI
-    implementation(libs.generativeai)
+    //implementation(libs.generativeai)
+    implementation(libs.generativeai.google)
     // Permission
     implementation(libs.accompanist.permissions)
     // Test

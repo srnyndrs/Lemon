@@ -80,6 +80,7 @@ class MainViewModel @AssistedInject constructor(
             is MainEvent.UpdateUsername -> {
                 updateUsername(event.newUsername)
             }
+            else -> {}
         }
     }
 

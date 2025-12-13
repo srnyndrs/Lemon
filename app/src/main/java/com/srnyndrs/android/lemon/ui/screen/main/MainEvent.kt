@@ -6,6 +6,7 @@ import com.srnyndrs.android.lemon.domain.database.model.dto.TransactionDetailsDt
 import com.srnyndrs.android.lemon.ui.screen.main.content.household.HouseholdEvent
 
 sealed class MainEvent {
+    object NavigateScanScreen: MainEvent()
     object Logout: MainEvent()
     class SwitchHousehold(val householdId: String): MainEvent()
     class CreateHousehold(val householdName: String): MainEvent()

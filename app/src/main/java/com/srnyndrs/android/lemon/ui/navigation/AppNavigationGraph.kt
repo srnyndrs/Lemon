@@ -16,8 +16,10 @@ import androidx.navigation.compose.composable
 import com.srnyndrs.android.lemon.domain.authentication.model.AuthStatus
 import com.srnyndrs.android.lemon.ui.screen.authentication.AuthenticationScreen
 import com.srnyndrs.android.lemon.ui.screen.authentication.AuthenticationViewModel
+import com.srnyndrs.android.lemon.ui.screen.main.MainEvent
 import com.srnyndrs.android.lemon.ui.screen.main.MainScreen
 import com.srnyndrs.android.lemon.ui.screen.main.MainViewModel
+import com.srnyndrs.android.lemon.ui.screen.scan.MainBillNavigation
 
 @Composable
 fun AppNavigationGraph(
@@ -64,8 +66,20 @@ fun AppNavigationGraph(
                 modifier = Modifier.fillMaxSize(),
                 mainState = mainState,
                 onMainEvent = { event ->
-                    mainViewModel.onEvent(event)
+                    if(event == MainEvent.NavigateScanScreen) {
+                        navController.navigate("scan")
+                    } else {
+                        mainViewModel.onEvent(event)
+                    }
                 }
+            )
+        }
+
+        composable(
+            route = "scan"
+        ) {
+            MainBillNavigation(
+                modifier = Modifier.fillMaxSize()
             )
         }
     }

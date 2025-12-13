@@ -270,7 +270,7 @@ fun HomeScreen(
                 title = "Scan Receipt",
                 icon = FeatherIcons.Camera,
                 onClick = {
-                    // TODO: Open camera screen
+                    onMainEvent(MainEvent.NavigateScanScreen)
                 }
             )
             ActionButton(

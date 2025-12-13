@@ -5,6 +5,7 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import dev.shreyaspatil.ai.client.generativeai.GenerativeModel
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.annotations.SupabaseInternal
 import io.github.jan.supabase.auth.Auth
@@ -29,4 +30,11 @@ object AppModule {
             install(Storage)
         }
     }
+
+    @Provides
+    @Singleton
+    fun provideGenerativeModel(): GenerativeModel = GenerativeModel(
+        modelName = "gemini-flash-latest",
+        apiKey = BuildConfig.GENAI_KEY
+    )
 }
