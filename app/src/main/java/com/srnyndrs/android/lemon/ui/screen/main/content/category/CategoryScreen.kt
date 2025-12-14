@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -26,6 +27,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -90,23 +92,32 @@ fun CategoryScreen(
                 text = "Categories",
                 style = MaterialTheme.typography.headlineSmall
             )
-            IconButton(
-                modifier = Modifier
-                    .border(1.dp, MaterialTheme.colorScheme.onSurface, CircleShape),
+            OutlinedButton(
+                modifier = Modifier.fillMaxHeight(),
                 onClick = {
                     showDialog = CategoryUiEvent.ADD
                 }
             ) {
-                Icon(
-                    imageVector = FeatherIcons.Plus,
-                    contentDescription = "Add Category"
-                )
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        modifier = Modifier.size(12.dp),
+                        imageVector = FeatherIcons.Plus,
+                        contentDescription = "Add Category"
+                    )
+                    Text(
+                        text = "Add new",
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                }
             }
         }
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .requiredHeight(12.dp),
+                .requiredHeight(8.dp),
             horizontalArrangement = Arrangement.Center,
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -121,8 +132,9 @@ fun CategoryScreen(
             state = categoriesState.categories
         ) { isLoading, categories ->
             LazyVerticalGrid(
-                modifier = Modifier.fillMaxSize()
-                    .padding(horizontal = 8.dp),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = 6.dp),
                 columns = GridCells.Fixed(2),
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
             ) {

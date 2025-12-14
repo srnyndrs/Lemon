@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -56,6 +57,7 @@ import com.srnyndrs.android.lemon.ui.utils.formatAsCurrency
 import com.srnyndrs.android.lemon.ui.utils.shimmerEffect
 import compose.icons.FeatherIcons
 import compose.icons.feathericons.Camera
+import compose.icons.feathericons.FilePlus
 import compose.icons.feathericons.Home
 import compose.icons.feathericons.Plus
 
@@ -255,26 +257,29 @@ fun HomeScreen(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp),
+                .padding(horizontal = 16.dp, vertical = 8.dp),
             horizontalArrangement = Arrangement.spacedBy(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             ActionButton(
-                title = "Add new",
+                modifier = Modifier.defaultMinSize(56.dp),
+                title = "New Transaction",
                 icon = FeatherIcons.Plus,
                 onClick = {
                     onUiEvent(MainUiEvent.ShowTransactionEditor())
                 }
             )
             ActionButton(
-                title = "Scan Receipt",
+                modifier = Modifier.defaultMinSize(56.dp),
+                title = "Scan Bill",
                 icon = FeatherIcons.Camera,
                 onClick = {
                     onMainEvent(MainEvent.NavigateScanScreen)
                 }
             )
             ActionButton(
-                title = "Add household",
+                modifier = Modifier.defaultMinSize(56.dp),
+                title = "Create Household",
                 icon = FeatherIcons.Home,
                 onClick = {
                     showDialog = true

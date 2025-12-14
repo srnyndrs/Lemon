@@ -6,5 +6,6 @@ import kotlinx.serialization.Serializable
 data class Member(
     val id: String,
     val name: String,
-    val role: String
+    val role: String,
+    val picture: String
 )

@@ -144,19 +144,22 @@ SET search_path = ''
 AS $$
 BEGIN
   INSERT INTO public.categories (household_id, name, icon, color) VALUES
-    (p_household_id, 'Food & Dining', 'DINING', '#FF6B6B'),
-    (p_household_id, 'Groceries', 'CART', '#4ECDC4'),
-    (p_household_id, 'Transportation', 'CAR', '#45B7D1'),
-    (p_household_id, 'Entertainment', 'TELEVISION', '#96CEB4'),
-    (p_household_id, 'Shopping', 'FASHION', '#FFEAA7'),
-    (p_household_id, 'Bills & Utilities', 'BANK', '#FD79A8'),
-    (p_household_id, 'Healthcare', 'HEALTHCARE', '#A29BFE'),
-    (p_household_id, 'Education', 'BOOKS', '#6C5CE7'),
-    (p_household_id, 'Home & Garden', 'HOME', '#FD6C6C'),
-    (p_household_id, 'Personal Care', 'HANGER', '#FDCB6E'),
-    (p_household_id, 'Subscriptions', 'CATEGORIES', '#E17055'),
-    (p_household_id, 'Travel', 'AIRPLANE', '#00B894'),
-    (p_household_id, 'Other', 'DEFAULT', '#636E72');
+    (p_household_id, 'Food & Dining', 'DINING', '#D63F00'),
+    (p_household_id, 'Groceries', 'BASKET', '#00847D'),
+    (p_household_id, 'Transportation', 'CAR', '#007ACC'),
+    (p_household_id, 'Entertainment', 'MOVIE_OPEN', '#BC00FF'),
+    (p_household_id, 'Shopping', 'STORE', '#8BA000'),
+    (p_household_id, 'Bills & Utilities', 'WATER', '#C7006D'),
+    (p_household_id, 'Healthcare', 'HEART_PULSE', '#8B00CC'),
+    (p_household_id, 'Education', 'SCHOOL', '#5500CC'),
+    (p_household_id, 'Home & Garden', 'HOME', '#CC5500'),
+    (p_household_id, 'Personal Care', 'BRUSH', '#B35C00'),
+    (p_household_id, 'Subscriptions', 'WIFI', '#9E0057'),
+    (p_household_id, 'Travel', 'TICKET', '#008900'),
+    (p_household_id, 'Fitness & Sports', 'WORKOUT', '#0066D9'),
+    (p_household_id, 'Pets', 'PAW', '#8BA000'),
+    (p_household_id, 'Gifts & Donations', 'GIFT', '#CC5500'),
+    (p_household_id, 'Other', 'DEFAULT', '#7D8000');
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
@@ -181,7 +184,7 @@ BEGIN
 
   -- Create Cash payment method
   INSERT INTO public.payment_methods (owner_user_id, name, icon, color, type) 
-  VALUES (p_user_id, 'Cash', 'cash', '#2ECC71', 'cash')
+  VALUES (p_user_id, 'Cash', 'cash', '#008900', 'cash')
   RETURNING id INTO pm_id;
   
   INSERT INTO public.household_payment_methods (household_id, payment_method_id)
@@ -189,7 +192,7 @@ BEGIN
 
   -- Create Credit Card payment method
   INSERT INTO public.payment_methods (owner_user_id, name, icon, color, type) 
-  VALUES (p_user_id, 'Credit Card', 'credit-card', '#3498DB', 'card')
+  VALUES (p_user_id, 'Credit Card', 'credit-card', '#007ACC', 'card')
   RETURNING id INTO pm_id;
   
   INSERT INTO public.household_payment_methods (household_id, payment_method_id)
@@ -197,7 +200,7 @@ BEGIN
 
   -- Create Bank Transfer payment method
   INSERT INTO public.payment_methods (owner_user_id, name, icon, color, type) 
-  VALUES (p_user_id, 'Bank Transfer', 'bank', '#E67E22', 'bank_account')
+  VALUES (p_user_id, 'Bank Transfer', 'bank', '#B35C00', 'bank_account')
   RETURNING id INTO pm_id;
   
   INSERT INTO public.household_payment_methods (household_id, payment_method_id)

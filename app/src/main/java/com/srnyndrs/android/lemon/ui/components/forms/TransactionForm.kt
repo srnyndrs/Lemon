@@ -17,6 +17,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -86,6 +87,7 @@ fun TransactionForm(
     transaction: TransactionDetailsDto,
     categories: List<Category>,
     payments: List<PaymentMethod>,
+    onCancel: () -> Unit = {},
     onConfirm: (TransactionDetailsDto) -> Unit
 ) {
 
@@ -175,8 +177,13 @@ fun TransactionForm(
             .verticalScroll(scrollState)
             .padding(6.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(24.dp)
+        verticalArrangement = Arrangement.spacedBy(6.dp)
     ) {
+        // Title
+        Text(
+            text = "Transaction Editor",
+            style = MaterialTheme.typography.titleLarge
+        )
         // Content
         Column(
             modifier = Modifier
@@ -191,7 +198,7 @@ fun TransactionForm(
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 Text(
-                    text = "Transaction Type",
+                    text = "Type",
                     style = MaterialTheme.typography.titleMedium
                 )
                 SingleChoiceSegmentedButtonRow(
@@ -234,10 +241,9 @@ fun TransactionForm(
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 Text(
-                    text = "Transaction Amount",
+                    text = "Amount",
                     style = MaterialTheme.typography.titleMedium
                 )
-                // TODO: custom amount input
                 TextField(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -280,7 +286,7 @@ fun TransactionForm(
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 Text(
-                    text = "Transaction Name",
+                    text = "Name",
                     style = MaterialTheme.typography.titleMedium
                 )
                 TextField(
@@ -333,7 +339,7 @@ fun TransactionForm(
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 Text(
-                    text = "Transaction Date",
+                    text = "Date",
                     style = MaterialTheme.typography.titleMedium
                 )
                 Column(
@@ -418,7 +424,7 @@ fun TransactionForm(
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     Text(
-                        text = "Transaction Category",
+                        text = "Category",
                         style = MaterialTheme.typography.titleMedium
                     )
                     CategorySelector(
@@ -475,7 +481,7 @@ fun TransactionForm(
                         verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         Text(
-                            text = "Transaction Details",
+                            text = "Details",
                             style = MaterialTheme.typography.titleMedium
                         )
                         // Details
@@ -506,8 +512,16 @@ fun TransactionForm(
         // Actions
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.End
+            horizontalArrangement = Arrangement.SpaceBetween
         ) {
+            OutlinedButton(
+                onClick = onCancel
+            ) {
+                Text(
+                    text = "Cancel",
+                    style = MaterialTheme.typography.bodyLarge
+                )
+            }
             OutlinedButton(
                 onClick = {
                     focusRequester.requestFocus()
@@ -545,9 +559,7 @@ fun TransactionForm(
 fun TransactionFormPreview() {
     LemonTheme {
         Surface(
-            modifier = Modifier
-                .fillMaxSize()
-                //.requiredHeight(480.dp)
+            modifier = Modifier.fillMaxSize()
         ) {
             TransactionForm(
                 modifier = Modifier,

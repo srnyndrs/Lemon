@@ -1,6 +1,7 @@
 package com.srnyndrs.android.lemon.ui.components.forms
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -24,6 +25,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -80,11 +83,16 @@ fun PaymentMethodForm(
                     style = MaterialTheme.typography.titleMedium
                 )
                 TextField(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier.fillMaxWidth()
+                        .border(
+                            1.dp,
+                            MaterialTheme.colorScheme.onSurface.copy(0.33f),
+                            RectangleShape
+                        ),
                     value = paymentMethodName,
-                    label = {
+                    placeholder = {
                         Text(
-                            text = "Payment Name",
+                            text = "e.g. Cash, Visa, PayPal",
                             style = MaterialTheme.typography.bodyMedium
                         )
                     },
@@ -93,7 +101,9 @@ fun PaymentMethodForm(
                         unfocusedIndicatorColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f),
                         focusedLabelColor = MaterialTheme.colorScheme.primary,
                         unfocusedLabelColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f),
-                        cursorColor = MaterialTheme.colorScheme.primary
+                        cursorColor = MaterialTheme.colorScheme.primary,
+                        focusedContainerColor = Color.Transparent,
+                        unfocusedContainerColor = Color.Transparent,
                     ),
                     onValueChange = { paymentMethodName = it },
                     singleLine = true,

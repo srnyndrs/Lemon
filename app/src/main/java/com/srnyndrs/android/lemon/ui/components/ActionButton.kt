@@ -33,14 +33,14 @@ fun ActionButton(
     Column(
         modifier = Modifier.then(modifier),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(6.dp)
+        verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         IconButton(
             modifier = Modifier
                 .size(42.dp)
                 .clip(CircleShape),
             colors = IconButtonDefaults.iconButtonColors(
-                containerColor = MaterialTheme.colorScheme.onSurface.copy(0.2f),
+                containerColor = MaterialTheme.colorScheme.primaryContainer.copy(0.7f),
                 contentColor = MaterialTheme.colorScheme.surface
             ),
             onClick = {
@@ -50,13 +50,14 @@ fun ActionButton(
             Icon(
                 modifier = Modifier.fillMaxSize(0.6f),
                 imageVector = icon,
-                tint = MaterialTheme.colorScheme.surface,
+                tint = MaterialTheme.colorScheme.onPrimaryContainer,
                 contentDescription = "$title button",
             )
         }
         Text(
             text = title,
-            style = MaterialTheme.typography.bodySmall
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurface
         )
     }
 }

@@ -193,8 +193,7 @@ fun SplitBillMainScreen(
 }
 
 @ExperimentalPermissionsApi
-class PermissionsStatePreview(
-) : PermissionState {
+class PermissionsStatePreview() : PermissionState {
 
     override val hasPermission: Boolean
         get() = false

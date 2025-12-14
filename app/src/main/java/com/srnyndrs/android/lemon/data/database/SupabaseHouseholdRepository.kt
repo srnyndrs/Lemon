@@ -43,7 +43,7 @@ class SupabaseHouseholdRepository @Inject constructor(
                     put("p_household_id", householdId)
                 }
             ).decodeSingle<HouseholdDto>()
-            val household = result.toDomain()
+            val household = result.toDomain(client.supabaseHttpUrl)
             Log.d(_tag, "getHousehold() returned: $household")
             Result.success(household)
         } catch (e: Exception) {

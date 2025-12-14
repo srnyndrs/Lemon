@@ -18,6 +18,7 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -48,12 +49,14 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.unit.sp
 import com.srnyndrs.android.lemon.domain.database.model.Category
 import com.srnyndrs.android.lemon.domain.database.model.Household
 import com.srnyndrs.android.lemon.domain.database.model.Member
 import com.srnyndrs.android.lemon.ui.components.UiStateContainer
 import com.srnyndrs.android.lemon.ui.screen.main.MainEvent
 import com.srnyndrs.android.lemon.ui.screen.main.MainUiEvent
+import com.srnyndrs.android.lemon.ui.screen.main.components.RemotePicture
 import com.srnyndrs.android.lemon.ui.screen.main.content.category.CategoryUiEvent
 import com.srnyndrs.android.lemon.ui.theme.LemonTheme
 import com.srnyndrs.android.lemon.ui.utils.UiState
@@ -63,9 +66,9 @@ import compose.icons.feathericons.ArrowUp
 import compose.icons.feathericons.Check
 import compose.icons.feathericons.Home
 import compose.icons.feathericons.Plus
+import compose.icons.feathericons.User
 import compose.icons.feathericons.UserCheck
 import compose.icons.feathericons.UserX
-
 
 enum class MemberAction {
     REMOVE,
@@ -225,6 +228,7 @@ fun HouseholdScreen(
                         )
                     }
                 }
+                HorizontalDivider()
                 // Members
                 LazyColumn(
                     modifier = Modifier
@@ -235,13 +239,16 @@ fun HouseholdScreen(
                 ) {
                     item {
                         Row(
-                            modifier = Modifier.fillMaxWidth(),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(bottom = 12.dp),
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.SpaceBetween
                         ) {
                             Text(
                                 text = "Members",
-                                style = MaterialTheme.typography.bodyLarge,
+                                style = MaterialTheme.typography.titleLarge,
+                                fontSize = 24.sp
                             )
                             IconButton(
                                 modifier = Modifier.size(32.dp),
@@ -269,7 +276,7 @@ fun HouseholdScreen(
                                     horizontalArrangement = Arrangement.spacedBy(6.dp),
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
-                                    Box(
+                                    RemotePicture(
                                         modifier = Modifier
                                             .size(32.dp)
                                             .clip(CircleShape)
@@ -283,14 +290,8 @@ fun HouseholdScreen(
                                                 MaterialTheme.colorScheme.onSurface,
                                                 CircleShape
                                             ),
-                                        contentAlignment = Alignment.Center
-                                    ) {
-                                        Icon(
-                                            modifier = Modifier.size(14.dp),
-                                            imageVector = FeatherIcons.UserCheck,
-                                            contentDescription = null
-                                        )
-                                    }
+                                        url = member.picture
+                                    )
                                     Text(
                                         text = member.name,
                                         style = MaterialTheme.typography.bodyMedium
@@ -572,17 +573,20 @@ fun HouseholdScreenPreview() {
                                 Member(
                                     id = "1",
                                     name = "Jane",
-                                    role = "Owner"
+                                    role = "Owner",
+                                    picture = ""
                                 ),
                                 Member(
                                     id = "2",
                                     name = "John",
-                                    role = "Owner"
+                                    role = "Owner",
+                                    picture = ""
                                 ),
                                 Member(
                                     id = "3",
                                     name = "Jack",
-                                    role = "Member"
+                                    role = "Member",
+                                    picture = ""
                                 )
                             ),
                         )

@@ -29,6 +29,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.srnyndrs.android.lemon.ui.theme.LemonTheme
+import com.srnyndrs.android.lemon.ui.utils.LemonColors
 import com.srnyndrs.android.lemon.ui.utils.fromHex
 
 @Composable
@@ -38,12 +39,7 @@ fun ColorPicker(
     onSelection: (String) -> Unit
 ) {
 
-    val colors = listOf(
-        "#FFFFFF", "#FFCDD2", "#F8BBD0", "#E1BEE7", "#D1C4E9",
-        "#C5CAE9", "#BBDEFB", "#B3E5FC", "#B2EBF2", "#B2DFDB",
-        "#C8E6C9", "#DCEDC8", "#F0F4C3", "#FFF9C4", "#FFECB3",
-        "#FFE0B2", "#FFCCBC", "#D7CCC8", "#CFD8DC", "#000000"
-    )
+    val colors = LemonColors.entries.map { it.colorHex }
 
     var selectedColorIndex by remember {
         mutableIntStateOf(
@@ -51,12 +47,6 @@ fun ColorPicker(
         )
     }
 
-    /*LazyVerticalGrid(
-        modifier = modifier,
-        columns = GridCells.Adaptive(minSize = 32.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
-    )*/
     LazyRow(
         modifier = Modifier.then(modifier)
             .requiredHeight(48.dp)
@@ -69,6 +59,7 @@ fun ColorPicker(
             Column(
                 modifier = Modifier.fillMaxSize(),
                 horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
             ) {
                 Box(
                     modifier = Modifier

@@ -102,7 +102,6 @@ fun MainScreen(
     onMainEvent: (MainEvent) -> Unit,
 ) {
 
-    var privacyMode by rememberSaveable { mutableStateOf(true) }
     var selectedMenuItem by rememberSaveable { mutableIntStateOf(0) }
 
     val navController = rememberNavController()
@@ -154,7 +153,7 @@ fun MainScreen(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(horizontal = 18.dp, vertical = 12.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween,
+                        horizontalArrangement = Arrangement.Start,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Row(
@@ -177,18 +176,10 @@ fun MainScreen(
                                 )
                             }
                             //
-                            Text(text = mainState.user.username)
-                        }
-                        IconButton(
-                            modifier = Modifier.size(24.dp),
-                            onClick = {
-                                privacyMode = !privacyMode
-                                // TODO: authentication
-                            }
-                        ) {
-                            Icon(
-                                imageVector = if (privacyMode) FeatherIcons.EyeOff else FeatherIcons.Eye,
-                                contentDescription = null
+                            Text(
+                                text = mainState.user.username,
+                                style = MaterialTheme.typography.titleMedium,
+                                color = MaterialTheme.colorScheme.onSurface
                             )
                         }
                     }

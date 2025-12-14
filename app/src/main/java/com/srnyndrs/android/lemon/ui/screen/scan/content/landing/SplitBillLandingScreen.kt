@@ -77,7 +77,6 @@ fun SplitBillLandingScreen(
             Spacer(modifier = Modifier.height(32.dp))
             Text(
                 modifier = Modifier.align(Alignment.CenterHorizontally),
-                // TODO change text
                 text = "Create a new transaction by scanning a bill.\nLemon will help you import easily.",
                 textAlign = TextAlign.Center,
                 style = MaterialTheme.typography.bodyLarge,

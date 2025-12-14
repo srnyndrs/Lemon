@@ -51,7 +51,7 @@ fun PaymentMethodSelector(
             Card(
                 modifier = Modifier.requiredHeight(42.dp),
                 colors = CardDefaults.cardColors(
-                    containerColor = Color.Transparent
+                    containerColor = MaterialTheme.colorScheme.onSurface.copy(0.3f)
                 ),
                 onClick = {
                     onSelect(null)
