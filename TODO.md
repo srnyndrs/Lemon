@@ -25,7 +25,7 @@
 - [x] Monthly contribution calculations
 - [ ] Category limits management
 - [ ] Saving goals module
-- [ ] Receipt scan (OCR) for transaction auto-fill
+- [x] Receipt scan (OCR) for transaction auto-fill
 
 ## Documentation
 - [ ] Finalize documentation
