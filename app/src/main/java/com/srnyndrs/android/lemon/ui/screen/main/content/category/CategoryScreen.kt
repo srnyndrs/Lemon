@@ -45,6 +45,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.Popup
@@ -77,8 +78,8 @@ fun CategoryScreen(
     Column(
         modifier = modifier
             .fillMaxSize()
-            .padding(6.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp),
+            .padding(horizontal = 6.dp),
+        verticalArrangement = Arrangement.spacedBy(4.dp),
     ) {
         Row(
             modifier = Modifier
@@ -132,11 +133,10 @@ fun CategoryScreen(
             state = categoriesState.categories
         ) { isLoading, categories ->
             LazyVerticalGrid(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(horizontal = 6.dp),
+                modifier = Modifier.fillMaxSize(),
                 columns = GridCells.Fixed(2),
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
+                verticalArrangement = Arrangement.spacedBy(4.dp)
             ) {
                 if(isLoading) {
                     items(6) {
@@ -165,7 +165,7 @@ fun CategoryScreen(
                             Card(
                                 modifier = Modifier
                                     .padding(vertical = 6.dp)
-                                    .fillMaxWidth()
+                                    .fillMaxWidth(0.8f)
                                     .requiredHeight(72.dp)
                                     .combinedClickable(
                                         onClick = {},
@@ -193,13 +193,17 @@ fun CategoryScreen(
                                         modifier = Modifier
                                             .size(32.dp)
                                             .clip(CircleShape)
-                                            .border(1.dp, Color.Black, CircleShape),
+                                            .border(
+                                                1.dp,
+                                                MaterialTheme.colorScheme.onSurface.copy(0.7f),
+                                                CircleShape
+                                            ),
                                         contentAlignment = Alignment.Center
                                     ) {
                                         LemonIcon(
                                             modifier = Modifier.size(28.dp).padding(3.dp),
                                             icon = LemonIcons.valueOf(category.icon),
-                                            tint = Color.Black
+                                            tint = MaterialTheme.colorScheme.onSurface.copy(0.7f)
                                         )
                                     }
                                     Text(
@@ -207,6 +211,7 @@ fun CategoryScreen(
                                         style = MaterialTheme.typography.bodyLarge,
                                         maxLines = 1,
                                         overflow = TextOverflow.Ellipsis,
+                                        color = MaterialTheme.colorScheme.onSurface.copy(0.7f)
                                     )
                                 }
                                 DropdownMenu(
@@ -350,7 +355,7 @@ enum class CategoryUiEvent {
     DELETE,
 }
 
-@Preview
+@PreviewLightDark
 @Composable
 fun CategoryScreenPreview() {
     LemonTheme {
@@ -376,6 +381,27 @@ fun CategoryScreenPreview() {
                             ),
                             Category(
                                 id = "3",
+                                name = "Shopping",
+                                color = "FFFFB74D",
+                                icon = "CART",
+                                householdId = "1"
+                            ),
+                            Category(
+                                id = "4",
+                                name = "Shopping",
+                                color = "FFFFB74D",
+                                icon = "CART",
+                                householdId = "1"
+                            ),
+                            Category(
+                                id = "6",
+                                name = "Shopping",
+                                color = "FF64B5F6",
+                                icon = "CART",
+                                householdId = "1"
+                            ),
+                            Category(
+                                id = "6",
                                 name = "Shopping",
                                 color = "FFFFB74D",
                                 icon = "CART",

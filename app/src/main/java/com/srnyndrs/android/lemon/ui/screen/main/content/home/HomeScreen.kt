@@ -317,7 +317,7 @@ fun HomeScreen(
             Column (
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(bottom = 12.dp, start = 6.dp, end = 6.dp),
+                    .padding(start = 6.dp, end = 6.dp),
                 verticalArrangement = Arrangement.spacedBy(6.dp)
             ) {
                 UiStateContainer(

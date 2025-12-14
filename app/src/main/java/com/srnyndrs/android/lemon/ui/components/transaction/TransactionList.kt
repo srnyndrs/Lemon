@@ -125,8 +125,7 @@ fun TransactionListPreview() {
             TransactionList(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(Color.Transparent)
-                    .padding(6.dp),
+                    .background(Color.Transparent),
                 isLoading = true,
                 transactions = mapOf(
                     "June 20, 2024" to listOf(

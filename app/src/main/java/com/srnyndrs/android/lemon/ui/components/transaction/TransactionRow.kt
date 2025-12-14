@@ -156,7 +156,6 @@ fun TransactionRow(
                     //tint = if(isExpense) Color.Red else Color.Green,
                     contentDescription = null
                 )
-                // TODO: Format amount
                 Text(
                     text = "${transaction.amount.formatAsCurrency()} Ft",
                     //color = if(isExpense) Color.Red else Color.Green,
@@ -187,9 +186,10 @@ fun TransactionRow(
                     shape = RoundedCornerShape(topEnd = 3.dp, bottomEnd = 3.dp),
                     contentPadding = PaddingValues(0.dp)
                 ) {
-                    Icon(
+                    LemonIcon(
                         modifier = Modifier.size(16.dp),
-                        imageVector = FeatherIcons.Delete,
+                        icon = LemonIcons.TRASH_CAN,
+                        tint = MaterialTheme.colorScheme.onError,
                         contentDescription = "Delete transaction"
                     )
                 }

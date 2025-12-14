@@ -34,9 +34,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
+import com.srnyndrs.android.lemon.R
 import com.srnyndrs.android.lemon.domain.database.model.UserMainData
 import com.srnyndrs.android.lemon.ui.components.ActionButton
 import com.srnyndrs.android.lemon.ui.components.forms.CategoryForm
@@ -129,7 +133,7 @@ fun ProfileScreen(
             }
             ActionButton(
                 title = "Sign out",
-                icon = FeatherIcons.Delete,
+                icon = ImageVector.vectorResource(R.drawable.exit),
             ) {
                 onMainEvent(MainEvent.Logout)
             }
